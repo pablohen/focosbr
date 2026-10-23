@@ -153,7 +153,12 @@ export function FirePanel({
 			w={{ base: "100%", sm: 340 }}
 			style={{ zIndex: 2, borderRadius: "var(--mantine-radius-md)" }}
 		>
-			<ScrollArea.Autosize mah={{ base: "45dvh", sm: "calc(100dvh - 32px)" }}>
+			<ScrollArea.Autosize
+				mah={{
+					base: "45dvh",
+					sm: "calc(100dvh - var(--app-shell-header-height) - 32px)",
+				}}
+			>
 				<Stack gap="sm" p="md">
 					<Group gap="xs" wrap="nowrap" justify="space-between">
 						<Title order={2} size="h5">
