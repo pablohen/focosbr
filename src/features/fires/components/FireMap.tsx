@@ -1,5 +1,6 @@
 import type { FeatureCollection, Point } from "geojson";
 import {
+	type ExpressionSpecification,
 	type GeoJSONSource,
 	Map as MapLibreMap,
 	NavigationControl,
@@ -23,8 +24,25 @@ type BBox = [number, number, number, number];
 
 const BRAZIL: BBox = [-74, -34, -34.5, 5.5];
 const SOURCE = "fires";
+const CLUSTERS = "fire-clusters";
+const CLUSTER_COUNT = "fire-cluster-count";
+/** Above this zoom every detection is its own dot. */
+const CLUSTER_MAX_ZOOM = 6;
 const STATES = "states";
 const STATE_OUTLINE = "state-outline";
+
+/** Age-band colour for an age in hours (a detection's, or a cluster's newest). */
+function ageColor(age: ExpressionSpecification): ExpressionSpecification {
+	return [
+		"step",
+		age,
+		AGE_BANDS[0].color,
+		AGE_BANDS[0].maxHours,
+		AGE_BANDS[1].color,
+		AGE_BANDS[1].maxHours,
+		AGE_BANDS[2].color,
+	];
+}
 
 /**
  * The panel covers the left 356 px on desktop and the bottom 45% of the
@@ -119,21 +137,72 @@ export default function FireMap({ data, features, focus }: Props) {
 				filter: ["==", ["get", "uf"], ""],
 				paint: { "line-color": "#3b3b3b", "line-width": 1.5 },
 			});
-			map.addSource(SOURCE, { type: "geojson", data: latest.current.features });
+			// At low zoom nearby detections merge into clusters, coloured by their
+			// newest detection; 28k dots on one screen just overlap.
+			map.addSource(SOURCE, {
+				type: "geojson",
+				data: latest.current.features,
+				cluster: true,
+				clusterMaxZoom: CLUSTER_MAX_ZOOM,
+				clusterRadius: 40,
+				clusterProperties: { newest: ["min", ["get", "age"]] },
+			});
+			map.addLayer({
+				id: CLUSTERS,
+				type: "circle",
+				source: SOURCE,
+				filter: ["has", "point_count"],
+				paint: {
+					"circle-color": ageColor(["get", "newest"]),
+					"circle-radius": [
+						"step",
+						["get", "point_count"],
+						12,
+						50,
+						16,
+						250,
+						21,
+						1000,
+						27,
+					],
+					"circle-stroke-color": "#ffffff",
+					"circle-stroke-width": 2,
+					"circle-opacity": 0.92,
+				},
+			});
+			map.addLayer({
+				id: CLUSTER_COUNT,
+				type: "symbol",
+				source: SOURCE,
+				filter: ["has", "point_count"],
+				layout: {
+					"text-field": [
+						"number-format",
+						["get", "point_count"],
+						{ locale: "pt-BR" },
+					],
+					"text-font": ["Noto Sans Bold"],
+					"text-size": 11,
+					"text-allow-overlap": true,
+				},
+				paint: {
+					// Dark text on the lightest band, white on the others.
+					"text-color": [
+						"step",
+						["get", "newest"],
+						"#ffffff",
+						AGE_BANDS[1].maxHours,
+						"#3b0a04",
+					],
+				},
+			});
 			map.addLayer({
 				id: SOURCE,
 				type: "circle",
 				source: SOURCE,
+				filter: ["!", ["has", "point_count"]],
 				paint: {
-					"circle-color": [
-						"step",
-						["get", "age"],
-						AGE_BANDS[0].color,
-						AGE_BANDS[0].maxHours,
-						AGE_BANDS[1].color,
-						AGE_BANDS[1].maxHours,
-						AGE_BANDS[2].color,
-					],
+					"circle-color": ageColor(["get", "age"]),
 					// Bigger for stronger fires (FRP, MW) and as you zoom in.
 					"circle-radius": [
 						"interpolate",
@@ -172,12 +241,29 @@ export default function FireMap({ data, features, focus }: Props) {
 				.setDOMContent(popupContent(current, i))
 				.addTo(map);
 		});
-		map.on("mouseenter", SOURCE, () => {
-			map.getCanvas().style.cursor = "pointer";
+		// A cluster zooms in to where it splits.
+		map.on("click", CLUSTERS, async (e) => {
+			const feature = e.features?.[0];
+			const id = feature?.properties?.cluster_id;
+			if (!feature || id === undefined || feature.geometry.type !== "Point")
+				return;
+			const zoom = await map
+				.getSource<GeoJSONSource>(SOURCE)
+				?.getClusterExpansionZoom(id);
+			map.easeTo({
+				center: feature.geometry.coordinates as [number, number],
+				zoom: zoom ?? map.getZoom() + 2,
+				padding: panelPadding(map.getContainer()),
+			});
 		});
-		map.on("mouseleave", SOURCE, () => {
-			map.getCanvas().style.cursor = "";
-		});
+		for (const layer of [SOURCE, CLUSTERS]) {
+			map.on("mouseenter", layer, () => {
+				map.getCanvas().style.cursor = "pointer";
+			});
+			map.on("mouseleave", layer, () => {
+				map.getCanvas().style.cursor = "";
+			});
+		}
 
 		return () => {
 			cancelAutoHide();

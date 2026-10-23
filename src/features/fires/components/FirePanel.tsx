@@ -202,7 +202,9 @@ export function FirePanel({
 							))}
 						</Group>
 						<Text size="xs" c="dimmed">
-							Pontos maiores indicam fogo mais intenso (potência radiativa).
+							Pontos maiores indicam fogo mais intenso (potência radiativa). De
+							longe, focos próximos se agrupam em círculos numerados, com a cor
+							do mais recente; toque para aproximar.
 						</Text>
 					</Stack>
 
