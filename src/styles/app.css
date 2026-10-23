@@ -14,6 +14,10 @@
 	border-radius: var(--mantine-radius-md);
 	box-shadow: var(--mantine-shadow-md);
 	padding: 10px 12px;
+	/* On short screens the popup scrolls instead of running under the header
+	   or the phone sheet (45dvh). */
+	max-height: calc(55dvh - var(--app-shell-header-height, 56px) - 24px);
+	overflow-y: auto;
 }
 /* The tip is a border triangle; only the side facing the content is coloured. */
 .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,

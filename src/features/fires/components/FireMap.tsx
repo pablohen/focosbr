@@ -12,7 +12,17 @@ import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "react";
 import { autoHideAttribution } from "~/lib/map-attribution";
 import type { FiresResponse } from "../schemas";
-import { AGE_BANDS, describeFire, type FireProps } from "../view";
+import {
+	AGE_BANDS,
+	describeFire,
+	describeGroup,
+	type FireGroups,
+	type FireProps,
+	formatAgo,
+	riskClass,
+	SENSOR_LABELS,
+	SENSOR_RESOLUTION,
+} from "../view";
 
 // MapLibre resolves its worker relative to its own module URL, which breaks
 // once Vite rebundles it; point it at the published worker instead.
@@ -61,24 +71,136 @@ const TIME = new Intl.DateTimeFormat("pt-BR", {
 	timeZone: "America/Sao_Paulo",
 });
 
-/** Popup body built from text nodes: names come from INPE, not from us. */
-function popupContent(data: FiresResponse, i: number): HTMLElement {
+const NUMBER = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+const COORD = new Intl.NumberFormat("pt-BR", {
+	minimumFractionDigits: 4,
+	maximumFractionDigits: 4,
+});
+const CLOCK = new Intl.DateTimeFormat("pt-BR", {
+	timeStyle: "short",
+	timeZone: "America/Sao_Paulo",
+});
+
+const DAY = new Intl.DateTimeFormat("pt-BR", {
+	day: "2-digit",
+	month: "2-digit",
+	timeZone: "America/Sao_Paulo",
+});
+
+/** "14:41 a 14:43", or with dates when the span crosses midnight in Brasília. */
+function span(first: Date, last: Date): string {
+	const sameDay = DAY.format(first) === DAY.format(last);
+	const at = (d: Date) =>
+		sameDay ? CLOCK.format(d) : `${DAY.format(d)} ${CLOCK.format(d)}`;
+	return `${at(first)} a ${at(last)}`;
+}
+
+/**
+ * Popup body, built from DOM nodes and text: names come from INPE, so no
+ * HTML strings. Rows only appear when INPE has the value.
+ */
+function popupContent(
+	data: FiresResponse,
+	groups: FireGroups | undefined,
+	i: number,
+	nowMs: number,
+): HTMLElement {
 	const fire = describeFire(data, i);
+	const el = <K extends keyof HTMLElementTagNameMap>(
+		tag: K,
+		text: string,
+		style: Partial<CSSStyleDeclaration> = {},
+	) => {
+		const node = document.createElement(tag);
+		node.textContent = text;
+		Object.assign(node.style, style);
+		return node;
+	};
+	const dimmed = { color: "var(--mantine-color-dimmed)" };
+
 	const root = document.createElement("div");
 	root.style.font = "13px/1.45 var(--mantine-font-family)";
-	const line = (text: string, bold = false) => {
-		const el = document.createElement("div");
-		el.textContent = text;
-		if (bold) el.style.fontWeight = "600";
-		root.append(el);
-	};
-	line(fire.place, true);
-	if (fire.biome) line(fire.biome);
+	root.append(el("div", fire.place, { fontWeight: "700", fontSize: "14px" }));
+	const ago = formatAgo(Math.floor((nowMs - fire.time.getTime()) / 60_000));
+	root.append(
+		el(
+			"div",
+			[fire.biome, `detectado ${ago}`].filter(Boolean).join(" · "),
+			dimmed,
+		),
+	);
+
+	const rows = document.createElement("dl");
+	Object.assign(rows.style, {
+		display: "grid",
+		gridTemplateColumns: "auto 1fr",
+		gap: "2px 10px",
+		margin: "8px 0",
+	});
+	const row = (label: string, value: string) =>
+		rows.append(el("dt", label, dimmed), el("dd", value, { margin: "0" }));
+	row("Quando", `${TIME.format(fire.time)} (Brasília)`);
+	const resolution = SENSOR_RESOLUTION[fire.sensor];
+	row(
+		"Satélite",
+		[fire.satellite, SENSOR_LABELS[fire.sensor], resolution]
+			.filter(Boolean)
+			.join(" · "),
+	);
+	if (fire.frp !== null) row("Potência", `${NUMBER.format(fire.frp)} MW`);
+	if (fire.dryDays !== null)
+		row(
+			"Sem chuva",
+			fire.dryDays === 1 ? "1 dia" : `${NUMBER.format(fire.dryDays)} dias`,
+		);
+	if (fire.rain !== null) row("Precipitação", `${NUMBER.format(fire.rain)} mm`);
+	if (fire.risk !== null)
+		row(
+			"Risco de fogo",
+			`${riskClass(fire.risk)} (${NUMBER.format(fire.risk * 100)}%)`,
+		);
+	root.append(rows);
+
+	if (groups) {
+		const group = describeGroup(data, groups, i);
+		if (group.count > 1)
+			root.append(
+				el(
+					"div",
+					`Mesmo fogo: ${group.count} detecções de ${span(group.first, group.last)}, por ${group.satellites.join(", ")}.`,
+				),
+			);
+	}
 	if (fire.preliminary)
-		line("Preliminar: município e bioma chegam na próxima atualização do INPE");
-	line(`${TIME.format(fire.time)} (horário de Brasília)`);
-	line(`Satélite ${fire.satellite}`);
-	if (fire.frp !== null) line(`Potência radiativa ${fire.frp} MW`);
+		root.append(
+			el(
+				"div",
+				"Preliminar: município, bioma e clima chegam na próxima atualização do INPE.",
+				dimmed,
+			),
+		);
+	else if (fire.risk === null)
+		root.append(
+			el(
+				"div",
+				"Clima (dias sem chuva, risco de fogo) chega quando o INPE fecha o dia.",
+				dimmed,
+			),
+		);
+
+	const where = document.createElement("div");
+	where.style.marginTop = "6px";
+	const coords = `${COORD.format(fire.lat)}, ${COORD.format(fire.lon)}`;
+	where.append(el("span", `${coords} · `, dimmed));
+	const link = el("a", "ver no OpenStreetMap");
+	Object.assign(link, {
+		href: `https://www.openstreetmap.org/?mlat=${fire.lat}&mlon=${fire.lon}#map=14/${fire.lat}/${fire.lon}`,
+		target: "_blank",
+		rel: "noreferrer",
+	});
+	link.style.color = "var(--mantine-color-anchor)";
+	where.append(link);
+	root.append(where);
 	return root;
 }
 
@@ -89,18 +211,20 @@ type Props = {
 	data: FiresResponse | undefined;
 	features: FeatureCollection<Point, FireProps>;
 	focus: MapFocus;
+	/** The shown detections grouped into fires, for the popup. */
+	groups: FireGroups | undefined;
 };
 
 /** Hotspot map. Browser-only: load it through React.lazy behind <ClientOnly>. */
-export default function FireMap({ data, features, focus }: Props) {
+export default function FireMap({ data, features, focus, groups }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
 	const [ready, setReady] = useState(false);
 	// The selection the map last fitted to; "" is the whole country.
 	const fittedKey = useRef("");
 	// The latest props, for handlers registered once.
-	const latest = useRef({ data, features });
-	latest.current = { data, features };
+	const latest = useRef({ data, features, groups });
+	latest.current = { data, features, groups };
 
 	useEffect(() => {
 		if (!containerRef.current) return;
@@ -238,9 +362,22 @@ export default function FireMap({ data, features, focus }: Props) {
 			const current = latest.current.data;
 			if (!feature || !current) return;
 			const i = Number(feature.properties?.i);
-			new Popup({ maxWidth: "260px" })
+			// Bring the dot to the bottom of the visible part of the map (beside
+			// the panel, or above the phone sheet) so the popup fits above it.
+			const container = map.getContainer();
+			const padding = panelPadding(container);
+			const visible = container.clientHeight - padding.top - padding.bottom;
+			map.easeTo({
+				center: e.lngLat,
+				padding,
+				offset: [0, Math.max(0, visible / 2 - 24)],
+				duration: 300,
+			});
+			new Popup({ maxWidth: "300px", anchor: "bottom" })
 				.setLngLat(e.lngLat)
-				.setDOMContent(popupContent(current, i))
+				.setDOMContent(
+					popupContent(current, latest.current.groups, i, Date.now()),
+				)
 				.addTo(map);
 		});
 		// A cluster zooms in to where it splits.

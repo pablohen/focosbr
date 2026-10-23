@@ -122,7 +122,12 @@ function FiresPage() {
 				>
 					<ClientOnly fallback={MAP_FALLBACK}>
 						<Suspense fallback={MAP_FALLBACK}>
-							<FireMap data={data} features={features} focus={focus} />
+							<FireMap
+								data={data}
+								features={features}
+								focus={focus}
+								groups={summary?.groups}
+							/>
 						</Suspense>
 					</ClientOnly>
 					<FirePanel
