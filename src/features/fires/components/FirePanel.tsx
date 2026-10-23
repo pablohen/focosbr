@@ -25,8 +25,15 @@ import {
 	type Window,
 } from "../schemas";
 import { STATE_NAMES } from "../states";
-import { AGE_BANDS, type Ranked, SENSOR_LABELS, type summarize } from "../view";
+import {
+	AGE_BANDS,
+	type HourBucket,
+	type Ranked,
+	SENSOR_LABELS,
+	type summarize,
+} from "../view";
 import { Freshness } from "./Freshness";
+import { HourlyChart } from "./HourlyChart";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
@@ -46,6 +53,7 @@ type Props = {
 	onRegionChange: (region: Region) => void;
 	data: FiresResponse | undefined;
 	summary: ReturnType<typeof summarize> | undefined;
+	hourly: HourBucket[] | undefined;
 	loading: boolean;
 	error: unknown;
 };
@@ -129,6 +137,7 @@ export function FirePanel({
 	onRegionChange,
 	data,
 	summary,
+	hourly,
 	loading,
 	error,
 }: Props) {
@@ -198,6 +207,8 @@ export function FirePanel({
 					) : (
 						<Skeleton h={52} />
 					)}
+
+					{hourly && summary?.total ? <HourlyChart buckets={hourly} /> : null}
 
 					<Stack gap={4}>
 						<Text size="sm" fw={600}>

@@ -16,6 +16,7 @@ import { FiresSearchSchema } from "~/features/fires/schemas";
 import { useFires } from "~/features/fires/use-fires";
 import {
 	boundsOf,
+	hourlyCounts,
 	selectFires,
 	summarize,
 	toFeatures,
@@ -69,6 +70,13 @@ function FiresPage() {
 		[data, indices],
 	);
 
+	const hourly = useMemo(
+		() =>
+			data
+				? hourlyCounts(data, indices, hours, Date.parse(data.generatedAt))
+				: undefined,
+		[data, indices, hours],
+	);
 	const focus = useMemo(() => {
 		const key =
 			uf || biome || place ? `${uf ?? ""}|${biome ?? ""}|${place ?? ""}` : "";
@@ -148,6 +156,7 @@ function FiresPage() {
 						}
 						data={data}
 						summary={summary}
+						hourly={hourly}
 						loading={loading}
 						error={error}
 					/>

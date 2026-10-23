@@ -6,6 +6,7 @@ import {
 	estimateFires,
 	formatAgo,
 	freshness,
+	hourlyCounts,
 	selectFires,
 	summarize,
 	toFeatures,
@@ -164,5 +165,16 @@ describe("estimateFires", () => {
 		const d = at([-50, -10, 0], [-50.05, -10, 0], [-60, -5, 0]);
 		expect(estimateFires(d, [0, 2])).toBe(2);
 		expect(estimateFires(d, [])).toBe(0);
+	});
+});
+
+describe("hourlyCounts", () => {
+	it("buckets by clock hour, ending with the current one", () => {
+		// NOW is 21:00 UTC; detections at 10:00, 18:00 and 20:00.
+		const b = hourlyCounts(DATA, [0, 1, 2], 6, NOW + 30 * 60_000);
+		expect(b).toHaveLength(6);
+		expect(b[0]?.start).toBe(Date.UTC(2026, 9, 23, 16));
+		expect(b.at(-1)?.start).toBe(Date.UTC(2026, 9, 23, 21));
+		expect(b.map((x) => x.count)).toEqual([0, 0, 1, 0, 1, 0]);
 	});
 });

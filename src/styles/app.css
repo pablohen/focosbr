@@ -37,3 +37,12 @@
 	font-size: 18px;
 	padding: 0 6px;
 }
+
+/* Hourly chart bars: one ember step, validated for each surface (the dark
+   step is lighter to stay inside the chart lightness band). */
+:root {
+	--chart-bar: #d9431e;
+}
+[data-mantine-color-scheme="dark"] {
+	--chart-bar: #e45a32;
+}

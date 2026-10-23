@@ -237,3 +237,29 @@ export function formatAgo(minutes: number): string {
 	const m = minutes % 60;
 	return m ? `há ${h} h ${m} min` : `há ${h} h`;
 }
+
+export type HourBucket = { start: number; count: number };
+
+/**
+ * Detections per clock hour over the window, oldest first. The last bucket
+ * is the hour `nowMs` falls in, so the bar for "now" is still filling.
+ */
+export function hourlyCounts(
+	data: FiresResponse,
+	indices: number[],
+	hours: number,
+	nowMs: number,
+): HourBucket[] {
+	const hour = 3_600_000;
+	const first = Math.floor(nowMs / hour) * hour - (hours - 1) * hour;
+	const buckets = Array.from({ length: hours }, (_, k) => ({
+		start: first + k * hour,
+		count: 0,
+	}));
+	for (const i of indices) {
+		const k = Math.floor(((data.fires.t[i] ?? 0) * 1000 - first) / hour);
+		const bucket = buckets[k];
+		if (bucket) bucket.count++;
+	}
+	return buckets;
+}
