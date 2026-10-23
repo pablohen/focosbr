@@ -10,6 +10,7 @@ import {
 	Title,
 } from "@mantine/core";
 import mantineCss from "@mantine/core/styles.css?url";
+import nprogressCss from "@mantine/nprogress/styles.css?url";
 import {
 	createRootRoute,
 	HeadContent,
@@ -19,6 +20,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { RouteProgress } from "~/lib/route-progress";
 import appCss from "~/styles/app.css?url";
 import { cssVariablesResolver, theme } from "~/theme";
 
@@ -50,6 +52,7 @@ export const Route = createRootRoute({
 		],
 		links: [
 			{ rel: "stylesheet", href: mantineCss },
+			{ rel: "stylesheet", href: nprogressCss },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
 		],
@@ -94,6 +97,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 					cssVariablesResolver={cssVariablesResolver}
 					defaultColorScheme="auto"
 				>
+					<RouteProgress />
 					{children}
 				</MantineProvider>
 				<Scripts />

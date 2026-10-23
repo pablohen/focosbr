@@ -16,6 +16,7 @@ import { FiresSearchSchema } from "~/features/fires/schemas";
 import { useFires } from "~/features/fires/use-fires";
 import { selectFires, summarize, toFeatures } from "~/features/fires/view";
 import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
+import { useProgress } from "~/lib/route-progress";
 
 const FireMap = lazy(() => import("~/features/fires/components/FireMap"));
 
@@ -35,6 +36,7 @@ function FiresPage() {
 	const { h: hours = 24, sensor: sensors = [] } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { data, error, loading } = useFires(hours);
+	useProgress(loading);
 
 	const indices = useMemo(
 		() => (data ? selectFires(data, sensors) : []),
