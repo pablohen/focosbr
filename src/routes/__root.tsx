@@ -1,11 +1,19 @@
 import "@fontsource/inter/400.css";
 import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
-import { MantineProvider, mantineHtmlProps } from "@mantine/core";
+import {
+	Anchor,
+	Center,
+	MantineProvider,
+	mantineHtmlProps,
+	Stack,
+	Title,
+} from "@mantine/core";
 import mantineCss from "@mantine/core/styles.css?url";
 import {
 	createRootRoute,
 	HeadContent,
+	Link,
 	Outlet,
 	ScriptOnce,
 	Scripts,
@@ -47,7 +55,23 @@ export const Route = createRootRoute({
 		],
 	}),
 	component: RootComponent,
+	notFoundComponent: NotFound,
 });
+
+function NotFound() {
+	return (
+		<Center h="100dvh">
+			<Stack align="center" gap="xs">
+				<Title order={1} size="h2">
+					Página não encontrada
+				</Title>
+				<Anchor component={Link} to="/">
+					Voltar ao mapa
+				</Anchor>
+			</Stack>
+		</Center>
+	);
+}
 
 function RootComponent() {
 	return (
