@@ -14,7 +14,7 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { Fire, WarningCircle } from "@phosphor-icons/react";
+import { WarningCircle } from "@phosphor-icons/react";
 import {
 	type FiresResponse,
 	SENSORS,
@@ -88,16 +88,9 @@ export function FirePanel({
 			<ScrollArea.Autosize mah={{ base: "45dvh", sm: "calc(100dvh - 32px)" }}>
 				<Stack gap="sm" p="md">
 					<Group gap="xs" wrap="nowrap" justify="space-between">
-						<Group gap={6} wrap="nowrap">
-							<Fire
-								size={22}
-								weight="fill"
-								color="var(--mantine-color-ember-6)"
-							/>
-							<Title order={1} size="h4">
-								Focos de calor no Brasil
-							</Title>
-						</Group>
+						<Title order={2} size="h5">
+							Focos de calor no Brasil
+						</Title>
 						{loading && <Loader size="xs" aria-label="Atualizando" />}
 					</Group>
 
