@@ -46,13 +46,14 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 
 ## Architecture rules
 
-1. **Zod schemas are the single source of truth.** `src/features/fires/schemas.ts` defines the API payload (`FiresResponseSchema`) and the page's URL state (`FiresSearchSchema`). Derive types with `z.infer`; never hand-write a duplicate interface.
-2. **Server-only code lives in `*.server.ts`** and is imported **lazily** from the API route (`await import(...)`), so it stays out of the client graph. Never import it from components.
-3. **Feature folders.** Domain code goes in `src/features/<feature>/` (`schemas.ts`, pure helpers, `<feature>.server.ts`, `components/`). Shared infrastructure goes in `src/lib/`.
-4. **URL state.** Anything a user would share or bookmark lives in search params validated by Zod: `h` (window), `sensor`, `uf`, `bioma`, `municipio`. Don't move these into `useState`. Defaults are left out of the URL (`h=24` is omitted).
-5. **The browser filters; the server doesn't.** `/api/fires` returns every detection in the window. `view.ts` selects, counts, merges and buckets on the client, so every filter change is instant and the CDN caches just three responses (one per window).
-6. **Browser-only libraries load lazily.** MapLibre sits behind `<ClientOnly>` + `React.lazy` in a default-exported component (`FireMap.tsx`). Keep `setWorkerUrl(workerUrl)` there: Vite rebundles MapLibre and its worker can't be found otherwise.
-7. **Mobile first-paint uses CSS.** Lay out with Mantine responsive style props (`top={{ base, sm }}`), not JS breakpoints. On phones the panel is a bottom sheet (45dvh); `panelPadding()` in `FireMap.tsx` keeps fits and cluster zooms in the visible part of the map. Change both together.
+1. **Payload changes stay backward compatible.** The CDN and browsers can hold a response from before a deploy for minutes. A field added to `FiresResponseSchema` needs a `.default()`, and code reading it must handle the default (a missing `prelim[i]` counts as 0). Never rename or retype a field in place.
+2. **Zod schemas are the single source of truth.** `src/features/fires/schemas.ts` defines the API payload (`FiresResponseSchema`) and the page's URL state (`FiresSearchSchema`). Derive types with `z.infer`; never hand-write a duplicate interface.
+3. **Server-only code lives in `*.server.ts`** and is imported **lazily** from the API route (`await import(...)`), so it stays out of the client graph. Never import it from components.
+4. **Feature folders.** Domain code goes in `src/features/<feature>/` (`schemas.ts`, pure helpers, `<feature>.server.ts`, `components/`). Shared infrastructure goes in `src/lib/`.
+5. **URL state.** Anything a user would share or bookmark lives in search params validated by Zod: `h` (window), `sensor`, `uf`, `bioma`, `municipio`. Don't move these into `useState`. Defaults are left out of the URL (`h=24` is omitted).
+6. **The browser filters; the server doesn't.** `/api/fires` returns every detection in the window. `view.ts` selects, counts, merges and buckets on the client, so every filter change is instant and the CDN caches just three responses (one per window).
+7. **Browser-only libraries load lazily.** MapLibre sits behind `<ClientOnly>` + `React.lazy` in a default-exported component (`FireMap.tsx`). Keep `setWorkerUrl(workerUrl)` there: Vite rebundles MapLibre and its worker can't be found otherwise.
+8. **Mobile first-paint uses CSS.** Lay out with Mantine responsive style props (`top={{ base, sm }}`), not JS breakpoints. On phones the panel is a bottom sheet (45dvh); `panelPadding()` in `FireMap.tsx` keeps fits and cluster zooms in the visible part of the map. Change both together.
 
 ## Domain invariants
 

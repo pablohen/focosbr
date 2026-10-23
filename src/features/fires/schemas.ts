@@ -45,7 +45,9 @@ export const FiresResponseSchema = z.object({
 	/** Newest detection in the window, if any. */
 	latestAt: z.iso.datetime().nullable(),
 	/** When INPE last rewrote its files (their Last-Modified), if known. */
-	sourceUpdatedAt: z.iso.datetime().nullable(),
+	// Fields added after launch have defaults: the CDN can still hold a
+	// response from before a deploy, and the new client must accept it.
+	sourceUpdatedAt: z.iso.datetime().nullable().default(null),
 	satellites: z.array(z.string()),
 	/** Two-letter state codes. */
 	states: z.array(z.string()),
@@ -67,7 +69,7 @@ export const FiresResponseSchema = z.object({
 		 * 1 for a preliminary detection from INPE's 10-minute files: state
 		 * located by us, no municipality, biome or FRP yet.
 		 */
-		prelim: z.array(z.union([z.literal(0), z.literal(1)])),
+		prelim: z.array(z.union([z.literal(0), z.literal(1)])).default([]),
 	}),
 });
 export type FiresResponse = z.infer<typeof FiresResponseSchema>;

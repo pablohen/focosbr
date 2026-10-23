@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { FiresResponse } from "./schemas";
+import { type FiresResponse, FiresResponseSchema } from "./schemas";
 import {
 	boundsOf,
 	describeFire,
@@ -128,6 +128,17 @@ describe("describeFire, preliminary", () => {
 		expect(fire.place).toBe("Mato Grosso (MT)");
 		expect(fire.preliminary).toBe(true);
 		expect(summarize(d, {}).preliminary).toBe(1);
+	});
+});
+
+describe("FiresResponseSchema", () => {
+	it("accepts a response from before prelim and sourceUpdatedAt existed", () => {
+		const { prelim: _, ...oldFires } = DATA.fires;
+		const { sourceUpdatedAt: __, ...old } = DATA;
+		const parsed = FiresResponseSchema.parse({ ...old, fires: oldFires });
+		expect(parsed.fires.prelim).toEqual([]);
+		expect(parsed.sourceUpdatedAt).toBeNull();
+		expect(describeFire(parsed, 0).preliminary).toBe(false);
 	});
 });
 
