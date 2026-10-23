@@ -3,8 +3,12 @@ import {
 	buildFiresResponse,
 	dailyFileUrl,
 	daysForWindow,
+	gapSlots,
+	mergeDetections,
 	parseInpeCsv,
+	parseTenMinuteCsv,
 	sensorOf,
+	tenMinuteFileUrl,
 	titleCase,
 } from "./inpe";
 
@@ -28,6 +32,7 @@ describe("parseInpeCsv", () => {
 			place: "Corrente (PI)",
 			biome: "Cerrado",
 			frp: 70.9,
+			preliminary: false,
 		});
 		expect(rows[1]?.place).toBe("São José do Ribamar (MA)");
 		expect(rows[1]?.frp).toBeNull();
@@ -99,5 +104,85 @@ describe("buildFiresResponse", () => {
 		const res = buildFiresResponse([], new Date(), 6);
 		expect(res.latestAt).toBeNull();
 		expect(res.fires.lon).toEqual([]);
+	});
+});
+
+// As INPE publishes them: South America, no state, biome or FRP.
+const TEN_MIN = `lat,lon,satelite,data
+  -3.967800, -55.736600,GOES-19,2026-10-23 21:40:00
+   9.075100, -62.839300,GOES-19,2026-10-23 21:40:00
+ -10.601900, -45.000600,NOAA-20,2026-10-23 18:32:00
+`;
+/** A stand-in for the IBGE outlines: Brazil is "west of -40 and south of 5". */
+const locate = (lon: number, lat: number) =>
+	lon < -40 && lat < 5 ? (lon < -50 ? "PA" : "PI") : null;
+
+describe("parseTenMinuteCsv", () => {
+	it("keeps detections in Brazil, located and marked preliminary", () => {
+		const rows = parseTenMinuteCsv(TEN_MIN, locate);
+		expect(rows).toHaveLength(2);
+		expect(rows[0]).toEqual({
+			lat: -3.9678,
+			lon: -55.7366,
+			time: Date.UTC(2026, 9, 23, 21, 40),
+			satellite: "GOES-19",
+			state: "PA",
+			place: "",
+			biome: "",
+			frp: null,
+			preliminary: true,
+		});
+		expect(rows[1]?.state).toBe("PI");
+	});
+	it("refuses a header it doesn't recognise", () => {
+		expect(() => parseTenMinuteCsv("lat,lon\n1,2", locate)).toThrow(/header/);
+	});
+});
+
+describe("gapSlots", () => {
+	it("lists publish slots after the daily rewrite, up to now", () => {
+		const cutoff = new Date(Date.UTC(2026, 9, 23, 21, 6, 2));
+		const now = new Date(Date.UTC(2026, 9, 23, 21, 45));
+		expect(gapSlots(cutoff, now).map(tenMinuteFileUrl)).toEqual([
+			expect.stringMatching(/focos_10min_20261023_2110\.csv$/),
+			expect.stringMatching(/focos_10min_20261023_2120\.csv$/),
+			expect.stringMatching(/focos_10min_20261023_2130\.csv$/),
+			expect.stringMatching(/focos_10min_20261023_2140\.csv$/),
+		]);
+	});
+	it("is empty when the daily file is current, and capped at six hours", () => {
+		const now = new Date(Date.UTC(2026, 9, 23, 21, 45));
+		expect(gapSlots(new Date(Date.UTC(2026, 9, 23, 21, 41)), now)).toEqual([]);
+		const stalled = gapSlots(new Date(Date.UTC(2026, 9, 22)), now);
+		expect(stalled).toHaveLength(36);
+		expect(stalled.at(-1)?.toISOString()).toBe("2026-10-23T21:40:00.000Z");
+	});
+});
+
+describe("mergeDetections", () => {
+	it("adds new detections and skips ones the daily file has", () => {
+		const daily = parseInpeCsv(CSV);
+		const extra = parseTenMinuteCsv(TEN_MIN, locate);
+		// The NOAA-20 row repeats nothing (different time); copy one that does.
+		const dup = { ...daily[0], preliminary: true } as (typeof daily)[0];
+		const merged = mergeDetections(daily, [...extra, dup]);
+		expect(merged).toHaveLength(daily.length + extra.length);
+		expect(merged.filter((d) => d.preliminary)).toHaveLength(2);
+	});
+});
+
+describe("buildFiresResponse prelim column", () => {
+	it("flags preliminary detections", () => {
+		const rows = mergeDetections(
+			parseInpeCsv(CSV),
+			parseTenMinuteCsv(TEN_MIN, locate),
+		);
+		const res = buildFiresResponse(
+			rows,
+			new Date(Date.UTC(2026, 9, 23, 22)),
+			24,
+		);
+		// Oldest first: 00:00 daily, 18:32 preliminary, 20:40 daily, 21:40 preliminary.
+		expect(res.fires.prelim).toEqual([0, 1, 0, 1]);
 	});
 });

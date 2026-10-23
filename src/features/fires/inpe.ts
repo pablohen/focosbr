@@ -5,11 +5,22 @@
  * Source: https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/
  * One CSV per UTC day, rewritten through the day (gaps of 50+ minutes
  * happen); `Last-Modified` says when.
+ *
+ * Between rewrites, INPE also publishes a small CSV every 10 minutes
+ * (…/focos/csv/10min/focos_10min_YYYYMMDD_HHMM.csv, named by UTC publish
+ * time) covering South America, with position, satellite and time only.
+ * Files published after the daily file's last rewrite fill the gap.
  */
 import type { FiresResponse, Sensor, Window } from "./schemas";
 
 export const INPE_DAILY_BASE =
 	"https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil";
+export const INPE_10MIN_BASE =
+	"https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/10min";
+
+/** At most this many 10-minute files (6 h) bridge a stalled daily file. */
+export const MAX_GAP_FILES = 36;
+const TEN_MINUTES = 600_000;
 
 export type Detection = {
 	lat: number;
@@ -21,6 +32,11 @@ export type Detection = {
 	place: string;
 	biome: string;
 	frp: number | null;
+	/**
+	 * From a 10-minute file: state located from IBGE outlines, no
+	 * municipality, biome or FRP until INPE's next daily rewrite.
+	 */
+	preliminary: boolean;
 };
 
 /** IBGE state codes (INPE's `estado_id`) to their two-letter abbreviations. */
@@ -142,7 +158,96 @@ export function parseInpeCsv(text: string): Detection[] {
 			place: state ? `${municipality} (${state})` : municipality,
 			biome: f[idx.biome]?.trim() ?? "",
 			frp: frp !== null && Number.isFinite(frp) ? frp : null,
+			preliminary: false,
 		});
+	}
+	return out;
+}
+
+/** UTC publish slot → its 10-minute file's URL. */
+export function tenMinuteFileUrl(slot: Date): string {
+	const iso = slot.toISOString();
+	const ymd = iso.slice(0, 10).replaceAll("-", "");
+	const hm = iso.slice(11, 16).replace(":", "");
+	return `${INPE_10MIN_BASE}/focos_10min_${ymd}_${hm}.csv`;
+}
+
+/**
+ * The 10-minute publish slots after `cutoff` (the daily file's last
+ * rewrite) up to `now`, oldest first; the newest MAX_GAP_FILES at most.
+ * Publish time, not detection time: a late-processed satellite pass lands
+ * in a file published well after the pass.
+ */
+export function gapSlots(cutoff: Date, now: Date): Date[] {
+	const slots: Date[] = [];
+	for (
+		let t = Math.floor(now.getTime() / TEN_MINUTES) * TEN_MINUTES;
+		t > cutoff.getTime() && slots.length < MAX_GAP_FILES;
+		t -= TEN_MINUTES
+	)
+		slots.push(new Date(t));
+	return slots.reverse();
+}
+
+/**
+ * Parses a 10-minute file (`lat,lon,satelite,data`), keeping detections
+ * that `locate` places in a Brazilian state.
+ */
+export function parseTenMinuteCsv(
+	text: string,
+	locate: (lon: number, lat: number) => string | null,
+): Detection[] {
+	const lines = text.split(/\r?\n/);
+	const header = lines[0]?.split(",").map((h) => h.trim()) ?? [];
+	const idx = {
+		lat: header.indexOf("lat"),
+		lon: header.indexOf("lon"),
+		satellite: header.indexOf("satelite"),
+		time: header.indexOf("data"),
+	};
+	if (Object.values(idx).some((i) => i < 0))
+		throw new Error(`Unexpected INPE 10-minute header: ${lines[0]}`);
+
+	const out: Detection[] = [];
+	for (let i = 1; i < lines.length; i++) {
+		const f = lines[i]?.split(",");
+		if (!f || f.length !== header.length) continue;
+		const lat = Number(f[idx.lat]);
+		const lon = Number(f[idx.lon]);
+		const time = parseGmt(f[idx.time] ?? "");
+		if (!Number.isFinite(lat) || !Number.isFinite(lon) || Number.isNaN(time))
+			continue;
+		const state = locate(lon, lat);
+		if (!state) continue;
+		out.push({
+			lat,
+			lon,
+			time,
+			satellite: f[idx.satellite]?.trim() ?? "",
+			state,
+			place: "",
+			biome: "",
+			frp: null,
+			preliminary: true,
+		});
+	}
+	return out;
+}
+
+/** Adds `extra` to `base`, skipping detections `base` already has. */
+export function mergeDetections(
+	base: Detection[],
+	extra: Detection[],
+): Detection[] {
+	const key = (d: Detection) =>
+		`${d.lat.toFixed(4)},${d.lon.toFixed(4)},${d.time},${d.satellite}`;
+	const seen = new Set(base.map(key));
+	const out = [...base];
+	for (const d of extra) {
+		const k = key(d);
+		if (seen.has(k)) continue;
+		seen.add(k);
+		out.push(d);
 	}
 	return out;
 }
@@ -197,6 +302,7 @@ export function buildFiresResponse(
 		state: [],
 		place: [],
 		biome: [],
+		prelim: [],
 	};
 	for (const d of kept) {
 		fires.lon.push(d.lon);
@@ -207,6 +313,7 @@ export function buildFiresResponse(
 		fires.state.push(indexIn(tables.states, d.state));
 		fires.place.push(indexIn(tables.places, d.place));
 		fires.biome.push(indexIn(tables.biomes, d.biome));
+		fires.prelim.push(d.preliminary ? 1 : 0);
 	}
 
 	const latest = kept.at(-1);

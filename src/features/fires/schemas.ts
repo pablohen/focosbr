@@ -63,6 +63,11 @@ export const FiresResponseSchema = z.object({
 		state: z.array(z.number().int()),
 		place: z.array(z.number().int()),
 		biome: z.array(z.number().int()),
+		/**
+		 * 1 for a preliminary detection from INPE's 10-minute files: state
+		 * located by us, no municipality, biome or FRP yet.
+		 */
+		prelim: z.array(z.union([z.literal(0), z.literal(1)])),
 	}),
 });
 export type FiresResponse = z.infer<typeof FiresResponseSchema>;

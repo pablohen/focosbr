@@ -34,6 +34,7 @@ const DATA: FiresResponse = {
 		state: [0, 1, 0],
 		place: [0, 1, 0],
 		biome: [0, 1, 0],
+		prelim: [0, 0, 0],
 	},
 };
 const NOW = Date.UTC(2026, 9, 23, 21);

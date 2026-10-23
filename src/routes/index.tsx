@@ -184,5 +184,6 @@ const EMPTY = {
 		state: [],
 		place: [],
 		biome: [],
+		prelim: [],
 	},
 } satisfies Parameters<typeof toFeatures>[0];
