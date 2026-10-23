@@ -5,6 +5,7 @@
 import type { FeatureCollection, Point } from "geojson";
 import { sensorOf } from "./inpe";
 import type { FiresResponse, Sensor } from "./schemas";
+import { STATE_NAMES } from "./states";
 
 /**
  * Age bands, newest first: one red hue, darker = more recent (an ordinal
@@ -185,6 +186,7 @@ export function summarize(data: FiresResponse, filters: FireFilters) {
 	const selected = selectFires(data, filters);
 	return {
 		total: selected.length,
+		preliminary: selected.filter((i) => data.fires.prelim[i] === 1).length,
 		fires: estimateFires(data, selected),
 		states: rank(
 			data.states,
@@ -207,8 +209,16 @@ export function summarize(data: FiresResponse, filters: FireFilters) {
 /** The detection's details for its popup. */
 export function describeFire(data: FiresResponse, i: number) {
 	const f = data.fires;
+	const state = data.states[f.state[i] ?? -1] ?? "";
+	const preliminary = f.prelim[i] === 1;
 	return {
-		place: data.places[f.place[i] ?? -1] || "Local desconhecido",
+		// Preliminary detections only know their state (located by us).
+		place:
+			data.places[f.place[i] ?? -1] ||
+			(state
+				? `${STATE_NAMES[state] ?? state} (${state})`
+				: "Local desconhecido"),
+		preliminary,
 		biome: data.biomes[f.biome[i] ?? -1] || null,
 		satellite: data.satellites[f.sat[i] ?? -1] ?? "",
 		time: new Date((f.t[i] ?? 0) * 1000),

@@ -200,6 +200,16 @@ export function FirePanel({
 								{data.latestAt &&
 									` · último às ${CLOCK.format(new Date(data.latestAt))}`}
 							</Text>
+							{summary.preliminary > 0 && (
+								<Text size="xs" c="dimmed">
+									Inclui {NUMBER.format(summary.preliminary)}{" "}
+									{summary.preliminary === 1
+										? "foco preliminar"
+										: "focos preliminares"}
+									, publicados pelo INPE depois da última atualização completa
+									(ainda sem município e bioma).
+								</Text>
+							)}
 							<Box mt={6}>
 								<Freshness sourceUpdatedAt={data.sourceUpdatedAt} />
 							</Box>

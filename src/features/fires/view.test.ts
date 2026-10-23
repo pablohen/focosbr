@@ -108,11 +108,26 @@ describe("describeFire", () => {
 	it("resolves lookup tables", () => {
 		expect(describeFire(DATA, 1)).toEqual({
 			place: "Colniza (MT)",
+			preliminary: false,
 			biome: null,
 			satellite: "GOES-19",
 			time: new Date(Date.UTC(2026, 9, 23, 18)),
 			frp: null,
 		});
+	});
+});
+
+describe("describeFire, preliminary", () => {
+	it("falls back to the state for a detection without municipality", () => {
+		const d: FiresResponse = {
+			...DATA,
+			places: [...DATA.places, ""],
+			fires: { ...DATA.fires, place: [0, 2, 0], prelim: [0, 1, 0] },
+		};
+		const fire = describeFire(d, 1);
+		expect(fire.place).toBe("Mato Grosso (MT)");
+		expect(fire.preliminary).toBe(true);
+		expect(summarize(d, {}).preliminary).toBe(1);
 	});
 });
 

@@ -74,6 +74,8 @@ function popupContent(data: FiresResponse, i: number): HTMLElement {
 	};
 	line(fire.place, true);
 	if (fire.biome) line(fire.biome);
+	if (fire.preliminary)
+		line("Preliminar: município e bioma chegam na próxima atualização do INPE");
 	line(`${TIME.format(fire.time)} (horário de Brasília)`);
 	line(`Satélite ${fire.satellite}`);
 	if (fire.frp !== null) line(`Potência radiativa ${fire.frp} MW`);
