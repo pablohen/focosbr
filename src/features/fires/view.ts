@@ -21,6 +21,25 @@ export const AGE_BANDS = [
 	},
 ] as const;
 
+/** Nominal pixel size at the sub-satellite point; larger off-nadir. */
+export const SENSOR_RESOLUTION: Record<Sensor, string | null> = {
+	viirs: "375 m",
+	modis: "1 km",
+	goes: "2 km",
+	metop: "1 km",
+	msg: "3 km",
+	other: null,
+};
+
+/** INPE's fire-risk classes, by their published thresholds. */
+export function riskClass(risk: number): string {
+	if (risk < 0.15) return "Mínimo";
+	if (risk < 0.4) return "Baixo";
+	if (risk < 0.7) return "Médio";
+	if (risk < 0.95) return "Alto";
+	return "Crítico";
+}
+
 export const SENSOR_LABELS: Record<Sensor, string> = {
 	viirs: "VIIRS",
 	modis: "MODIS",
@@ -92,13 +111,22 @@ export const MERGE_SECONDS = 3600;
 const CELL_DEG = 0.02;
 
 /**
- * Estimated number of distinct fires among the detections. Several
+ * Estimated fires: `groupOf` maps each detection (index into `fires`) to
+ * its fire's id, and `members` lists each fire's detections.
+ */
+export type FireGroups = {
+	groupOf: Map<number, number>;
+	members: Map<number, number[]>;
+};
+
+/**
+ * Groups the detections into estimated distinct fires. Several
  * satellites see the same fire minutes apart, and GOES sees it every 10
  * minutes, so raw counts inflate. Detections within MERGE_KM and
  * MERGE_SECONDS of each other are joined (transitively, so a front that
  * keeps burning stays one fire).
  */
-export function estimateFires(data: FiresResponse, indices: number[]): number {
+export function fireGroups(data: FiresResponse, indices: number[]): FireGroups {
 	const { lon, lat, t } = data.fires;
 	const parent = indices.map((_, k) => k);
 	const find = (k: number): number => {
@@ -131,9 +159,45 @@ export function estimateFires(data: FiresResponse, indices: number[]): number {
 		if (cell) cell.push(k);
 		else grid.set(key, [k]);
 	});
-	let roots = 0;
-	for (let k = 0; k < parent.length; k++) if (find(k) === k) roots++;
-	return roots;
+	const groupOf = new Map<number, number>();
+	const members = new Map<number, number[]>();
+	indices.forEach((i, k) => {
+		const root = indices[find(k)] ?? i;
+		groupOf.set(i, root);
+		const list = members.get(root);
+		if (list) list.push(i);
+		else members.set(root, [i]);
+	});
+	return { groupOf, members };
+}
+
+/** Estimated number of distinct fires among the detections. */
+export function estimateFires(data: FiresResponse, indices: number[]): number {
+	return fireGroups(data, indices).members.size;
+}
+
+/** The fire a detection belongs to, for its popup. */
+export function describeGroup(
+	data: FiresResponse,
+	groups: FireGroups,
+	i: number,
+) {
+	const root = groups.groupOf.get(i);
+	const members = root === undefined ? [i] : (groups.members.get(root) ?? [i]);
+	const times = members.map((m) => data.fires.t[m] ?? 0);
+	const satellites = [
+		...new Set(
+			members.map((m) => data.satellites[data.fires.sat[m] ?? -1] ?? ""),
+		),
+	]
+		.filter(Boolean)
+		.sort();
+	return {
+		count: members.length,
+		first: new Date(Math.min(...times) * 1000),
+		last: new Date(Math.max(...times) * 1000),
+		satellites,
+	};
 }
 
 /** Points for MapLibre, with age in hours relative to `nowMs`. */
@@ -184,10 +248,13 @@ export function summarize(data: FiresResponse, filters: FireFilters) {
 		if (s) bySensor.set(s, (bySensor.get(s) ?? 0) + 1);
 	}
 	const selected = selectFires(data, filters);
+	const groups = fireGroups(data, selected);
 	return {
 		total: selected.length,
 		preliminary: selected.filter((i) => data.fires.prelim[i] === 1).length,
-		fires: estimateFires(data, selected),
+		fires: groups.members.size,
+		/** The selected detections grouped into fires, for popups. */
+		groups,
 		states: rank(
 			data.states,
 			data.fires.state,
@@ -221,8 +288,15 @@ export function describeFire(data: FiresResponse, i: number) {
 		preliminary,
 		biome: data.biomes[f.biome[i] ?? -1] || null,
 		satellite: data.satellites[f.sat[i] ?? -1] ?? "",
+		sensor: sensorOf(data.satellites[f.sat[i] ?? -1] ?? ""),
 		time: new Date((f.t[i] ?? 0) * 1000),
 		frp: f.frp[i] ?? null,
+		lon: f.lon[i] ?? 0,
+		lat: f.lat[i] ?? 0,
+		// Missing in payloads from before these fields existed.
+		dryDays: f.dry[i] ?? null,
+		rain: f.rain[i] ?? null,
+		risk: f.risk[i] ?? null,
 	};
 }
 

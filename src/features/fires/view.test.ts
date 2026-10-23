@@ -3,10 +3,13 @@ import { type FiresResponse, FiresResponseSchema } from "./schemas";
 import {
 	boundsOf,
 	describeFire,
+	describeGroup,
 	estimateFires,
+	fireGroups,
 	formatAgo,
 	freshness,
 	hourlyCounts,
+	riskClass,
 	selectFires,
 	summarize,
 	toFeatures,
@@ -114,8 +117,14 @@ describe("describeFire", () => {
 			preliminary: false,
 			biome: null,
 			satellite: "GOES-19",
+			sensor: "goes",
 			time: new Date(Date.UTC(2026, 9, 23, 18)),
 			frp: null,
+			lon: -59,
+			lat: -9,
+			dryDays: null,
+			rain: null,
+			risk: null,
 		});
 	});
 });
@@ -191,6 +200,17 @@ describe("estimateFires", () => {
 		const d = at([-50, -10, 0], [-50, -10, 50], [-50, -10, 100]);
 		expect(estimateFires(d, all(d))).toBe(1);
 	});
+	it("describes the fire a detection belongs to", () => {
+		const d = at([-50, -10, 0], [-50.01, -10, 30], [-60, -5, 0]);
+		d.fires.sat = [0, 1, 0];
+		const groups = fireGroups(d, all(d));
+		expect(groups.members.size).toBe(2);
+		const fire = describeGroup(d, groups, 1);
+		expect(fire.count).toBe(2);
+		expect(fire.last.getTime() - fire.first.getTime()).toBe(30 * 60_000);
+		expect(fire.satellites).toEqual(["GOES-19", "NOAA-20"]);
+		expect(describeGroup(d, groups, 2).count).toBe(1);
+	});
 	it("only counts the given detections", () => {
 		const d = at([-50, -10, 0], [-50.05, -10, 0], [-60, -5, 0]);
 		expect(estimateFires(d, [0, 2])).toBe(2);
@@ -206,5 +226,16 @@ describe("hourlyCounts", () => {
 		expect(b[0]?.start).toBe(Date.UTC(2026, 9, 23, 16));
 		expect(b.at(-1)?.start).toBe(Date.UTC(2026, 9, 23, 21));
 		expect(b.map((x) => x.count)).toEqual([0, 0, 1, 0, 1, 0]);
+	});
+});
+
+describe("riskClass", () => {
+	it("uses INPE's thresholds", () => {
+		expect(riskClass(0.1)).toBe("Mínimo");
+		expect(riskClass(0.15)).toBe("Baixo");
+		expect(riskClass(0.5)).toBe("Médio");
+		expect(riskClass(0.8)).toBe("Alto");
+		expect(riskClass(0.95)).toBe("Crítico");
+		expect(riskClass(1)).toBe("Crítico");
 	});
 });
