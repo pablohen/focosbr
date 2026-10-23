@@ -53,6 +53,7 @@ describe("selectFires", () => {
 		expect(selectFires(DATA, { biome: "Amazônia" })).toEqual([0, 2]);
 		expect(selectFires(DATA, { uf: "PA", sensors: ["goes"] })).toEqual([]);
 		expect(selectFires(DATA, { uf: "SP" })).toEqual([]);
+		expect(selectFires(DATA, { place: "Colniza (MT)" })).toEqual([1]);
 	});
 });
 
@@ -92,6 +93,12 @@ describe("summarize", () => {
 		expect(s.bySensor.get("goes")).toBe(1);
 		expect(s.bySensor.has("viirs")).toBe(false);
 		expect(summarize(DATA, { uf: "MT" }).states).toHaveLength(2);
+		const byPlace = summarize(DATA, { place: "Colniza (MT)" });
+		expect(byPlace.total).toBe(1);
+		expect(byPlace.places.map((p) => p.name)).toEqual([
+			"Altamira (PA)",
+			"Colniza (MT)",
+		]);
 	});
 });
 

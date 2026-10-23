@@ -37,12 +37,14 @@ export type FireFilters = {
 	/** Two-letter state code. */
 	uf?: string;
 	biome?: string;
+	/** "Município (UF)" label, as in `FiresResponse.places`. */
+	place?: string;
 };
 
 /** Indices of the detections that pass every filter. */
 export function selectFires(
 	data: FiresResponse,
-	{ sensors, uf, biome }: FireFilters,
+	{ sensors, uf, biome, place }: FireFilters,
 ): number[] {
 	const allowed = sensors?.length ? new Set(sensors) : null;
 	const satOk = data.satellites.map(
@@ -50,13 +52,15 @@ export function selectFires(
 	);
 	const stateOk = data.states.map((s) => !uf || s === uf);
 	const biomeOk = data.biomes.map((b) => !biome || b === biome);
+	const placeOk = data.places.map((p) => !place || p === place);
 	const f = data.fires;
 	const out: number[] = [];
 	for (let i = 0; i < f.sat.length; i++)
 		if (
 			satOk[f.sat[i] ?? -1] &&
 			stateOk[f.state[i] ?? -1] &&
-			biomeOk[f.biome[i] ?? -1]
+			biomeOk[f.biome[i] ?? -1] &&
+			placeOk[f.place[i] ?? -1]
 		)
 			out.push(i);
 	return out;
@@ -191,6 +195,11 @@ export function summarize(data: FiresResponse, filters: FireFilters) {
 			data.biomes,
 			data.fires.biome,
 			selectFires(data, { ...filters, biome: undefined }),
+		),
+		places: rank(
+			data.places,
+			data.fires.place,
+			selectFires(data, { ...filters, place: undefined }),
 		),
 		bySensor,
 	};

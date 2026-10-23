@@ -43,12 +43,16 @@ function FiresPage() {
 		sensor: sensors = [],
 		uf,
 		bioma: biome,
+		municipio: place,
 	} = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { data, error, loading } = useFires(hours);
 	useProgress(loading);
 
-	const filters = useMemo(() => ({ sensors, uf, biome }), [sensors, uf, biome]);
+	const filters = useMemo(
+		() => ({ sensors, uf, biome, place }),
+		[sensors, uf, biome, place],
+	);
 	const indices = useMemo(
 		() => (data ? selectFires(data, filters) : []),
 		[data, filters],
@@ -66,13 +70,14 @@ function FiresPage() {
 	);
 
 	const focus = useMemo(() => {
-		const key = uf || biome ? `${uf ?? ""}|${biome ?? ""}` : "";
+		const key =
+			uf || biome || place ? `${uf ?? ""}|${biome ?? ""}|${place ?? ""}` : "";
 		return {
 			key,
 			bounds: key && data ? boundsOf(data, indices) : null,
 			uf,
 		};
-	}, [uf, biome, data, indices]);
+	}, [uf, biome, place, data, indices]);
 
 	return (
 		<AppShell header={{ height: 56 }} padding={0}>
@@ -130,9 +135,15 @@ function FiresPage() {
 						}
 						uf={uf}
 						biome={biome}
+						place={place}
 						onRegionChange={(region) =>
 							navigate({
-								search: (s) => ({ ...s, uf: region.uf, bioma: region.biome }),
+								search: (s) => ({
+									...s,
+									uf: region.uf,
+									bioma: region.biome,
+									municipio: region.place,
+								}),
 							})
 						}
 						data={data}

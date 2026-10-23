@@ -41,13 +41,16 @@ type Props = {
 	onSensorsChange: (sensors: Sensor[]) => void;
 	uf: string | undefined;
 	biome: string | undefined;
-	/** `undefined` clears that part of the region. */
-	onRegionChange: (region: { uf?: string; biome?: string }) => void;
+	place: string | undefined;
+	/** The whole new region; a missing part is cleared. */
+	onRegionChange: (region: Region) => void;
 	data: FiresResponse | undefined;
 	summary: ReturnType<typeof summarize> | undefined;
 	loading: boolean;
 	error: unknown;
 };
+
+type Region = { uf?: string; biome?: string; place?: string };
 
 const ROWS = 5;
 
@@ -122,6 +125,7 @@ export function FirePanel({
 	onSensorsChange,
 	uf,
 	biome,
+	place,
 	onRegionChange,
 	data,
 	summary,
@@ -182,8 +186,8 @@ export function FirePanel({
 								{NUMBER.format(summary.total)}{" "}
 								{summary.total === 1 ? "foco detectado" : "focos detectados"}{" "}
 								nas últimas {hours} horas
-								{(uf || biome) &&
-									` em ${[uf && (STATE_NAMES[uf] ?? uf), biome].filter(Boolean).join(" · ")}`}
+								{(uf || biome || place) &&
+									` em ${[place ?? (uf && (STATE_NAMES[uf] ?? uf)), biome].filter(Boolean).join(" · ")}`}
 								{data.latestAt &&
 									` · último às ${CLOCK.format(new Date(data.latestAt))}`}
 							</Text>
@@ -297,6 +301,14 @@ export function FirePanel({
 								onToggle={(next) => onRegionChange({ uf, biome: next })}
 							/>
 						</Group>
+					)}
+					{summary && (
+						<RankTable
+							caption="Municípios"
+							rows={summary.places}
+							selected={place}
+							onToggle={(next) => onRegionChange({ uf, biome, place: next })}
+						/>
 					)}
 
 					<Text size="xs" c="dimmed">

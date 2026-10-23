@@ -29,6 +29,8 @@ export const FiresSearchSchema = z.object({
 		.catch(undefined),
 	/** Biome name as INPE publishes it ("Amazônia", "Cerrado"…). */
 	bioma: z.string().min(1).max(40).optional().catch(undefined),
+	/** "Município (UF)", as INPE's municipality plus its state. */
+	municipio: z.string().min(1).max(80).optional().catch(undefined),
 });
 export type FiresSearch = z.infer<typeof FiresSearchSchema>;
 
