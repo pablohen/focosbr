@@ -153,3 +153,25 @@ export function describeFire(data: FiresResponse, i: number) {
 		frp: f.frp[i] ?? null,
 	};
 }
+
+/** Past this, INPE's feed counts as late (it usually lags an hour or less). */
+export const STALE_AFTER_MINUTES = 120;
+
+/** How old INPE's data is at `nowMs`, or null when it didn't say. */
+export function freshness(sourceUpdatedAt: string | null, nowMs: number) {
+	if (!sourceUpdatedAt) return null;
+	const minutes = Math.max(
+		0,
+		Math.floor((nowMs - Date.parse(sourceUpdatedAt)) / 60_000),
+	);
+	return { minutes, stale: minutes > STALE_AFTER_MINUTES };
+}
+
+/** "agora", "há 5 min", "há 2 h 10 min". */
+export function formatAgo(minutes: number): string {
+	if (minutes < 1) return "agora";
+	if (minutes < 60) return `há ${minutes} min`;
+	const h = Math.floor(minutes / 60);
+	const m = minutes % 60;
+	return m ? `há ${h} h ${m} min` : `há ${h} h`;
+}

@@ -5,7 +5,7 @@ import {
 	type Window,
 } from "./schemas";
 
-/** INPE refreshes about every 10 minutes; the API caches for 5. */
+/** INPE rewrites its file through the day; the API caches for 5 minutes. */
 const REFRESH_MS = 5 * 60_000;
 
 type State = { data?: FiresResponse; error?: unknown; loading: boolean };

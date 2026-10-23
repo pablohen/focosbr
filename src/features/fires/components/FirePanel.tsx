@@ -26,6 +26,7 @@ import {
 } from "../schemas";
 import { STATE_NAMES } from "../states";
 import { AGE_BANDS, type Ranked, SENSOR_LABELS, type summarize } from "../view";
+import { Freshness } from "./Freshness";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
@@ -179,6 +180,9 @@ export function FirePanel({
 								{data.latestAt &&
 									` · último às ${CLOCK.format(new Date(data.latestAt))}`}
 							</Text>
+							<Box mt={6}>
+								<Freshness sourceUpdatedAt={data.sourceUpdatedAt} />
+							</Box>
 						</Box>
 					) : (
 						<Skeleton h={52} />
@@ -300,7 +304,7 @@ export function FirePanel({
 						>
 							INPE, Programa Queimadas
 						</Anchor>
-						, atualizados a cada 10 minutos.
+						, atualizados ao longo do dia.
 					</Text>
 				</Stack>
 			</ScrollArea.Autosize>

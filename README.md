@@ -6,7 +6,7 @@ Same stack as GeoparqueBR: TanStack Start, Mantine 9, MapLibre GL 6 with OpenFre
 
 ## How it works
 
-- `GET /api/fires?h=6|24|48` fetches INPE's daily Brazil files (`focos_diario_br_YYYYMMDD.csv`, one per UTC day, rewritten about every 10 minutes). It keeps the detections inside the window and returns them in columnar form.
+- `GET /api/fires?h=6|24|48` fetches INPE's daily Brazil files (`focos_diario_br_YYYYMMDD.csv`, one per UTC day, rewritten through the day; gaps of 50+ minutes happen). It keeps the detections inside the window and returns them in columnar form.
 - Each instance caches the parsed files: today's for 5 minutes, earlier days for an hour. The response sends `s-maxage=300`, so the CDN serves everyone the same copy for 5 minutes. No database and no API key.
 - The page refetches every 5 minutes. The window (`h`) and sensor filter (`sensor`) live in the URL.
 - Dots are coloured by age (under 3 h, 3–12 h, over 12 h) and sized by fire radiative power.

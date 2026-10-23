@@ -7,7 +7,7 @@ import {
 } from "./inpe";
 import type { FiresResponse, Window } from "./schemas";
 
-/** INPE rewrites today's file about every 10 minutes; older days barely change. */
+/** INPE rewrites today's file through the day; older days barely change. */
 const TODAY_TTL_MS = 5 * 60_000;
 const PAST_DAY_TTL_MS = 60 * 60_000;
 

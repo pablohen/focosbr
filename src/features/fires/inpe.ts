@@ -3,7 +3,8 @@
  * files. Pure, so it can be tested without the network.
  *
  * Source: https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/
- * One CSV per UTC day, rewritten about every 10 minutes while the day lasts.
+ * One CSV per UTC day, rewritten through the day (gaps of 50+ minutes
+ * happen); `Last-Modified` says when.
  */
 import type { FiresResponse, Sensor, Window } from "./schemas";
 

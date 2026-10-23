@@ -150,6 +150,7 @@ const EMPTY = {
 	generatedAt: new Date(0).toISOString(),
 	hours: 24,
 	latestAt: null,
+	sourceUpdatedAt: null,
 	satellites: [],
 	states: [],
 	places: [],

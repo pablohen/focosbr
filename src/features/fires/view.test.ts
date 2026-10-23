@@ -3,6 +3,8 @@ import type { FiresResponse } from "./schemas";
 import {
 	boundsOf,
 	describeFire,
+	formatAgo,
+	freshness,
 	selectFires,
 	summarize,
 	toFeatures,
@@ -101,5 +103,23 @@ describe("describeFire", () => {
 			time: new Date(Date.UTC(2026, 9, 23, 18)),
 			frp: null,
 		});
+	});
+});
+
+describe("freshness", () => {
+	it("measures INPE's lag and flags it past two hours", () => {
+		const updated = "2026-10-23T21:06:00.000Z";
+		expect(freshness(updated, Date.UTC(2026, 9, 23, 21, 56, 30))).toEqual({
+			minutes: 50,
+			stale: false,
+		});
+		expect(freshness(updated, Date.UTC(2026, 9, 23, 23, 7))?.stale).toBe(true);
+		expect(freshness(null, NOW)).toBeNull();
+	});
+	it("formats the lag in Portuguese", () => {
+		expect(formatAgo(0)).toBe("agora");
+		expect(formatAgo(50)).toBe("há 50 min");
+		expect(formatAgo(120)).toBe("há 2 h");
+		expect(formatAgo(130)).toBe("há 2 h 10 min");
 	});
 });
