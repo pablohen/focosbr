@@ -84,6 +84,11 @@ describe("buildFiresResponse", () => {
 		expect(res.places).toEqual(["Corrente (PI)", "São José do Ribamar (MA)"]);
 		expect(res.fires.place).toEqual([0, 1]);
 		expect(res.latestAt).toBe("2026-10-23T20:40:00.000Z");
+		expect(res.sourceUpdatedAt).toBeNull();
+		expect(
+			buildFiresResponse(rows, now, 24, new Date(Date.UTC(2026, 9, 23, 20, 46)))
+				.sourceUpdatedAt,
+		).toBe("2026-10-23T20:46:00.000Z");
 
 		const recent = buildFiresResponse(rows, now, 6);
 		expect(recent.fires.t).toHaveLength(1);

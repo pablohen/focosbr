@@ -42,6 +42,8 @@ export const FiresResponseSchema = z.object({
 	hours: WindowSchema,
 	/** Newest detection in the window, if any. */
 	latestAt: z.iso.datetime().nullable(),
+	/** When INPE last rewrote its files (their Last-Modified), if known. */
+	sourceUpdatedAt: z.iso.datetime().nullable(),
 	satellites: z.array(z.string()),
 	/** Two-letter state codes. */
 	states: z.array(z.string()),

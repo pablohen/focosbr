@@ -164,6 +164,7 @@ export function buildFiresResponse(
 	detections: Detection[],
 	now: Date,
 	hours: Window,
+	sourceUpdatedAt: Date | null = null,
 ): FiresResponse {
 	const end = now.getTime();
 	const start = end - hours * 3_600_000;
@@ -212,6 +213,7 @@ export function buildFiresResponse(
 		generatedAt: now.toISOString(),
 		hours,
 		latestAt: latest ? new Date(latest.time).toISOString() : null,
+		sourceUpdatedAt: sourceUpdatedAt?.toISOString() ?? null,
 		satellites: [...tables.satellites.keys()],
 		states: [...tables.states.keys()],
 		places: [...tables.places.keys()],

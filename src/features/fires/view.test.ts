@@ -12,6 +12,7 @@ const DATA: FiresResponse = {
 	generatedAt: "2026-10-23T21:00:00.000Z",
 	hours: 24,
 	latestAt: "2026-10-23T20:00:00.000Z",
+	sourceUpdatedAt: null,
 	satellites: ["NOAA-20", "GOES-19"],
 	states: ["PA", "MT"],
 	places: ["Altamira (PA)", "Colniza (MT)"],
