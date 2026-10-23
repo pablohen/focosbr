@@ -29,7 +29,13 @@ Columns are looked up **by header name**; a renamed or missing column makes the 
 | `bioma`         | Biome, verbatim (`Amazônia`, `Cerrado`, `Caatinga`, `Mata Atlântica`, `Pantanal`, `Pampa`). |
 | `frp`           | Fire radiative power in MW; empty for some sensors (→ `null`).                              |
 
-Ignored for now: `id`, `estado`, `pais*`, `municipio_id`, `numero_dias_sem_chuva`, `precipitacao`, `risco_fogo` (often empty).
+| `numero_dias_sem_chuva` | Days without rain at the spot. |
+| `precipitacao` | Precipitation, mm. |
+| `risco_fogo` | Fire risk, 0–1, shown with INPE's classes: Mínimo < 0.15 ≤ Baixo < 0.4 ≤ Médio < 0.7 ≤ Alto < 0.95 ≤ Crítico. |
+
+**The three weather columns are empty in today's file.** INPE fills them when it closes the day (the next morning's rewrite), so they show up for yesterday's detections in the 24 h and 48 h windows. `-999` and blanks become `null` (`optionalNumber`). On 2026-10-22, all 28,869 detections had them; on the same evening, none of 2026-10-23's did.
+
+Ignored for now: `id`, `estado`, `pais*`, `municipio_id`.
 
 ### Sensor families
 
@@ -60,7 +66,8 @@ Ignored for now: `id`, `estado`, `pais*`, `municipio_id`, `numero_dias_sem_chuva
     "t": [1792713600, …],                      // Unix seconds, UTC
     "frp": [70.9, null, …],
     "sat": [0, …], "state": [0, …], "place": [0, …], "biome": [0, …],
-    "prelim": [0, …, 1]                        // 1 = from a 10-minute file
+    "prelim": [0, …, 1],                       // 1 = from a 10-minute file
+    "dry": [22, null, …], "rain": [0, null, …], "risk": [0.98, null, …] // null until INPE closes the day
   }
 }
 ```
@@ -70,6 +77,7 @@ Detections are sorted oldest first, so the newest draw on top. The columnar shap
 ## Derived numbers
 
 - **Estimated fires** (`estimateFires`): detections within **2 km** and **1 hour** of each other are joined with union-find over a 0.02° grid, transitively, so a front that keeps burning stays one fire. On a typical day, 28.5k detections come down to about 6.7k fires. It's an estimate: big fronts can merge, and nearby separate fires can join.
+- **A detection's fire** (`fireGroups`, `describeGroup`): the same grouping, kept per detection. The popup shows how many detections the fire has, its first and last time and which satellites saw it.
 - **Hourly counts** (`hourlyCounts`): detections per clock hour, ending with the current hour. Peaks follow satellite passes (VIIRS early afternoon local time), so the shape mixes fire activity with when the satellites looked.
 - **Freshness** (`freshness`): minutes since `sourceUpdatedAt`; stale past 120.
 

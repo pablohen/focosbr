@@ -62,4 +62,4 @@ Memory caches are per instance and vanish on cold starts; that only costs one IN
 From bottom to top over the OpenFreeMap basemap:
 1. `state-outline`: line, filtered to the selected `uf`.
 2. `fire-clusters` and `fire-cluster-count`: up to zoom 6 (`CLUSTER_MAX_ZOOM`), radius 40 px. The cluster colour is its _newest_ detection's age band (`clusterProperties.newest = min(age)`); clicking zooms to where it splits.
-3. `fires`: single detections, coloured by age band, sized by FRP and zoom, newest drawn on top.
+3. `fires`: single detections, coloured by age band, sized by FRP and zoom, newest drawn on top. Clicking one eases it to the bottom of the visible area and opens a popup above it (DOM-built, no HTML strings). The popup shows place, time, satellite and resolution, FRP, INPE's weather when present, the fire it belongs to, and coordinates with an OpenStreetMap link.
