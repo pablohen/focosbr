@@ -3,8 +3,11 @@
 FocosBR is a single page over a single API route. No database, no cron, no secrets.
 
 ```
-INPE data server ──CSV──▶ /api/fires (Nitro function, gru1)
-                            │  parse + window + pack (inpe.ts)
+INPE daily files ─────────┐
+INPE 10-minute files ─────┤ (only those published after the daily rewrite)
+                          ▼
+                     /api/fires (Nitro function, gru1)
+                            │  parse, locate state (locate.ts), merge, window, pack (inpe.ts)
                             │  per-instance cache (fires.server.ts)
                             ▼
                      Vercel CDN (s-maxage=300)
@@ -19,20 +22,21 @@ INPE data server ──CSV──▶ /api/fires (Nitro function, gru1)
 
 ## Files
 
-| Path                                          | Role                                                                                                                     |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `src/features/fires/schemas.ts`               | Zod schemas: API payload and URL search params.                                                                          |
-| `src/features/fires/inpe.ts`                  | Pure: INPE CSV parsing, day/window maths, `buildFiresResponse` (columnar packing).                                       |
-| `src/features/fires/fires.server.ts`          | Server-only: fetches the daily files, caches them per instance, reads `Last-Modified`.                                   |
-| `src/routes/api.fires.ts`                     | `GET /api/fires?h=6\|24\|48`. Validates `h`, sets cache headers, returns 502 if INPE fails with nothing cached.          |
-| `src/features/fires/use-fires.ts`             | Client hook: fetches the window, validates with Zod, refetches every 5 minutes, keeps old data on screen while loading.  |
-| `src/features/fires/view.ts`                  | Pure client shaping: `selectFires`, `summarize`, `estimateFires`, `hourlyCounts`, `boundsOf`, `toFeatures`, `freshness`. |
-| `src/features/fires/components/FireMap.tsx`   | MapLibre map (lazy, client-only): clustered GeoJSON source, state outline, popups, fit-to-selection.                     |
-| `src/features/fires/components/FirePanel.tsx` | Floating panel (bottom sheet on phones): headline, freshness, hourly chart, legend, filters, rankings.                   |
-| `src/routes/index.tsx`                        | The page: reads URL state, wires data → view helpers → map and panel. Header lives here.                                 |
-| `src/routes/__root.tsx`                       | Document shell, Mantine provider, colour-scheme script, progress bar, not-found page.                                    |
-| `src/lib/route-progress.tsx`                  | `RouteProgress` and `useProgress(active)` for Mantine's nprogress bar.                                                   |
-| `public/data/state-outlines.geojson`          | IBGE state outlines (copied from GeoparqueBR) for the selected-state line.                                               |
+| Path                                          | Role                                                                                                                                             |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/features/fires/schemas.ts`               | Zod schemas: API payload and URL search params.                                                                                                  |
+| `src/features/fires/inpe.ts`                  | Pure: INPE CSV parsing, day/window maths, `buildFiresResponse` (columnar packing).                                                               |
+| `src/features/fires/locate.ts`                | Pure: point-in-state lookup over the IBGE outlines, for 10-minute detections.                                                                    |
+| `src/features/fires/fires.server.ts`          | Server-only: fetches the daily files and the 10-minute gap files, caches them per instance, reads `Last-Modified`. Tested with a mocked `fetch`. |
+| `src/routes/api.fires.ts`                     | `GET /api/fires?h=6\|24\|48`. Validates `h`, sets cache headers, returns 502 if INPE fails with nothing cached.                                  |
+| `src/features/fires/use-fires.ts`             | Client hook: fetches the window, validates with Zod, refetches every 5 minutes, keeps old data on screen while loading.                          |
+| `src/features/fires/view.ts`                  | Pure client shaping: `selectFires`, `summarize`, `estimateFires`, `hourlyCounts`, `boundsOf`, `toFeatures`, `freshness`.                         |
+| `src/features/fires/components/FireMap.tsx`   | MapLibre map (lazy, client-only): clustered GeoJSON source, state outline, popups, fit-to-selection.                                             |
+| `src/features/fires/components/FirePanel.tsx` | Floating panel (bottom sheet on phones): headline, freshness, hourly chart, legend, filters, rankings.                                           |
+| `src/routes/index.tsx`                        | The page: reads URL state, wires data → view helpers → map and panel. Header lives here.                                                         |
+| `src/routes/__root.tsx`                       | Document shell, Mantine provider, colour-scheme script, progress bar, not-found page.                                                            |
+| `src/lib/route-progress.tsx`                  | `RouteProgress` and `useProgress(active)` for Mantine's nprogress bar.                                                                           |
+| `public/data/state-outlines.geojson`          | IBGE state outlines (copied from GeoparqueBR) for the selected-state line.                                                                       |
 
 ## Request flow
 
@@ -47,6 +51,7 @@ INPE data server ──CSV──▶ /api/fires (Nitro function, gru1)
 | ----------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- |
 | Function memory, today's file | 5 min                                      | Concurrent requests share one fetch. On error, the previous copy keeps serving. |
 | Function memory, past days    | 60 min                                     | They barely change after midnight UTC.                                          |
+| Function memory, 10-min files | 7 h                                        | Published files never change. A not-yet-published one (404) isn't cached.       |
 | CDN                           | `s-maxage=300, stale-while-revalidate=600` | Same response for everyone for 5 minutes.                                       |
 | Browser                       | `max-age=60`                               | The hook refetches every 5 minutes anyway.                                      |
 
