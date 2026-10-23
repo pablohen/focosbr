@@ -14,7 +14,12 @@ import { lazy, Suspense, useMemo } from "react";
 import { FirePanel } from "~/features/fires/components/FirePanel";
 import { FiresSearchSchema } from "~/features/fires/schemas";
 import { useFires } from "~/features/fires/use-fires";
-import { selectFires, summarize, toFeatures } from "~/features/fires/view";
+import {
+	boundsOf,
+	selectFires,
+	summarize,
+	toFeatures,
+} from "~/features/fires/view";
 import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
 import { useProgress } from "~/lib/route-progress";
 
@@ -60,6 +65,15 @@ function FiresPage() {
 		[data, indices],
 	);
 
+	const focus = useMemo(() => {
+		const key = uf || biome ? `${uf ?? ""}|${biome ?? ""}` : "";
+		return {
+			key,
+			bounds: key && data ? boundsOf(data, indices) : null,
+			uf,
+		};
+	}, [uf, biome, data, indices]);
+
 	return (
 		<AppShell header={{ height: 56 }} padding={0}>
 			<AppShell.Header>
@@ -95,7 +109,7 @@ function FiresPage() {
 				>
 					<ClientOnly fallback={MAP_FALLBACK}>
 						<Suspense fallback={MAP_FALLBACK}>
-							<FireMap data={data} features={features} />
+							<FireMap data={data} features={features} focus={focus} />
 						</Suspense>
 					</ClientOnly>
 					<FirePanel

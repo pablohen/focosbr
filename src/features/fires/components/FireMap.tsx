@@ -8,7 +8,7 @@ import {
 	setWorkerUrl,
 } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { autoHideAttribution } from "~/lib/map-attribution";
 import type { FiresResponse } from "../schemas";
 import { AGE_BANDS, describeFire, type FireProps } from "../view";
@@ -19,8 +19,23 @@ setWorkerUrl(workerUrl);
 
 /** OpenFreeMap's style; free and keyless. */
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-const BRAZIL: [number, number, number, number] = [-74, -34, -34.5, 5.5];
+type BBox = [number, number, number, number];
+
+const BRAZIL: BBox = [-74, -34, -34.5, 5.5];
 const SOURCE = "fires";
+const STATES = "states";
+const STATE_OUTLINE = "state-outline";
+
+/**
+ * The panel covers the left 356 px on desktop and the bottom 45% of the
+ * window (45dvh) on phones;
+ * fits keep their target in the part left over.
+ */
+function panelPadding(container: HTMLElement) {
+	return container.clientWidth >= 768
+		? { left: 356, top: 16, right: 16, bottom: 16 }
+		: { left: 8, top: 8, right: 8, bottom: window.innerHeight * 0.45 + 8 };
+}
 
 const TIME = new Intl.DateTimeFormat("pt-BR", {
 	dateStyle: "short",
@@ -47,16 +62,22 @@ function popupContent(data: FiresResponse, i: number): HTMLElement {
 	return root;
 }
 
+/** The region the map should show; `key` changes when the selection does. */
+export type MapFocus = { key: string; bounds: BBox | null; uf?: string };
+
 type Props = {
 	data: FiresResponse | undefined;
 	features: FeatureCollection<Point, FireProps>;
+	focus: MapFocus;
 };
 
 /** Hotspot map. Browser-only: load it through React.lazy behind <ClientOnly>. */
-export default function FireMap({ data, features }: Props) {
+export default function FireMap({ data, features, focus }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
-	const readyRef = useRef(false);
+	const [ready, setReady] = useState(false);
+	// The selection the map last fitted to; "" is the whole country.
+	const fittedKey = useRef("");
 	// The latest props, for handlers registered once.
 	const latest = useRef({ data, features });
 	latest.current = { data, features };
@@ -67,19 +88,7 @@ export default function FireMap({ data, features }: Props) {
 			container: containerRef.current,
 			style: STYLE_URL,
 			bounds: BRAZIL,
-			// The panel covers the left 356 px on desktop and the bottom 45% on
-			// phones; keep Brazil in the part left over.
-			fitBoundsOptions: {
-				padding:
-					containerRef.current.clientWidth >= 768
-						? { left: 356, top: 16, right: 16, bottom: 16 }
-						: {
-								left: 8,
-								top: 8,
-								right: 8,
-								bottom: containerRef.current.clientHeight * 0.45 + 8,
-							},
-			},
+			fitBoundsOptions: { padding: panelPadding(containerRef.current) },
 			attributionControl: {
 				compact: true,
 				customAttribution:
@@ -98,6 +107,18 @@ export default function FireMap({ data, features }: Props) {
 		let cancelAutoHide = () => {};
 		map.on("load", () => {
 			cancelAutoHide = autoHideAttribution(map.getContainer());
+			// The selected state's outline, under the fires (IBGE boundaries).
+			map.addSource(STATES, {
+				type: "geojson",
+				data: "/data/state-outlines.geojson",
+			});
+			map.addLayer({
+				id: STATE_OUTLINE,
+				type: "line",
+				source: STATES,
+				filter: ["==", ["get", "uf"], ""],
+				paint: { "line-color": "#3b3b3b", "line-width": 1.5 },
+			});
 			map.addSource(SOURCE, { type: "geojson", data: latest.current.features });
 			map.addLayer({
 				id: SOURCE,
@@ -138,7 +159,7 @@ export default function FireMap({ data, features }: Props) {
 				// Newest on top.
 				layout: { "circle-sort-key": ["-", 0, ["get", "age"]] },
 			});
-			readyRef.current = true;
+			setReady(true);
 		});
 
 		map.on("click", SOURCE, (e) => {
@@ -160,16 +181,39 @@ export default function FireMap({ data, features }: Props) {
 
 		return () => {
 			cancelAutoHide();
-			readyRef.current = false;
+			setReady(false);
 			mapRef.current = null;
 			map.remove();
 		};
 	}, []);
 
 	useEffect(() => {
-		if (!readyRef.current) return;
+		if (!ready) return;
 		mapRef.current?.getSource<GeoJSONSource>(SOURCE)?.setData(features);
-	}, [features]);
+	}, [ready, features]);
+
+	useEffect(() => {
+		if (!ready) return;
+		mapRef.current?.setFilter(STATE_OUTLINE, [
+			"==",
+			["get", "uf"],
+			focus.uf ?? "",
+		]);
+	}, [ready, focus.uf]);
+
+	// Fit once per selection, when its detections are in: a refresh or a
+	// sensor change must not yank the map away from where the user panned.
+	useEffect(() => {
+		const map = mapRef.current;
+		if (!ready || !map || focus.key === fittedKey.current) return;
+		const target = focus.key ? focus.bounds : BRAZIL;
+		if (!target) return;
+		fittedKey.current = focus.key;
+		map.fitBounds(target, {
+			padding: panelPadding(map.getContainer()),
+			maxZoom: 9,
+		});
+	}, [ready, focus.key, focus.bounds]);
 
 	return (
 		<section
