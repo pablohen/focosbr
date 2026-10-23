@@ -1,0 +1,39 @@
+/* App-wide rules Mantine style props can't reach. */
+
+/* MapLibre's attribution links are only a shade off their text: underline them
+   (two classes, since maplibre-gl.css loads after this file). */
+.maplibregl-ctrl.maplibregl-ctrl-attrib a {
+	text-decoration: underline;
+}
+
+/* Popups follow the colour scheme instead of MapLibre's fixed white (two
+   classes, since maplibre-gl.css loads after this file). */
+.maplibregl-popup .maplibregl-popup-content {
+	background: var(--mantine-color-body);
+	color: var(--mantine-color-text);
+	border-radius: var(--mantine-radius-md);
+	box-shadow: var(--mantine-shadow-md);
+	padding: 10px 12px;
+}
+/* The tip is a border triangle; only the side facing the content is coloured. */
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+	border-top-color: var(--mantine-color-body);
+}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+	border-bottom-color: var(--mantine-color-body);
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+	border-right-color: var(--mantine-color-body);
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+	border-left-color: var(--mantine-color-body);
+}
+.maplibregl-popup .maplibregl-popup-close-button {
+	color: var(--mantine-color-dimmed);
+	font-size: 18px;
+	padding: 0 6px;
+}
