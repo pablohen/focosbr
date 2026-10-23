@@ -18,7 +18,7 @@ A hotspot is a satellite detection of heat, not a confirmed fire. The same fire 
 | Task                               | Command                     |
 | ---------------------------------- | --------------------------- |
 | Install                            | `pnpm install`              |
-| Dev server (http://localhost:3001) | `pnpm dev`                  |
+| Dev server (http://localhost:3000) | `pnpm dev`                  |
 | Lint / auto-fix                    | `pnpm lint` / `pnpm format` |
 | Typecheck                          | `pnpm typecheck`            |
 | Tests                              | `pnpm test`                 |
