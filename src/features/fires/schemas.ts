@@ -21,6 +21,14 @@ export type Sensor = z.infer<typeof SensorSchema>;
 export const FiresSearchSchema = z.object({
 	h: WindowSchema.optional().catch(undefined),
 	sensor: z.array(SensorSchema).optional().catch(undefined),
+	/** Two-letter state code. */
+	uf: z
+		.string()
+		.regex(/^[A-Z]{2}$/)
+		.optional()
+		.catch(undefined),
+	/** Biome name as INPE publishes it ("Amazônia", "Cerrado"…). */
+	bioma: z.string().min(1).max(40).optional().catch(undefined),
 });
 export type FiresSearch = z.infer<typeof FiresSearchSchema>;
 

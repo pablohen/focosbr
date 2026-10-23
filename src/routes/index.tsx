@@ -33,18 +33,24 @@ const MAP_FALLBACK = (
 );
 
 function FiresPage() {
-	const { h: hours = 24, sensor: sensors = [] } = Route.useSearch();
+	const {
+		h: hours = 24,
+		sensor: sensors = [],
+		uf,
+		bioma: biome,
+	} = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { data, error, loading } = useFires(hours);
 	useProgress(loading);
 
+	const filters = useMemo(() => ({ sensors, uf, biome }), [sensors, uf, biome]);
 	const indices = useMemo(
-		() => (data ? selectFires(data, sensors) : []),
-		[data, sensors],
+		() => (data ? selectFires(data, filters) : []),
+		[data, filters],
 	);
 	const summary = useMemo(
-		() => (data ? summarize(data, indices) : undefined),
-		[data, indices],
+		() => (data ? summarize(data, filters) : undefined),
+		[data, filters],
 	);
 	const features = useMemo(
 		() =>
@@ -106,6 +112,13 @@ function FiresPage() {
 									...s,
 									sensor: next.length ? next : undefined,
 								}),
+							})
+						}
+						uf={uf}
+						biome={biome}
+						onRegionChange={(region) =>
+							navigate({
+								search: (s) => ({ ...s, uf: region.uf, bioma: region.biome }),
 							})
 						}
 						data={data}

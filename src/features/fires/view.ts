@@ -31,19 +31,53 @@ export const SENSOR_LABELS: Record<Sensor, string> = {
 
 export type FireProps = { i: number; age: number; frp: number };
 
-/** Indices of the detections whose sensor is selected (all when none is). */
+/** What the map and counts are narrowed to; an empty field matches all. */
+export type FireFilters = {
+	sensors?: readonly Sensor[];
+	/** Two-letter state code. */
+	uf?: string;
+	biome?: string;
+};
+
+/** Indices of the detections that pass every filter. */
 export function selectFires(
 	data: FiresResponse,
-	sensors: readonly Sensor[] | undefined,
+	{ sensors, uf, biome }: FireFilters,
 ): number[] {
 	const allowed = sensors?.length ? new Set(sensors) : null;
-	const satSensor = data.satellites.map(sensorOf);
+	const satOk = data.satellites.map(
+		(s) => !allowed || allowed.has(sensorOf(s)),
+	);
+	const stateOk = data.states.map((s) => !uf || s === uf);
+	const biomeOk = data.biomes.map((b) => !biome || b === biome);
+	const f = data.fires;
 	const out: number[] = [];
-	data.fires.sat.forEach((s, i) => {
-		const sensor = satSensor[s];
-		if (!allowed || (sensor && allowed.has(sensor))) out.push(i);
-	});
+	for (let i = 0; i < f.sat.length; i++)
+		if (
+			satOk[f.sat[i] ?? -1] &&
+			stateOk[f.state[i] ?? -1] &&
+			biomeOk[f.biome[i] ?? -1]
+		)
+			out.push(i);
 	return out;
+}
+
+/** [west, south, east, north] around the given detections, or null if none. */
+export function boundsOf(
+	data: FiresResponse,
+	indices: number[],
+): [number, number, number, number] | null {
+	if (indices.length === 0) return null;
+	let [w, s, e, n] = [180, 90, -180, -90];
+	for (const i of indices) {
+		const lon = data.fires.lon[i] ?? 0;
+		const lat = data.fires.lat[i] ?? 0;
+		w = Math.min(w, lon);
+		e = Math.max(e, lon);
+		s = Math.min(s, lat);
+		n = Math.max(n, lat);
+	}
+	return [w, s, e, n];
 }
 
 /** Points for MapLibre, with age in hours relative to `nowMs`. */
@@ -67,45 +101,47 @@ export function toFeatures(
 	};
 }
 
+/** `name` is as published: an empty string when INPE has no value. */
 export type Ranked = { name: string; count: number };
 
-function rank(
-	table: string[],
-	column: number[],
-	indices: number[],
-	limit: number,
-): Ranked[] {
+function rank(table: string[], column: number[], indices: number[]): Ranked[] {
 	const counts = new Map<number, number>();
 	for (const i of indices) {
 		const k = column[i];
 		if (k !== undefined) counts.set(k, (counts.get(k) ?? 0) + 1);
 	}
 	return [...counts]
-		.map(([k, count]) => ({ name: table[k] || "—", count }))
-		.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pt-BR"))
-		.slice(0, limit);
+		.map(([k, count]) => ({ name: table[k] ?? "", count }))
+		.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pt-BR"));
 }
 
 /**
- * Counts for the panel: total, per state and per biome for the selected
- * detections; per sensor for all of them, so the sensor chips keep their
- * counts while a filter is on.
+ * Counts for the panel. Each breakdown ignores its own filter, so every
+ * state stays listed (with its count) while one is selected, and the same
+ * for biomes and sensors.
  */
-export function summarize(data: FiresResponse, indices: number[]) {
+export function summarize(data: FiresResponse, filters: FireFilters) {
 	const bySensor = new Map<Sensor, number>();
 	const satSensor = data.satellites.map(sensorOf);
-	for (const sat of data.fires.sat) {
-		const s = satSensor[sat];
+	for (const i of selectFires(data, { ...filters, sensors: undefined })) {
+		const s = satSensor[data.fires.sat[i] ?? -1];
 		if (s) bySensor.set(s, (bySensor.get(s) ?? 0) + 1);
 	}
 	return {
-		total: indices.length,
-		states: rank(data.states, data.fires.state, indices, 5),
-		biomes: rank(data.biomes, data.fires.biome, indices, 6),
+		total: selectFires(data, filters).length,
+		states: rank(
+			data.states,
+			data.fires.state,
+			selectFires(data, { ...filters, uf: undefined }),
+		),
+		biomes: rank(
+			data.biomes,
+			data.fires.biome,
+			selectFires(data, { ...filters, biome: undefined }),
+		),
 		bySensor,
 	};
 }
-
 /** The detection's details for its popup. */
 export function describeFire(data: FiresResponse, i: number) {
 	const f = data.fires;

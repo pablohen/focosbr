@@ -8,11 +8,13 @@ import {
 	Paper,
 	ScrollArea,
 	SegmentedControl,
+	Select,
 	Skeleton,
 	Stack,
 	Table,
 	Text,
 	Title,
+	UnstyledButton,
 } from "@mantine/core";
 import { WarningCircle } from "@phosphor-icons/react";
 import {
@@ -22,6 +24,7 @@ import {
 	WINDOWS,
 	type Window,
 } from "../schemas";
+import { STATE_NAMES } from "../states";
 import { AGE_BANDS, type Ranked, SENSOR_LABELS, type summarize } from "../view";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -35,28 +38,76 @@ type Props = {
 	onHoursChange: (hours: Window) => void;
 	sensors: Sensor[];
 	onSensorsChange: (sensors: Sensor[]) => void;
+	uf: string | undefined;
+	biome: string | undefined;
+	/** `undefined` clears that part of the region. */
+	onRegionChange: (region: { uf?: string; biome?: string }) => void;
 	data: FiresResponse | undefined;
 	summary: ReturnType<typeof summarize> | undefined;
 	loading: boolean;
 	error: unknown;
 };
 
-function RankTable({ caption, rows }: { caption: string; rows: Ranked[] }) {
-	if (rows.length === 0) return null;
+const ROWS = 5;
+
+/** "—" when INPE has no value (offshore detections have no state or biome). */
+const display = (name: string) => name || "—";
+
+/**
+ * Top rows of a breakdown; each row selects (or, when selected, clears)
+ * that value. The selected row stays listed even outside the top.
+ */
+function RankTable({
+	caption,
+	rows,
+	selected,
+	label = display,
+	onToggle,
+}: {
+	caption: string;
+	rows: Ranked[];
+	selected: string | undefined;
+	label?: (name: string) => string;
+	onToggle: (name: string | undefined) => void;
+}) {
+	const top = rows.slice(0, ROWS);
+	const pinned = rows.find((r) => r.name === selected);
+	if (pinned && !top.includes(pinned)) top.push(pinned);
+	if (top.length === 0) return null;
 	return (
 		<Table verticalSpacing={2} horizontalSpacing={0} fz="sm" captionSide="top">
 			<Table.Caption ta="left" fw={600} c="var(--mantine-color-text)" mb={4}>
 				{caption}
 			</Table.Caption>
 			<Table.Tbody>
-				{rows.map((r) => (
-					<Table.Tr key={r.name}>
-						<Table.Td>{r.name}</Table.Td>
-						<Table.Td ta="right" style={{ fontVariantNumeric: "tabular-nums" }}>
-							{NUMBER.format(r.count)}
-						</Table.Td>
-					</Table.Tr>
-				))}
+				{top.map((r) => {
+					const active = r.name === selected;
+					return (
+						<Table.Tr
+							key={r.name}
+							bg={active ? "var(--mantine-primary-color-light)" : undefined}
+						>
+							<Table.Td>
+								<UnstyledButton
+									fz="sm"
+									fw={active ? 700 : undefined}
+									disabled={!r.name}
+									onClick={() => onToggle(active ? undefined : r.name)}
+									aria-pressed={active}
+								>
+									{label(r.name)}
+								</UnstyledButton>
+							</Table.Td>
+							<Table.Td
+								ta="right"
+								fw={active ? 700 : undefined}
+								style={{ fontVariantNumeric: "tabular-nums" }}
+							>
+								{NUMBER.format(r.count)}
+							</Table.Td>
+						</Table.Tr>
+					);
+				})}
 			</Table.Tbody>
 		</Table>
 	);
@@ -68,6 +119,9 @@ export function FirePanel({
 	onHoursChange,
 	sensors,
 	onSensorsChange,
+	uf,
+	biome,
+	onRegionChange,
 	data,
 	summary,
 	loading,
@@ -120,6 +174,8 @@ export function FirePanel({
 							</Text>
 							<Text size="sm" c="dimmed">
 								focos nas últimas {hours} horas
+								{(uf || biome) &&
+									` em ${[uf && (STATE_NAMES[uf] ?? uf), biome].filter(Boolean).join(" · ")}`}
 								{data.latestAt &&
 									` · último às ${CLOCK.format(new Date(data.latestAt))}`}
 							</Text>
@@ -149,6 +205,41 @@ export function FirePanel({
 							Pontos maiores indicam fogo mais intenso (potência radiativa).
 						</Text>
 					</Stack>
+
+					<Group grow gap="xs" align="flex-end">
+						<Select
+							label="Estado"
+							placeholder="Todos"
+							size="xs"
+							searchable
+							clearable
+							value={uf ?? null}
+							onChange={(v) => onRegionChange({ uf: v ?? undefined, biome })}
+							data={(summary?.states ?? [])
+								.filter((r) => r.name)
+								.map((r) => ({
+									value: r.name,
+									label: `${STATE_NAMES[r.name] ?? r.name} · ${NUMBER.format(r.count)}`,
+								}))}
+							nothingFoundMessage="Nenhum foco"
+						/>
+						<Select
+							label="Bioma"
+							placeholder="Todos"
+							size="xs"
+							searchable
+							clearable
+							value={biome ?? null}
+							onChange={(v) => onRegionChange({ uf, biome: v ?? undefined })}
+							data={(summary?.biomes ?? [])
+								.filter((r) => r.name)
+								.map((r) => ({
+									value: r.name,
+									label: `${r.name} · ${NUMBER.format(r.count)}`,
+								}))}
+							nothingFoundMessage="Nenhum foco"
+						/>
+					</Group>
 
 					<Stack gap={6}>
 						<Text size="sm" fw={600}>
@@ -180,8 +271,18 @@ export function FirePanel({
 
 					{summary && (
 						<Group align="flex-start" grow gap="lg">
-							<RankTable caption="Estados" rows={summary.states} />
-							<RankTable caption="Biomas" rows={summary.biomes} />
+							<RankTable
+								caption="Estados"
+								rows={summary.states}
+								selected={uf}
+								onToggle={(next) => onRegionChange({ uf: next, biome })}
+							/>
+							<RankTable
+								caption="Biomas"
+								rows={summary.biomes}
+								selected={biome}
+								onToggle={(next) => onRegionChange({ uf, biome: next })}
+							/>
 						</Group>
 					)}
 

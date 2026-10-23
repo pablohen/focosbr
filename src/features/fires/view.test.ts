@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { FiresResponse } from "./schemas";
-import { describeFire, selectFires, summarize, toFeatures } from "./view";
+import {
+	boundsOf,
+	describeFire,
+	selectFires,
+	summarize,
+	toFeatures,
+} from "./view";
 
 const DATA: FiresResponse = {
 	generatedAt: "2026-10-23T21:00:00.000Z",
@@ -28,13 +34,28 @@ const DATA: FiresResponse = {
 const NOW = Date.UTC(2026, 9, 23, 21);
 
 describe("selectFires", () => {
-	it("keeps every detection without a sensor filter", () => {
-		expect(selectFires(DATA, undefined)).toEqual([0, 1, 2]);
-		expect(selectFires(DATA, [])).toEqual([0, 1, 2]);
+	it("keeps every detection without filters", () => {
+		expect(selectFires(DATA, {})).toEqual([0, 1, 2]);
+		expect(selectFires(DATA, { sensors: [] })).toEqual([0, 1, 2]);
 	});
 	it("filters by sensor family", () => {
-		expect(selectFires(DATA, ["goes"])).toEqual([1]);
-		expect(selectFires(DATA, ["viirs", "goes"])).toEqual([0, 1, 2]);
+		expect(selectFires(DATA, { sensors: ["goes"] })).toEqual([1]);
+		expect(selectFires(DATA, { sensors: ["viirs", "goes"] })).toEqual([
+			0, 1, 2,
+		]);
+	});
+	it("filters by state and biome, combined with sensors", () => {
+		expect(selectFires(DATA, { uf: "PA" })).toEqual([0, 2]);
+		expect(selectFires(DATA, { biome: "Amazônia" })).toEqual([0, 2]);
+		expect(selectFires(DATA, { uf: "PA", sensors: ["goes"] })).toEqual([]);
+		expect(selectFires(DATA, { uf: "SP" })).toEqual([]);
+	});
+});
+
+describe("boundsOf", () => {
+	it("wraps the detections, or is null without any", () => {
+		expect(boundsOf(DATA, [0, 2])).toEqual([-53, -4, -52, -3]);
+		expect(boundsOf(DATA, [])).toBeNull();
 	});
 });
 
@@ -49,20 +70,24 @@ describe("toFeatures", () => {
 
 describe("summarize", () => {
 	it("ranks states and biomes and counts sensors", () => {
-		const s = summarize(DATA, [0, 1, 2]);
+		const s = summarize(DATA, {});
 		expect(s.total).toBe(3);
 		expect(s.states).toEqual([
 			{ name: "PA", count: 2 },
 			{ name: "MT", count: 1 },
 		]);
-		expect(s.biomes[1]).toEqual({ name: "—", count: 1 });
+		expect(s.biomes[1]).toEqual({ name: "", count: 1 });
 		expect(s.bySensor.get("viirs")).toBe(2);
 	});
-	it("counts every sensor even when filtered", () => {
-		const s = summarize(DATA, [1]);
+	it("leaves each breakdown's own filter out", () => {
+		const s = summarize(DATA, { uf: "MT", sensors: ["goes"] });
 		expect(s.total).toBe(1);
-		expect(s.bySensor.get("viirs")).toBe(2);
+		// Every state, for the selected sensor.
+		expect(s.states).toEqual([{ name: "MT", count: 1 }]);
+		// Every sensor, for the selected state.
 		expect(s.bySensor.get("goes")).toBe(1);
+		expect(s.bySensor.has("viirs")).toBe(false);
+		expect(summarize(DATA, { uf: "MT" }).states).toHaveLength(2);
 	});
 });
 
