@@ -3,6 +3,7 @@ import type { FiresResponse } from "./schemas";
 import {
 	boundsOf,
 	describeFire,
+	estimateFires,
 	formatAgo,
 	freshness,
 	selectFires,
@@ -121,5 +122,40 @@ describe("freshness", () => {
 		expect(formatAgo(50)).toBe("há 50 min");
 		expect(formatAgo(120)).toBe("há 2 h");
 		expect(formatAgo(130)).toBe("há 2 h 10 min");
+	});
+});
+
+describe("estimateFires", () => {
+	/** Detections at [lon, lat, minutes after NOW-24h]. */
+	const at = (...rows: [number, number, number][]): FiresResponse => ({
+		...DATA,
+		fires: {
+			...DATA.fires,
+			lon: rows.map((r) => r[0]),
+			lat: rows.map((r) => r[1]),
+			t: rows.map((r) => NOW / 1000 - 86_400 + r[2] * 60),
+		},
+	});
+	const all = (d: FiresResponse) => d.fires.lon.map((_, i) => i);
+
+	it("joins detections within 2 km and an hour", () => {
+		// ~1.1 km apart, 30 min apart.
+		const d = at([-50, -10, 0], [-50.01, -10, 30]);
+		expect(estimateFires(d, all(d))).toBe(1);
+	});
+	it("keeps far or hours-apart detections separate", () => {
+		const far = at([-50, -10, 0], [-50.05, -10, 0]); // ~5.5 km
+		expect(estimateFires(far, all(far))).toBe(2);
+		const later = at([-50, -10, 0], [-50, -10, 180]);
+		expect(estimateFires(later, all(later))).toBe(2);
+	});
+	it("chains a fire that keeps burning", () => {
+		const d = at([-50, -10, 0], [-50, -10, 50], [-50, -10, 100]);
+		expect(estimateFires(d, all(d))).toBe(1);
+	});
+	it("only counts the given detections", () => {
+		const d = at([-50, -10, 0], [-50.05, -10, 0], [-60, -5, 0]);
+		expect(estimateFires(d, [0, 2])).toBe(2);
+		expect(estimateFires(d, [])).toBe(0);
 	});
 });

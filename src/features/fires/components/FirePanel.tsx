@@ -170,11 +170,18 @@ export function FirePanel({
 						</Alert>
 					) : summary && data ? (
 						<Box>
-							<Text fz={32} fw={700} lh={1.1}>
-								{NUMBER.format(summary.total)}
-							</Text>
+							<Group gap={8} align="baseline" wrap="nowrap">
+								<Text fz={32} fw={700} lh={1.1}>
+									≈ {NUMBER.format(summary.fires)}
+								</Text>
+								<Text size="sm" fw={600}>
+									{summary.fires === 1 ? "fogo" : "fogos"}
+								</Text>
+							</Group>
 							<Text size="sm" c="dimmed">
-								focos nas últimas {hours} horas
+								{NUMBER.format(summary.total)}{" "}
+								{summary.total === 1 ? "foco detectado" : "focos detectados"}{" "}
+								nas últimas {hours} horas
 								{(uf || biome) &&
 									` em ${[uf && (STATE_NAMES[uf] ?? uf), biome].filter(Boolean).join(" · ")}`}
 								{data.latestAt &&
@@ -294,8 +301,9 @@ export function FirePanel({
 
 					<Text size="xs" c="dimmed">
 						Foco de calor é uma detecção de satélite, não um incêndio
-						confirmado. Um mesmo fogo pode aparecer em vários satélites, e
-						nuvens ou fumaça escondem focos. Dados:{" "}
+						confirmado. O número de fogos junta focos a até 2 km e 1 hora uns
+						dos outros, já que vários satélites veem o mesmo fogo; é uma
+						estimativa. Nuvens ou fumaça escondem focos. Dados:{" "}
 						<Anchor
 							href="https://terrabrasilis.dpi.inpe.br/queimadas/portal/"
 							target="_blank"

@@ -80,6 +80,57 @@ export function boundsOf(
 	return [w, s, e, n];
 }
 
+/** Detections this close in space and time are taken as the same fire. */
+export const MERGE_KM = 2;
+export const MERGE_SECONDS = 3600;
+/** Grid cell in degrees: at least MERGE_KM wide anywhere in Brazil. */
+const CELL_DEG = 0.02;
+
+/**
+ * Estimated number of distinct fires among the detections. Several
+ * satellites see the same fire minutes apart, and GOES sees it every 10
+ * minutes, so raw counts inflate. Detections within MERGE_KM and
+ * MERGE_SECONDS of each other are joined (transitively, so a front that
+ * keeps burning stays one fire).
+ */
+export function estimateFires(data: FiresResponse, indices: number[]): number {
+	const { lon, lat, t } = data.fires;
+	const parent = indices.map((_, k) => k);
+	const find = (k: number): number => {
+		let r = k;
+		while (parent[r] !== r) {
+			parent[r] = parent[parent[r] ?? r] ?? r;
+			r = parent[r] ?? r;
+		}
+		return r;
+	};
+	const grid = new Map<string, number[]>();
+	indices.forEach((i, k) => {
+		const x = Math.floor((lon[i] ?? 0) / CELL_DEG);
+		const y = Math.floor((lat[i] ?? 0) / CELL_DEG);
+		const kmPerLon = 111.32 * Math.cos(((lat[i] ?? 0) * Math.PI) / 180);
+		for (let dx = -1; dx <= 1; dx++)
+			for (let dy = -1; dy <= 1; dy++)
+				for (const j of grid.get(`${x + dx}:${y + dy}`) ?? []) {
+					const o = indices[j] ?? 0;
+					if (Math.abs((t[i] ?? 0) - (t[o] ?? 0)) > MERGE_SECONDS) continue;
+					const ex = ((lon[i] ?? 0) - (lon[o] ?? 0)) * kmPerLon;
+					const ey = ((lat[i] ?? 0) - (lat[o] ?? 0)) * 110.57;
+					if (ex * ex + ey * ey > MERGE_KM * MERGE_KM) continue;
+					const a = find(k);
+					const b = find(j);
+					if (a !== b) parent[a] = b;
+				}
+		const key = `${x}:${y}`;
+		const cell = grid.get(key);
+		if (cell) cell.push(k);
+		else grid.set(key, [k]);
+	});
+	let roots = 0;
+	for (let k = 0; k < parent.length; k++) if (find(k) === k) roots++;
+	return roots;
+}
+
 /** Points for MapLibre, with age in hours relative to `nowMs`. */
 export function toFeatures(
 	data: FiresResponse,
@@ -127,8 +178,10 @@ export function summarize(data: FiresResponse, filters: FireFilters) {
 		const s = satSensor[data.fires.sat[i] ?? -1];
 		if (s) bySensor.set(s, (bySensor.get(s) ?? 0) + 1);
 	}
+	const selected = selectFires(data, filters);
 	return {
-		total: selectFires(data, filters).length,
+		total: selected.length,
+		fires: estimateFires(data, selected),
 		states: rank(
 			data.states,
 			data.fires.state,
