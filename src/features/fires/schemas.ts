@@ -70,6 +70,13 @@ export const FiresResponseSchema = z.object({
 		 * located by us, no municipality, biome or FRP yet.
 		 */
 		prelim: z.array(z.union([z.literal(0), z.literal(1)])).default([]),
+		/**
+		 * INPE's weather at the spot, null until INPE closes the day: days
+		 * without rain, precipitation in mm, fire risk from 0 to 1.
+		 */
+		dry: z.array(z.number().nullable()).default([]),
+		rain: z.array(z.number().nullable()).default([]),
+		risk: z.array(z.number().nullable()).default([]),
 	}),
 });
 export type FiresResponse = z.infer<typeof FiresResponseSchema>;

@@ -5,6 +5,7 @@ import {
 	daysForWindow,
 	gapSlots,
 	mergeDetections,
+	optionalNumber,
 	parseInpeCsv,
 	parseTenMinuteCsv,
 	sensorOf,
@@ -15,7 +16,7 @@ import {
 // Two rows as INPE publishes them (leading spaces in lat/lon included).
 const CSV = `id,lat,lon,data_hora_gmt,satelite,municipio,estado,pais,municipio_id,estado_id,pais_id,numero_dias_sem_chuva,precipitacao,risco_fogo,bioma,frp
 10c546bd-375a-3e5c-9b68-d988c2f173f4, -10.601900, -45.000600,2026-10-23 00:00:00,GOES-19,CORRENTE,PIAUÍ,Brasil,2202901,22,33,,,,Cerrado,70.9
-cd42f0ef-b292-3c96-8a2d-525cd29d47c5,  -4.101700, -44.229700,2026-10-23 20:40:00,NOAA-20,SÃO JOSÉ DO RIBAMAR,MARANHÃO,Brasil,2111201,21,33,12,0,0.8,Amazônia,
+cd42f0ef-b292-3c96-8a2d-525cd29d47c5,  -4.101700, -44.229700,2026-10-23 20:40:00,NOAA-20,SÃO JOSÉ DO RIBAMAR,MARANHÃO,Brasil,2111201,21,33,12,0.5,0.8,Amazônia,
 broken,row
 `;
 
@@ -32,10 +33,14 @@ describe("parseInpeCsv", () => {
 			place: "Corrente (PI)",
 			biome: "Cerrado",
 			frp: 70.9,
+			dryDays: null,
+			rain: null,
+			risk: null,
 			preliminary: false,
 		});
 		expect(rows[1]?.place).toBe("São José do Ribamar (MA)");
 		expect(rows[1]?.frp).toBeNull();
+		expect(rows[1]).toMatchObject({ dryDays: 12, rain: 0.5, risk: 0.8 });
 	});
 
 	it("refuses a header it doesn't recognise", () => {
@@ -130,6 +135,9 @@ describe("parseTenMinuteCsv", () => {
 			place: "",
 			biome: "",
 			frp: null,
+			dryDays: null,
+			rain: null,
+			risk: null,
 			preliminary: true,
 		});
 		expect(rows[1]?.state).toBe("PI");
@@ -184,5 +192,16 @@ describe("buildFiresResponse prelim column", () => {
 		);
 		// Oldest first: 00:00 daily, 18:32 preliminary, 20:40 daily, 21:40 preliminary.
 		expect(res.fires.prelim).toEqual([0, 1, 0, 1]);
+	});
+});
+
+describe("optionalNumber", () => {
+	it("reads numbers and treats empty or INPE's -999 as missing", () => {
+		expect(optionalNumber(" 0.95")).toBe(0.95);
+		expect(optionalNumber("0")).toBe(0);
+		expect(optionalNumber("")).toBeNull();
+		expect(optionalNumber(undefined)).toBeNull();
+		expect(optionalNumber("-999.0")).toBeNull();
+		expect(optionalNumber("abc")).toBeNull();
 	});
 });

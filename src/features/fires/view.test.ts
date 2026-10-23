@@ -35,6 +35,9 @@ const DATA: FiresResponse = {
 		place: [0, 1, 0],
 		biome: [0, 1, 0],
 		prelim: [0, 0, 0],
+		dry: [22, null, null],
+		rain: [0, null, null],
+		risk: [0.98, null, null],
 	},
 };
 const NOW = Date.UTC(2026, 9, 23, 21);

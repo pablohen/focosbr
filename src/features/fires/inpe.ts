@@ -33,6 +33,14 @@ export type Detection = {
 	biome: string;
 	frp: number | null;
 	/**
+	 * INPE's weather at the spot: days without rain, precipitation (mm) and
+	 * fire risk (0–1). Only filled once INPE closes the day (the next
+	 * morning's rewrite); null until then and for 10-minute detections.
+	 */
+	dryDays: number | null;
+	rain: number | null;
+	risk: number | null;
+	/**
 	 * From a 10-minute file: state located from IBGE outlines, no
 	 * municipality, biome or FRP until INPE's next daily rewrite.
 	 */
@@ -108,6 +116,17 @@ export function titleCase(name: string): string {
 		.join(" ");
 }
 
+/**
+ * A numeric field, or null when empty, unparseable or negative: INPE marks
+ * missing weather with -999.
+ */
+export function optionalNumber(value: string | undefined): number | null {
+	const text = value?.trim() ?? "";
+	if (text === "") return null;
+	const n = Number(text);
+	return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
 /** "2026-10-23 20:40:00" (GMT) → Unix ms; NaN when malformed. */
 export function parseGmt(value: string): number {
 	return Date.parse(`${value.trim().replace(" ", "T")}Z`);
@@ -130,6 +149,9 @@ export function parseInpeCsv(text: string): Detection[] {
 		stateId: col("estado_id"),
 		biome: col("bioma"),
 		frp: col("frp"),
+		dryDays: col("numero_dias_sem_chuva"),
+		rain: col("precipitacao"),
+		risk: col("risco_fogo"),
 	};
 	if (Object.values(idx).some((i) => i < 0))
 		throw new Error(`Unexpected INPE header: ${lines[0]}`);
@@ -147,8 +169,7 @@ export function parseInpeCsv(text: string): Detection[] {
 			continue;
 		const state = UF_BY_IBGE[f[idx.stateId]?.trim() ?? ""] ?? "";
 		const municipality = titleCase(f[idx.municipality] ?? "");
-		const frpText = f[idx.frp]?.trim() ?? "";
-		const frp = frpText === "" ? null : Number(frpText);
+		const frp = optionalNumber(f[idx.frp]);
 		out.push({
 			lat,
 			lon,
@@ -157,7 +178,10 @@ export function parseInpeCsv(text: string): Detection[] {
 			state,
 			place: state ? `${municipality} (${state})` : municipality,
 			biome: f[idx.biome]?.trim() ?? "",
-			frp: frp !== null && Number.isFinite(frp) ? frp : null,
+			frp,
+			dryDays: optionalNumber(f[idx.dryDays]),
+			rain: optionalNumber(f[idx.rain]),
+			risk: optionalNumber(f[idx.risk]),
 			preliminary: false,
 		});
 	}
@@ -228,6 +252,9 @@ export function parseTenMinuteCsv(
 			place: "",
 			biome: "",
 			frp: null,
+			dryDays: null,
+			rain: null,
+			risk: null,
 			preliminary: true,
 		});
 	}
@@ -298,6 +325,9 @@ export function buildFiresResponse(
 		lat: [],
 		t: [],
 		frp: [],
+		dry: [],
+		rain: [],
+		risk: [],
 		sat: [],
 		state: [],
 		place: [],
@@ -309,6 +339,9 @@ export function buildFiresResponse(
 		fires.lat.push(d.lat);
 		fires.t.push(Math.round(d.time / 1000));
 		fires.frp.push(d.frp);
+		fires.dry.push(d.dryDays);
+		fires.rain.push(d.rain);
+		fires.risk.push(d.risk);
 		fires.sat.push(indexIn(tables.satellites, d.satellite));
 		fires.state.push(indexIn(tables.states, d.state));
 		fires.place.push(indexIn(tables.places, d.place));
