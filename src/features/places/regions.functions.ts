@@ -5,20 +5,20 @@ import { WindowSchema } from "../fires/schemas";
 const hours = WindowSchema.catch(24);
 
 /** Server functions for the region pages; safe to import from routes. */
-export const getStateSummary = createServerFn({ method: "GET" })
+export const getStateDetails = createServerFn({ method: "GET" })
 	.validator(z.object({ state: z.string().max(2), h: hours }))
 	.handler(async ({ data }) => {
-		const { stateSummary } = await import("./regions.server");
-		return stateSummary(data.state, data.h);
+		const { stateDetails } = await import("./regions.server");
+		return stateDetails(data.state, data.h);
 	});
 
-export const getMunicipalitySummary = createServerFn({ method: "GET" })
+export const getCityDetails = createServerFn({ method: "GET" })
 	.validator(
 		z.object({ state: z.string().max(2), city: z.string().max(80), h: hours }),
 	)
 	.handler(async ({ data }) => {
-		const { municipalitySummary } = await import("./regions.server");
-		return municipalitySummary(data.state, data.city, data.h);
+		const { cityDetails } = await import("./regions.server");
+		return cityDetails(data.state, data.city, data.h);
 	});
 
 export const getStatesSummary = createServerFn({ method: "GET" })

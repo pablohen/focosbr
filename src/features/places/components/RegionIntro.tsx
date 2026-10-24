@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import type { Window } from "../../fires/schemas";
 import type { RegionCount } from "../places";
-import { MunicipalityLink, StateLink } from "./RegionLinks";
+import { StateLink } from "./RegionLinks";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 
@@ -55,55 +55,6 @@ export function BrazilIntro({
 					</Anchor>
 				</Links>
 			)}
-		</Stack>
-	);
-}
-
-export function StateIntro({
-	summary,
-}: {
-	summary: Numbers & {
-		uf: string;
-		name: string;
-		municipalities: RegionCount[];
-	};
-}) {
-	return (
-		<Stack gap={6}>
-			<Text size="sm">{regionSentence(summary.name, summary)}</Text>
-			{summary.municipalities.length > 0 && (
-				<Links label="Municípios com mais focos">
-					{summary.municipalities.map((m) => (
-						<MunicipalityLink
-							key={m.name}
-							uf={m.uf}
-							name={m.name}
-							hours={summary.hours}
-							size="xs"
-						>
-							{m.name} ({NUMBER.format(m.total)})
-						</MunicipalityLink>
-					))}
-				</Links>
-			)}
-			<Anchor component={Link} to="/states" size="xs">
-				Ver todos os estados
-			</Anchor>
-		</Stack>
-	);
-}
-
-export function MunicipalityIntro({
-	summary,
-}: {
-	summary: Numbers & { uf: string; stateName: string; label: string };
-}) {
-	return (
-		<Stack gap={6}>
-			<Text size="sm">{regionSentence(summary.label, summary)}</Text>
-			<StateLink uf={summary.uf} hours={summary.hours} size="xs">
-				Ver {summary.stateName}
-			</StateLink>
 		</Stack>
 	);
 }

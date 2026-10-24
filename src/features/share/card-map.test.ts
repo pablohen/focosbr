@@ -5,6 +5,7 @@ import {
 	BRAZIL,
 	cardBounds,
 	cardDots,
+	dotsPath,
 	type Outlines,
 	outlinePath,
 	projector,
@@ -74,5 +75,29 @@ describe("cardDots", () => {
 		const dots = cardDots(data, [0, 1, 2], project, size, now);
 		expect(dots.map((d) => d.color)).toEqual(["#f28c5c", "#8f1d0e"]);
 		expect(cardDots(data, [0, 1], project, size, now, 1)).toHaveLength(1);
+	});
+});
+
+describe("dotsPath", () => {
+	it("draws each point as a zero-length segment", () => {
+		expect(
+			dotsPath([
+				[1, 2],
+				[3.25, 4],
+			]),
+		).toBe("M1.0 2.0h0M3.3 4.0h0");
+		expect(dotsPath([])).toBe("");
+	});
+});
+
+describe("outlinePath frame", () => {
+	it("drops states outside the frame", () => {
+		const project = projector([-49, -16.1, -47.3, -15.4], 200, 200); // DF
+		const all = outlinePath(outlines, project);
+		const framed = outlinePath(outlines, project, () => true, 1.5, {
+			width: 200,
+			height: 200,
+		});
+		expect(framed.length).toBeLessThan(all.length / 4);
 	});
 });

@@ -1,16 +1,8 @@
-import {
-	Anchor,
-	Container,
-	Group,
-	Stack,
-	Table,
-	Text,
-	Title,
-} from "@mantine/core";
-import { FireIcon } from "@phosphor-icons/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Container, Group, Stack, Table, Text, Title } from "@mantine/core";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
+import { PageHeader } from "~/features/places/components/PageHeader";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { StateLink } from "~/features/places/components/RegionLinks";
 import { getStatesSummary } from "~/features/places/regions.functions";
@@ -43,25 +35,9 @@ export const Route = createFileRoute("/states/")({
 function StatesPage() {
 	const summary = Route.useLoaderData();
 	return (
-		<Container size="sm" py="xl">
+		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
 			<Stack gap="md">
-				<Anchor
-					component={Link}
-					to="/"
-					underline="never"
-					c="inherit"
-					style={{ display: "flex", alignItems: "center", gap: 8 }}
-				>
-					<FireIcon
-						size={26}
-						weight="duotone"
-						color="var(--mantine-primary-color-filled)"
-						aria-hidden
-					/>
-					<Text fw={700} fz="h4">
-						FocosBR
-					</Text>
-				</Anchor>
+				<PageHeader />
 				<Title order={1} size="h2">
 					Focos de calor por estado
 				</Title>

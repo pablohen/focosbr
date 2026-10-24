@@ -1,18 +1,17 @@
+import { Container } from "@mantine/core";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
-import { FiresView } from "~/features/fires/components/FiresView";
-import { FiresSearchSchema } from "~/features/fires/schemas";
-import {
-	regionSentence,
-	StateIntro,
-} from "~/features/places/components/RegionIntro";
-import { useRegionNavigate } from "~/features/places/navigation";
+import { z } from "zod";
+import { WindowSchema } from "~/features/fires/schemas";
+import { PageHeader } from "~/features/places/components/PageHeader";
+import { RegionDetails } from "~/features/places/components/RegionDetails";
+import { regionSentence } from "~/features/places/components/RegionIntro";
 import { statePath } from "~/features/places/places";
-import { getStateSummary } from "~/features/places/regions.functions";
+import { getStateDetails } from "~/features/places/regions.functions";
 import { pageHead } from "~/features/share/head";
 
-/** A state's page: /states/pa. */
+/** A state's details page: /states/pa. */
 export const Route = createFileRoute("/states/$state")({
-	validateSearch: FiresSearchSchema,
+	validateSearch: z.object({ h: WindowSchema.optional().catch(undefined) }),
 	beforeLoad: ({ search, params }) => {
 		// One URL per state: /states/PA → /states/pa.
 		if (params.state !== params.state.toLowerCase())
@@ -25,26 +24,19 @@ export const Route = createFileRoute("/states/$state")({
 	},
 	loaderDeps: ({ search }) => ({ h: search.h ?? 24 }),
 	loader: async ({ params, deps }) => {
-		const summary = await getStateSummary({
+		const details = await getStateDetails({
 			data: { state: params.state, h: deps.h },
 		});
-		if (!summary) throw notFound();
-		return summary;
+		if (!details) throw notFound();
+		return details;
 	},
-	// Keep the map on screen while a new window's summary loads.
-	pendingMs: Number.POSITIVE_INFINITY,
 	head: ({ match, loaderData }) =>
 		loaderData
 			? pageHead({
 					title: `Focos de calor em ${loaderData.name} agora · FocosBR`,
 					description: regionSentence(loaderData.name, loaderData),
 					path: statePath(loaderData.uf),
-					view: {
-						h: match.search.h,
-						sensor: match.search.sensor,
-						biome: match.search.biome,
-						state: loaderData.uf,
-					},
+					view: { h: match.search.h, state: loaderData.uf },
 					alt: loaderData.name,
 				})
 			: {},
@@ -52,23 +44,17 @@ export const Route = createFileRoute("/states/$state")({
 });
 
 function StatePage() {
-	const search = Route.useSearch();
-	const summary = Route.useLoaderData();
+	const details = Route.useLoaderData();
 	const navigate = Route.useNavigate();
-	const goTo = useRegionNavigate(search);
 	return (
-		<FiresView
-			title={`Focos de calor em ${summary.name}`}
-			intro={<StateIntro summary={summary} />}
-			region={{ uf: summary.uf }}
-			search={search}
-			onSearchChange={(patch, options) =>
-				navigate({
-					search: (s) => ({ ...s, ...patch }),
-					replace: options?.replace,
-				})
-			}
-			onRegionChange={goTo}
-		/>
+		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+			<PageHeader />
+			<RegionDetails
+				details={details}
+				onHoursChange={(h) =>
+					navigate({ search: { h: h === 24 ? undefined : h } })
+				}
+			/>
+		</Container>
 	);
 }

@@ -32,38 +32,23 @@ const MAP_FALLBACK = (
 	</Center>
 );
 
-/** A region of the page: a state, a municipality ("Altamira (PA)") in it, or neither. */
-export type Region = { uf?: string; biome?: string; place?: string };
-
 type Props = {
 	/** The panel's heading (the page's h1). */
 	title: string;
-	/** Server-rendered text about the region, with links, for the panel. */
+	/** Server-rendered text with links, for the panel. */
 	intro?: ReactNode;
-	region: { uf?: string; place?: string };
-	search: Pick<FiresSearch, "h" | "sensor" | "biome" | "bbox">;
-	/** Updates query parameters on the current page. */
+	search: FiresSearch;
+	/** Updates the query (window, sensors, region, map position). */
 	onSearchChange: (
-		patch: Partial<Pick<FiresSearch, "h" | "sensor" | "biome" | "bbox">>,
+		patch: Partial<FiresSearch>,
 		options?: { replace?: boolean },
 	) => void;
-	/** Goes to another region's page (or the home page). */
-	onRegionChange: (region: Region) => void;
 };
 
-/**
- * The map and its panel, for the home page and the region pages. The
- * region comes from the page; the window, sensors, biome and map position
- * from the query string.
- */
-export function FiresView({
-	title,
-	intro,
-	region: { uf, place },
-	search,
-	onSearchChange,
-	onRegionChange,
-}: Props) {
+/** The map and its panel. All of its state lives in the query string. */
+export function FiresView({ title, intro, search, onSearchChange }: Props) {
+	const uf = search.state;
+	const place = search.city;
 	const hours: Window = search.h ?? 24;
 	const sensors: Sensor[] = search.sensor ?? [];
 	const biome = search.biome;
@@ -201,10 +186,11 @@ export function FiresView({
 						biome={biome}
 						place={place}
 						onRegionChange={(next) =>
-							// The biome stays a filter on the page; a new place is a new page.
-							next.uf === uf && next.place === place
-								? onSearchChange({ biome: next.biome })
-								: onRegionChange(next)
+							onSearchChange({
+								state: next.uf,
+								city: next.place,
+								biome: next.biome,
+							})
 						}
 						data={data}
 						summary={summary}

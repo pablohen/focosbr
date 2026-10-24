@@ -1,0 +1,44 @@
+import { Anchor, Group, Text } from "@mantine/core";
+import { FireIcon } from "@phosphor-icons/react";
+import { Link } from "@tanstack/react-router";
+import { CopyLinkButton } from "~/features/share/components/CopyLinkButton";
+import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
+
+/** Header for the content pages (states, a state, a city). */
+export function PageHeader() {
+	return (
+		<Group justify="space-between" wrap="nowrap" mb="lg">
+			<Group gap="md" wrap="nowrap">
+				<Anchor
+					renderRoot={(props) => <Link {...props} to="/" />}
+					underline="never"
+					c="inherit"
+					style={{ display: "flex", alignItems: "center", gap: 8 }}
+				>
+					<FireIcon
+						size={26}
+						weight="duotone"
+						color="var(--mantine-primary-color-filled)"
+						aria-hidden
+					/>
+					<Text fw={700} fz="h4">
+						FocosBR
+					</Text>
+				</Anchor>
+				<Anchor renderRoot={(props) => <Link {...props} to="/" />} size="sm">
+					Mapa
+				</Anchor>
+				<Anchor
+					renderRoot={(props) => <Link {...props} to="/states" />}
+					size="sm"
+				>
+					Estados
+				</Anchor>
+			</Group>
+			<Group gap="xs" wrap="nowrap">
+				<CopyLinkButton />
+				<ColorSchemeToggle />
+			</Group>
+		</Group>
+	);
+}

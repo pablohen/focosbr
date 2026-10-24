@@ -38,6 +38,14 @@ export type BBox = z.infer<typeof BBoxSchema>;
 export const FiresSearchSchema = z.object({
 	h: WindowSchema.optional().catch(undefined),
 	sensor: z.array(SensorSchema).optional().catch(undefined),
+	/** Two-letter state code, upper case. */
+	state: z
+		.string()
+		.regex(/^[A-Z]{2}$/)
+		.optional()
+		.catch(undefined),
+	/** City label as in the fire data: "Altamira (PA)". */
+	city: z.string().min(1).max(80).optional().catch(undefined),
 	/** Biome name as INPE publishes it ("Amazônia", "Cerrado"…). */
 	biome: z.string().min(1).max(40).optional().catch(undefined),
 	/** Where the user left the map; set only by their own moves. */

@@ -1,18 +1,17 @@
+import { Container } from "@mantine/core";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
-import { FiresView } from "~/features/fires/components/FiresView";
-import { FiresSearchSchema } from "~/features/fires/schemas";
-import {
-	MunicipalityIntro,
-	regionSentence,
-} from "~/features/places/components/RegionIntro";
-import { useRegionNavigate } from "~/features/places/navigation";
+import { z } from "zod";
+import { WindowSchema } from "~/features/fires/schemas";
+import { PageHeader } from "~/features/places/components/PageHeader";
+import { RegionDetails } from "~/features/places/components/RegionDetails";
+import { regionSentence } from "~/features/places/components/RegionIntro";
 import { municipalityPath } from "~/features/places/places";
-import { getMunicipalitySummary } from "~/features/places/regions.functions";
+import { getCityDetails } from "~/features/places/regions.functions";
 import { pageHead } from "~/features/share/head";
 
-/** A city's page: /cities/pa/altamira. */
+/** A city's details page: /cities/pa/altamira. */
 export const Route = createFileRoute("/cities/$state/$city")({
-	validateSearch: FiresSearchSchema,
+	validateSearch: z.object({ h: WindowSchema.optional().catch(undefined) }),
 	beforeLoad: ({ search, params }) => {
 		// One URL per city: /cities/PA/altamira → /cities/pa/altamira.
 		if (params.state !== params.state.toLowerCase())
@@ -25,14 +24,12 @@ export const Route = createFileRoute("/cities/$state/$city")({
 	},
 	loaderDeps: ({ search }) => ({ h: search.h ?? 24 }),
 	loader: async ({ params, deps }) => {
-		const summary = await getMunicipalitySummary({
+		const details = await getCityDetails({
 			data: { state: params.state, city: params.city, h: deps.h },
 		});
-		if (!summary) throw notFound();
-		return summary;
+		if (!details) throw notFound();
+		return details;
 	},
-	// Keep the map on screen while a new window's summary loads.
-	pendingMs: Number.POSITIVE_INFINITY,
 	head: ({ match, loaderData }) =>
 		loaderData
 			? pageHead({
@@ -41,8 +38,6 @@ export const Route = createFileRoute("/cities/$state/$city")({
 					path: municipalityPath(loaderData.uf, loaderData.name),
 					view: {
 						h: match.search.h,
-						sensor: match.search.sensor,
-						biome: match.search.biome,
 						state: loaderData.uf,
 						city: loaderData.label,
 					},
@@ -53,23 +48,17 @@ export const Route = createFileRoute("/cities/$state/$city")({
 });
 
 function CityPage() {
-	const search = Route.useSearch();
-	const summary = Route.useLoaderData();
+	const details = Route.useLoaderData();
 	const navigate = Route.useNavigate();
-	const goTo = useRegionNavigate(search);
 	return (
-		<FiresView
-			title={`Focos de calor em ${summary.label}`}
-			intro={<MunicipalityIntro summary={summary} />}
-			region={{ uf: summary.uf, place: summary.label }}
-			search={search}
-			onSearchChange={(patch, options) =>
-				navigate({
-					search: (s) => ({ ...s, ...patch }),
-					replace: options?.replace,
-				})
-			}
-			onRegionChange={goTo}
-		/>
+		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+			<PageHeader />
+			<RegionDetails
+				details={details}
+				onHoursChange={(h) =>
+					navigate({ search: { h: h === 24 ? undefined : h } })
+				}
+			/>
+		</Container>
 	);
 }

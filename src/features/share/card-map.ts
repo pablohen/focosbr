@@ -48,6 +48,8 @@ export function outlinePath(
 	project: Project,
 	keep: (uf: string) => boolean = () => true,
 	minStep = 1.5,
+	/** Drops rings entirely outside this box (with a margin). */
+	frame?: { width: number; height: number },
 ): string {
 	const parts: string[] = [];
 	for (const f of outlines.features) {
@@ -62,10 +64,38 @@ export function outlinePath(
 					pts.push(`${x.toFixed(1)} ${y.toFixed(1)}`);
 					last = [x, y];
 				}
-				if (pts.length >= 3) parts.push(`M${pts.join("L")}Z`);
+				if (pts.length < 3) continue;
+				if (frame && !ringInFrame(ring, project, frame)) continue;
+				parts.push(`M${pts.join("L")}Z`);
 			}
 	}
 	return parts.join("");
+}
+
+function ringInFrame(
+	ring: Position[],
+	project: Project,
+	{ width, height }: { width: number; height: number },
+): boolean {
+	let [x0, y0, x1, y1] = [Infinity, Infinity, -Infinity, -Infinity];
+	for (const [lon = 0, lat = 0] of ring) {
+		const [x, y] = project(lon, lat);
+		x0 = Math.min(x0, x);
+		x1 = Math.max(x1, x);
+		y0 = Math.min(y0, y);
+		y1 = Math.max(y1, y);
+	}
+	const m = 20;
+	return x1 >= -m && y1 >= -m && x0 <= width + m && y0 <= height + m;
+}
+
+/**
+ * Many dots as one SVG path: a zero-length segment per point, drawn with a
+ * round line cap and a stroke as wide as the dot. ~13 bytes a dot instead
+ * of ~100 for a <circle>.
+ */
+export function dotsPath(points: [number, number][]): string {
+	return points.map(([x, y]) => `M${x.toFixed(1)} ${y.toFixed(1)}h0`).join("");
 }
 
 /** The state's bounds with a 6% margin, or Brazil's. */
