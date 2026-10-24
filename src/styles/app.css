@@ -79,6 +79,20 @@
 	--anom-2: #e56d3e;
 }
 
+/* Compare page: the first three categorical slots, validated all-pairs
+   (lines can cross) for each surface. Light aqua is under 3:1, so lines
+   carry direct labels and the chart has a table view. */
+:root {
+	--series-1: #2a78d6;
+	--series-2: #eb6834;
+	--series-3: #1baf7a;
+}
+[data-mantine-color-scheme="dark"] {
+	--series-1: #3987e5;
+	--series-2: #d95926;
+	--series-3: #199e70;
+}
+
 /* Fire-season calendar: an ordinal one-hue ember ramp, fewest to most
    detections, validated separately for each surface (the dark ramp runs
    dark to light). Months with none get the neutral --cal-0. */

@@ -10,6 +10,7 @@ export function sitemapPaths(cities: Municipality[]): string[] {
 		"/rankings",
 		"/biomes",
 		"/data",
+		"/compare",
 		...BIOMES.map((b) => biomePath(b.slug)),
 		...Object.keys(STATE_NAMES).sort().map(statePath),
 		...cities.map((c) => municipalityPath(c.uf, c.name)),

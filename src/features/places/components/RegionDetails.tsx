@@ -11,7 +11,7 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { MapTrifoldIcon } from "@phosphor-icons/react";
+import { MapTrifoldIcon, ScalesIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Freshness } from "~/features/fires/components/Freshness";
@@ -134,6 +134,11 @@ export function RegionDetails({
 		: city
 			? { state: city.uf, city: city.label, h }
 			: { state: state?.uf, h };
+	const compareKey = biome
+		? `biome/${biome.slug}`
+		: city
+			? `${city.uf.toLowerCase()}/${slugify(city.name)}`
+			: (state?.uf.toLowerCase() ?? "br");
 	const embedPath = biome
 		? `/embed/biomes/${biome.slug}`
 		: city
@@ -183,6 +188,20 @@ export function RegionDetails({
 						aria-label="Período"
 					/>
 					<Group gap="xs">
+						<Button
+							size="xs"
+							variant="default"
+							leftSection={<ScalesIcon size={16} />}
+							renderRoot={(props) => (
+								<Link
+									{...props}
+									to="/compare"
+									search={{ places: compareKey }}
+								/>
+							)}
+						>
+							Comparar
+						</Button>
 						<EmbedButton embedPath={embedPath} name={name} />
 						<Button
 							size="xs"

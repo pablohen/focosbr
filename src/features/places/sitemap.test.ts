@@ -7,12 +7,13 @@ describe("sitemapPaths", () => {
 			{ id: 1500602, name: "Altamira", uf: "PA" },
 			{ id: 1, name: "São Félix do Xingu", uf: "PA" },
 		]);
-		expect(paths.slice(0, 5)).toEqual([
+		expect(paths.slice(0, 6)).toEqual([
 			"/",
 			"/states",
 			"/rankings",
 			"/biomes",
 			"/data",
+			"/compare",
 		]);
 		expect(paths).toContain("/biomes/mata-atlantica");
 		expect(paths.filter((p) => p.startsWith("/states/"))).toHaveLength(27);
