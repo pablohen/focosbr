@@ -1,8 +1,9 @@
 import { Stack, Text, Title } from "@mantine/core";
 import { BarSeries } from "~/features/fires/components/BarSeries";
 import { versusAverage, ytdPeriod } from "../format";
-import type { RegionHistory, Ytd } from "../schemas";
+import { FIRST_YEAR, type RegionHistory, type Ytd } from "../schemas";
 import { FireCalendar } from "./FireCalendar";
+import { SeasonChart } from "./SeasonChart";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const MONTH = new Intl.DateTimeFormat("pt-BR", {
@@ -66,6 +67,7 @@ export function HistorySection({
 				</Title>
 				<YtdSentence ytd={ytd} name={name} />
 			</Stack>
+			<SeasonChart season={history.season} firstYear={FIRST_YEAR} />
 			<BarSeries
 				title={`De ${ytdPeriod(ytd.through)}, ano a ano`}
 				bars={ytd.years.map((y) => ({

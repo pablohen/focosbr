@@ -131,6 +131,85 @@ export function ytdSummary(refDays: Record<string, number>, now: Date) {
 	};
 }
 
+/** Day of the year (1–365) of a "MM-DD", on a non-leap year (29 February reads as 1 March). */
+export function dayOfYear(md: string) {
+	const [m = 1, d = 1] = md.split("-").map(Number);
+	return (Date.UTC(2025, m - 1, d) - Date.UTC(2025, 0, 1)) / DAY_MS + 1;
+}
+
+/** "MM-DD" of a day of the year on a non-leap year. */
+const monthDay = (doy: number) =>
+	new Date(Date.UTC(2025, 0, doy)).toISOString().slice(5, 10);
+
+/** The season curve's sample days: every 7th day of the year, and 31 December. */
+const SEASON_DAYS = [...Array.from({ length: 52 }, (_, k) => (k + 1) * 7), 365];
+
+/**
+ * The fire-season tracker: reference-satellite detections summed from
+ * 1 January, sampled weekly, for this year (up to yesterday, the last
+ * closed day) against the range, average and record of every past year
+ * since FIRST_YEAR. Years are cut by month-day, so they line up.
+ */
+export function seasonCurve(refDays: Record<string, number>, now: Date) {
+	const through = localKeys(now.getTime() - DAY_MS).day;
+	const thisYear = Number(through.slice(0, 4));
+	const byYear = new Map<number, [string, number][]>();
+	for (const [day, n] of Object.entries(refDays)) {
+		const y = Number(day.slice(0, 4));
+		if (y > thisYear || (y === thisYear && day > through)) continue;
+		const list = byYear.get(y) ?? [];
+		list.push([day.slice(5), n]);
+		byYear.set(y, list);
+	}
+	/** Running totals of a year at each of `marks` ("MM-DD", ascending). */
+	const cumulative = (year: number, marks: string[]) => {
+		const list = (byYear.get(year) ?? []).sort((a, b) =>
+			a[0] < b[0] ? -1 : 1,
+		);
+		let i = 0;
+		let sum = 0;
+		return marks.map((md) => {
+			for (; i < list.length && (list[i]?.[0] ?? "") <= md; i++)
+				sum += list[i]?.[1] ?? 0;
+			return sum;
+		});
+	};
+	const marks = SEASON_DAYS.map(monthDay);
+	const past: { year: number; values: number[] }[] = [];
+	for (let y = FIRST_YEAR; y < thisYear; y++)
+		past.push({ year: y, values: cumulative(y, marks) });
+	const at = (k: number) => past.map((p) => p.values[k] ?? 0);
+	const record = past.reduce<(typeof past)[number] | null>(
+		(a, p) => ((p.values.at(-1) ?? 0) > (a?.values.at(-1) ?? 0) ? p : a),
+		null,
+	);
+	const throughDay = dayOfYear(through.slice(5));
+	const currentDays = [
+		...SEASON_DAYS.filter((d) => d < throughDay),
+		throughDay,
+	];
+	const currentValues = cumulative(thisYear, currentDays.map(monthDay));
+	return {
+		through,
+		days: SEASON_DAYS,
+		min: SEASON_DAYS.map((_, k) => (past.length ? Math.min(...at(k)) : 0)),
+		max: SEASON_DAYS.map((_, k) => (past.length ? Math.max(...at(k)) : 0)),
+		average: SEASON_DAYS.map((_, k) =>
+			past.length
+				? Math.round(at(k).reduce((a, b) => a + b, 0) / past.length)
+				: 0,
+		),
+		record: record && (record.values.at(-1) ?? 0) > 0 ? record : null,
+		current: {
+			year: thisYear,
+			points: currentDays.map((day, k) => ({
+				day,
+				count: currentValues[k] ?? 0,
+			})),
+		},
+	};
+}
+
 /**
  * A region's page series from its stored maps: every year since FIRST_YEAR
  * (summed from months), the last MONTHS_SHOWN months and DAYS_SHOWN days.
@@ -196,6 +275,7 @@ export function regionSeries(
 		months,
 		calendar,
 		ytd: ytdSummary(stored.refDays, now),
+		season: seasonCurve(stored.refDays, now),
 		days,
 		daysSince:
 			firstStored && firstStored > (days[0]?.key ?? "") ? firstStored : null,

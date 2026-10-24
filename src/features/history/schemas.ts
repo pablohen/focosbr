@@ -59,6 +59,28 @@ const Point = z.object({
 	partial: z.boolean(),
 });
 
+const SeasonSchema = z.object({
+	/** Last day counted, "2026-10-23". */
+	through: z.string(),
+	/** Sample days of the year (1–365) for min, max, average and record. */
+	days: z.array(z.number().int()),
+	/** Lowest, highest and average running total of past years at each sample day. */
+	min: z.array(z.number().int()),
+	max: z.array(z.number().int()),
+	average: z.array(z.number().int()),
+	/** The past year with the most detections, at each sample day. */
+	record: z
+		.object({ year: z.number().int(), values: z.array(z.number().int()) })
+		.nullable(),
+	/** This year, weekly and on its last counted day. */
+	current: z.object({
+		year: z.number().int(),
+		points: z.array(
+			z.object({ day: z.number().int(), count: z.number().int() }),
+		),
+	}),
+});
+
 /** What a state's or city's page shows. */
 export const RegionHistorySchema = z.object({
 	updatedAt: z.iso.datetime(),
@@ -71,6 +93,8 @@ export const RegionHistorySchema = z.object({
 		z.object({ year: z.number().int(), months: z.array(z.number().int()) }),
 	),
 	ytd: YtdSchema,
+	/** The fire-season tracker (`seasonCurve`): running totals from 1 January, by day of the year. */
+	season: SeasonSchema,
 	/** The last DAYS_SHOWN days, all satellites; `key` is "2026-10-23". */
 	days: z.array(Point),
 	/** First day with all-satellite counts, if after the first one shown. */

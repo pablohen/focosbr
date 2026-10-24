@@ -3,8 +3,10 @@ import {
 	CALENDAR_STEPS,
 	calendarStep,
 	createHistoryAggregator,
+	dayOfYear,
 	localKeys,
 	regionSeries,
+	seasonCurve,
 	ytdSummary,
 } from "./build";
 import { DAYS_SHOWN, FIRST_YEAR, MONTHS_SHOWN } from "./schemas";
@@ -168,5 +170,49 @@ describe("calendarStep", () => {
 		expect(calendarStep(25, 100)).toBe(3);
 		const steps = [1, 4, 9, 16, 36, 64, 100].map((n) => calendarStep(n, 100));
 		expect(steps).toEqual([...steps].sort((a, b) => a - b));
+	});
+});
+
+describe("dayOfYear", () => {
+	it("counts on a non-leap year", () => {
+		expect(dayOfYear("01-01")).toBe(1);
+		expect(dayOfYear("03-01")).toBe(60);
+		expect(dayOfYear("02-29")).toBe(60);
+		expect(dayOfYear("12-31")).toBe(365);
+	});
+});
+
+describe("seasonCurve", () => {
+	const now = new Date(at(2026, 10, 24, 15));
+	const refDays = {
+		"2003-01-05": 10, // before the first sample (day 7)
+		"2003-12-31": 5,
+		"2004-01-20": 30,
+		"2026-01-03": 4,
+		"2026-10-23": 6, // yesterday: the last counted day
+		"2026-10-24": 50, // today: still counting
+	};
+	const s = seasonCurve(refDays, now);
+
+	it("samples every week and the last day of the year", () => {
+		expect(s.days[0]).toBe(7);
+		expect(s.days.at(-1)).toBe(365);
+		expect(s.min).toHaveLength(s.days.length);
+	});
+
+	it("keeps the range, average and record of past years", () => {
+		// Day 7: 2003 has 10, 2004 and the empty years 0.
+		expect(s.max[0]).toBe(10);
+		expect(s.min[0]).toBe(0);
+		expect(s.max.at(-1)).toBe(30);
+		expect(s.record).toMatchObject({ year: 2004 });
+		expect(s.average.at(-1)).toBe(Math.round(45 / (2026 - FIRST_YEAR)));
+	});
+
+	it("runs this year up to yesterday, without today", () => {
+		const last = s.current.points.at(-1);
+		expect(s.current.year).toBe(2026);
+		expect(last).toEqual({ day: dayOfYear("10-23"), count: 10 });
+		expect(s.current.points[0]).toEqual({ day: 7, count: 4 });
 	});
 });

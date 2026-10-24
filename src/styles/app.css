@@ -53,6 +53,14 @@
 	--chart-bar: #e45a32;
 }
 
+/* Season tracker: the past years' range, a neutral band behind the lines. */
+:root {
+	--season-band: var(--mantine-color-gray-2);
+}
+[data-mantine-color-scheme="dark"] {
+	--season-band: var(--mantine-color-dark-5);
+}
+
 /* Fire-season calendar: an ordinal one-hue ember ramp, fewest to most
    detections, validated separately for each surface (the dark ramp runs
    dark to light). Months with none get the neutral --cal-0. */
