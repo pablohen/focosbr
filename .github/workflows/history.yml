@@ -1,0 +1,48 @@
+# Daily refresh of the `history` collection the state and city pages read:
+# this month and last month from INPE's monthly files, and the last 31
+# days from its daily files (see scripts/history.ts). INPE closes the
+# previous day around 09:00 in Brasília, so this runs at 09:30 (12:30 UTC).
+name: History
+
+on:
+  schedule:
+    - cron: "30 12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: history
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+    steps:
+      - name: Check for the database secret
+        id: secret
+        run: |
+          if [ -z "$MONGODB_URI" ]; then
+            echo "MONGODB_URI is not set; skipping." >> "$GITHUB_STEP_SUMMARY"
+            echo "set=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "set=true" >> "$GITHUB_OUTPUT"
+          fi
+      # Pinned to commit SHAs (same versions as CI); bump deliberately.
+      - if: steps.secret.outputs.set == 'true'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - if: steps.secret.outputs.set == 'true'
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - if: steps.secret.outputs.set == 'true'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+      - if: steps.secret.outputs.set == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.secret.outputs.set == 'true'
+        run: pnpm history:build
