@@ -8,7 +8,7 @@ import { BIOMES } from "./biomes";
 import { isState, type MunicipalityList, slugify } from "./places";
 
 export type SearchEntry = {
-	kind: "state" | "biome" | "city";
+	kind: "country" | "state" | "biome" | "city";
 	uf: string;
 	/** IBGE's name. */
 	name: string;
@@ -16,7 +16,7 @@ export type SearchEntry = {
 	slug: string;
 };
 
-/** Every state, biome and municipality, in that order. */
+/** Brazil, then every state, biome and municipality. */
 export function searchIndex(list: MunicipalityList): SearchEntry[] {
 	const states = Object.entries(STATE_NAMES).map(([uf, name]) => ({
 		kind: "state" as const,
@@ -38,10 +38,16 @@ export function searchIndex(list: MunicipalityList): SearchEntry[] {
 		name: b.name,
 		slug: b.slug,
 	}));
-	return [...states, ...biomes, ...cities];
+	const brazil = {
+		kind: "country" as const,
+		uf: "",
+		name: "Brasil",
+		slug: "brasil",
+	};
+	return [brazil, ...states, ...biomes, ...cities];
 }
 
-const KIND_ORDER = { state: 0, biome: 1, city: 2 } as const;
+const KIND_ORDER = { country: 0, state: 1, biome: 2, city: 3 } as const;
 
 /**
  * The best `limit` matches for `query`: whole name, then name prefix, then
@@ -88,4 +94,18 @@ export function searchPlaces(
 		)
 		.slice(0, limit)
 		.map((h) => h.e);
+}
+
+/** A search result's region key (see region-key.ts): "br", "pa", "pa/altamira", "biome/amazonia". */
+export function entryKey(e: SearchEntry): string {
+	switch (e.kind) {
+		case "country":
+			return "br";
+		case "state":
+			return e.uf.toLowerCase();
+		case "biome":
+			return `biome/${e.slug}`;
+		case "city":
+			return `${e.uf.toLowerCase()}/${e.slug}`;
+	}
 }

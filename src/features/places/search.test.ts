@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { searchIndex, searchPlaces } from "./search";
+import { entryKey, searchIndex, searchPlaces } from "./search";
 
 const index = searchIndex({
 	PA: [
@@ -52,6 +52,16 @@ describe("searchPlaces", () => {
 		expect(
 			searchPlaces(index, "amazon").map((e) => `${e.kind}:${e.name}`),
 		).toEqual(["state:Amazonas", "biome:Amazônia"]);
+	});
+
+	it("finds Brazil and keys every result", () => {
+		expect(searchPlaces(index, "brasil")[0]).toMatchObject({ kind: "country" });
+		expect(
+			["brasil", "sp", "pampa", "santarem"].map((q) => {
+				const e = searchPlaces(index, q)[0];
+				return e && entryKey(e);
+			}),
+		).toEqual(["br", "sp", "biome/pampa", "pa/santarem"]);
 	});
 
 	it("returns nothing for an empty query and respects the limit", () => {
