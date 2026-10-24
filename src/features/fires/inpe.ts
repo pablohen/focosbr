@@ -48,7 +48,7 @@ export type Detection = {
 };
 
 /** IBGE state codes (INPE's `estado_id`) to their two-letter abbreviations. */
-const UF_BY_IBGE: Record<string, string> = {
+export const UF_BY_IBGE: Record<string, string> = {
 	"11": "RO",
 	"12": "AC",
 	"13": "AM",
