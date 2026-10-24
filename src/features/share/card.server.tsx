@@ -1,6 +1,7 @@
 /**
  * Share images (1200×630) for a view of the map: the fire estimate, the
- * detection count and a mini map. Satori lays the JSX out as SVG and resvg
+ * detection count, this year against the average of past years (for one
+ * region with every sensor) and a mini map. Satori lays the JSX out as SVG and resvg
  * (WebAssembly) turns it into PNG. The wasm and fonts are inlined as base64
  * into this module's chunk, which only `/og` loads (by dynamic import).
  *
@@ -14,11 +15,17 @@ import satori from "satori";
 import outlinesText from "../../../public/data/state-outlines.geojson?raw";
 import { getFires } from "../fires/fires.server";
 import { SENSOR_LABELS, selectFires, summarize } from "../fires/view";
+import { versusAverage } from "../history/format";
+import { loadYtd } from "../history/history.server";
+import { biomeByName } from "../places/biomes";
+import { slugify, splitPlaceLabel } from "../places/places";
+import { municipalities } from "../places/places.server";
 import {
 	CARD_HEIGHT,
 	CARD_WIDTH,
 	type CardView,
 	CardViewSchema,
+	cardHistoryId,
 	regionLabel,
 } from "./card";
 import {
@@ -74,7 +81,18 @@ export async function fireCard(
 ): Promise<Uint8Array<ArrayBuffer>> {
 	const search = CardViewSchema.parse(view);
 	const hours = search.h ?? 24;
-	const data = await getFires(hours);
+	const historyId = cardHistoryId(
+		search,
+		(label) => {
+			const p = splitPlaceLabel(label);
+			return p ? municipalities.find(p.uf, slugify(p.name))?.id : undefined;
+		},
+		(name) => biomeByName(name)?.slug,
+	);
+	const [data, ytd] = await Promise.all([
+		getFires(hours),
+		historyId ? loadYtd(historyId) : null,
+	]);
 	const filters = {
 		sensors: search.sensor,
 		uf: search.state,
@@ -158,6 +176,23 @@ export async function fireCard(
 						<div style={{ fontSize: 26, color: DIM }}>
 							{`${NUMBER.format(summary.total)} ${summary.total === 1 ? "foco detectado" : "focos detectados"} nas últimas ${hours} horas`}
 						</div>
+						{ytd?.ratio != null && (
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									gap: 4,
+									marginTop: 14,
+								}}
+							>
+								<div style={{ fontSize: 30, fontWeight: 700 }}>
+									{`No ano, ${versusAverage(ytd.ratio)}`}
+								</div>
+								<div style={{ fontSize: 22, color: DIM }}>
+									{`${NUMBER.format(ytd.current)} focos desde 1º de janeiro (satélite de referência)`}
+								</div>
+							</div>
+						)}
 					</div>
 					<div style={{ display: "flex", fontSize: 20, color: DIM }}>
 						{`Dados: INPE, Programa Queimadas${updated ? ` · ${updated}` : ""}`}

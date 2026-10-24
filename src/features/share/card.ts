@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { SensorSchema, WindowSchema } from "../fires/schemas";
 import { STATE_NAMES } from "../fires/states";
+import { BRAZIL_ID } from "../history/schemas";
+import { biomeHistoryId } from "../places/biomes";
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
@@ -54,4 +56,31 @@ export function regionLabel(view: CardView): string {
 		view.biome,
 	].filter(Boolean);
 	return parts.length ? parts.join(" · ") : "Brasil";
+}
+
+/**
+ * The history `_id` whose year-to-date comparison a card shows: Brazil, a
+ * state, a city or a biome alone, with every sensor. Null for anything else
+ * (a sensor filter, or a state and a biome together), since history is only
+ * kept per region and for the reference satellite.
+ */
+export function cardHistoryId(
+	view: CardView,
+	cityId: (label: string) => number | undefined,
+	biomeSlug: (name: string) => string | undefined,
+): string | null {
+	if (view.sensor?.length) return null;
+	const { state, city, biome } = view;
+	if (city) {
+		if (biome) return null;
+		const id = cityId(city);
+		return id === undefined ? null : String(id);
+	}
+	if (state && biome) return null;
+	if (state) return state;
+	if (biome) {
+		const slug = biomeSlug(biome);
+		return slug ? biomeHistoryId(slug) : null;
+	}
+	return BRAZIL_ID;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardPath, cardViewFrom, regionLabel } from "./card";
+import { cardHistoryId, cardPath, cardViewFrom, regionLabel } from "./card";
 
 describe("cardPath", () => {
 	it("is /og for the default view", () => {
@@ -46,5 +46,29 @@ describe("regionLabel", () => {
 		expect(regionLabel({ biome: "Pantanal", state: "MS" })).toBe(
 			"Mato Grosso do Sul · Pantanal",
 		);
+	});
+});
+
+describe("cardHistoryId", () => {
+	const cityId = (label: string) =>
+		label === "Altamira (PA)" ? 1500602 : undefined;
+	const biomeSlug = (name: string) =>
+		name === "Amazônia" ? "amazonia" : undefined;
+	const id = (view: Parameters<typeof cardHistoryId>[0]) =>
+		cardHistoryId(view, cityId, biomeSlug);
+
+	it("names one region's history", () => {
+		expect(id({})).toBe("BR");
+		expect(id({ h: 48 })).toBe("BR");
+		expect(id({ state: "PA" })).toBe("PA");
+		expect(id({ state: "PA", city: "Altamira (PA)" })).toBe("1500602");
+		expect(id({ biome: "Amazônia" })).toBe("biome/amazonia");
+	});
+
+	it("has none for sensors, combinations or unknown places", () => {
+		expect(id({ sensor: ["viirs"] })).toBeNull();
+		expect(id({ state: "PA", biome: "Amazônia" })).toBeNull();
+		expect(id({ city: "Nowhere (PA)" })).toBeNull();
+		expect(id({ biome: "Oceano" })).toBeNull();
 	});
 });
