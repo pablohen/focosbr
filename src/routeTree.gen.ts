@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DataRouteImport } from './routes/data'
 import { Route as OgRouteImport } from './routes/og'
 import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -19,6 +20,7 @@ import { Route as BiomesBiomeRouteImport } from './routes/biomes.$biome'
 import { Route as EmbedIndexRouteImport } from './routes/embed.index'
 import { Route as StatesIndexRouteImport } from './routes/states.index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
+import { Route as ApiHistorySplatRouteImport } from './routes/api.history.$'
 import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
 import { Route as EmbedBiomesBiomeRouteImport } from './routes/embed.biomes.$biome'
 import { Route as EmbedStatesStateRouteImport } from './routes/embed.states.$state'
@@ -27,6 +29,11 @@ import { Route as EmbedCitiesStateCityRouteImport } from './routes/embed.cities.
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataRoute = DataRouteImport.update({
+  id: '/data',
+  path: '/data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OgRoute = OgRouteImport.update({
@@ -74,6 +81,11 @@ const StatesStateRoute = StatesStateRouteImport.update({
   path: '/states/$state',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHistorySplatRoute = ApiHistorySplatRouteImport.update({
+  id: '/api/history/$',
+  path: '/api/history/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CitiesStateCityRoute = CitiesStateCityRouteImport.update({
   id: '/cities/$state/$city',
   path: '/cities/$state/$city',
@@ -97,6 +109,7 @@ const EmbedCitiesStateCityRoute = EmbedCitiesStateCityRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/data': typeof DataRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -106,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/biomes/': typeof BiomesIndexRoute
   '/embed/': typeof EmbedIndexRoute
   '/states/': typeof StatesIndexRoute
+  '/api/history/$': typeof ApiHistorySplatRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
@@ -113,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/data': typeof DataRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -122,6 +137,7 @@ export interface FileRoutesByTo {
   '/biomes': typeof BiomesIndexRoute
   '/embed': typeof EmbedIndexRoute
   '/states': typeof StatesIndexRoute
+  '/api/history/$': typeof ApiHistorySplatRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
@@ -130,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/data': typeof DataRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -139,6 +156,7 @@ export interface FileRoutesById {
   '/biomes/': typeof BiomesIndexRoute
   '/embed/': typeof EmbedIndexRoute
   '/states/': typeof StatesIndexRoute
+  '/api/history/$': typeof ApiHistorySplatRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
@@ -148,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/data'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
@@ -157,6 +176,7 @@ export interface FileRouteTypes {
     | '/biomes/'
     | '/embed/'
     | '/states/'
+    | '/api/history/$'
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
@@ -164,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/data'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
@@ -173,6 +194,7 @@ export interface FileRouteTypes {
     | '/biomes'
     | '/embed'
     | '/states'
+    | '/api/history/$'
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
@@ -180,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/data'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
@@ -189,6 +212,7 @@ export interface FileRouteTypes {
     | '/biomes/'
     | '/embed/'
     | '/states/'
+    | '/api/history/$'
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
@@ -197,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DataRoute: typeof DataRoute
   OgRoute: typeof OgRoute
   RankingsRoute: typeof RankingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -206,6 +231,7 @@ export interface RootRouteChildren {
   BiomesIndexRoute: typeof BiomesIndexRoute
   EmbedIndexRoute: typeof EmbedIndexRoute
   StatesIndexRoute: typeof StatesIndexRoute
+  ApiHistorySplatRoute: typeof ApiHistorySplatRoute
   CitiesStateCityRoute: typeof CitiesStateCityRoute
   EmbedBiomesBiomeRoute: typeof EmbedBiomesBiomeRoute
   EmbedStatesStateRoute: typeof EmbedStatesStateRoute
@@ -219,6 +245,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data': {
+      id: '/data'
+      path: '/data'
+      fullPath: '/data'
+      preLoaderRoute: typeof DataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/og': {
@@ -284,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatesStateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/history/$': {
+      id: '/api/history/$'
+      path: '/api/history/$'
+      fullPath: '/api/history/$'
+      preLoaderRoute: typeof ApiHistorySplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cities/$state/$city': {
       id: '/cities/$state/$city'
       path: '/cities/$state/$city'
@@ -317,6 +357,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DataRoute: DataRoute,
   OgRoute: OgRoute,
   RankingsRoute: RankingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -326,6 +367,7 @@ const rootRouteChildren: RootRouteChildren = {
   BiomesIndexRoute: BiomesIndexRoute,
   EmbedIndexRoute: EmbedIndexRoute,
   StatesIndexRoute: StatesIndexRoute,
+  ApiHistorySplatRoute: ApiHistorySplatRoute,
   CitiesStateCityRoute: CitiesStateCityRoute,
   EmbedBiomesBiomeRoute: EmbedBiomesBiomeRoute,
   EmbedStatesStateRoute: EmbedStatesStateRoute,

@@ -1,5 +1,6 @@
-import { Button, Group, Menu, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Button, Group, Menu, Stack, Text, Title } from "@mantine/core";
 import { DownloadSimpleIcon } from "@phosphor-icons/react";
+import { Link } from "@tanstack/react-router";
 import { BarSeries } from "~/features/fires/components/BarSeries";
 import { saveFile } from "~/lib/download";
 import { HISTORY_TABLES, historyCsv, historyFileName } from "../export";
@@ -147,7 +148,13 @@ export function HistorySection({
 				os satélites, como o mapa
 				{history.daysSince &&
 					` (com registros desde ${DATE.format(Date.parse(`${history.daysSince}T00:00:00Z`))})`}
-				. Datas no horário de Brasília; atualizado diariamente.
+				. Datas no horário de Brasília; atualizado diariamente.{" "}
+				<Anchor
+					renderRoot={(props) => <Link {...props} to="/data" />}
+					size="xs"
+				>
+					Dados abertos
+				</Anchor>
 			</Text>
 		</Stack>
 	);
