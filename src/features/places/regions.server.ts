@@ -28,12 +28,14 @@ import {
 	outlinePath,
 	projector,
 } from "../share/card-map";
-import { BIOMES, biomeBySlug, biomeHistoryId } from "./biomes";
+import { BIOMES, biomeBySlug, biomeHistoryId, biomePath } from "./biomes";
 import {
 	isState,
+	municipalityPath,
 	placeLabel,
 	type RegionCount,
 	splitPlaceLabel,
+	statePath,
 } from "./places";
 import { municipalities } from "./places.server";
 
@@ -252,4 +254,62 @@ export async function biomesSummary(hours: Window) {
 		...counts(data, { biome: b.name }),
 	})).sort((a, b) => b.total - a.total);
 	return { ...common(data), ...counts(data, {}), biomes };
+}
+
+/**
+ * The embeddable widget's numbers: a region's live counts, and its
+ * year-to-date comparison and season curve. Null for an unknown region.
+ * With nothing, Brazil.
+ */
+export async function embedDetails(
+	region: { state?: string; city?: string; biome?: string },
+	hours: Window,
+) {
+	let target: {
+		name: string;
+		path: string;
+		historyId: string;
+		filters: { uf?: string; place?: string; biome?: string };
+	};
+	if (region.biome) {
+		const b = biomeBySlug(region.biome);
+		if (!b) return null;
+		target = {
+			name: b.name,
+			path: biomePath(b.slug),
+			historyId: biomeHistoryId(b.slug),
+			filters: { biome: b.name },
+		};
+	} else if (region.state && region.city) {
+		const m = municipalities.find(region.state, region.city);
+		if (!m) return null;
+		const label = placeLabel(m.name, m.uf);
+		target = {
+			name: label,
+			path: municipalityPath(m.uf, m.name),
+			historyId: String(m.id),
+			filters: { uf: m.uf, place: label },
+		};
+	} else if (region.state) {
+		const uf = region.state.toUpperCase();
+		if (!isState(uf)) return null;
+		target = {
+			name: STATE_NAMES[uf] ?? uf,
+			path: statePath(uf),
+			historyId: uf,
+			filters: { uf },
+		};
+	} else
+		target = { name: "Brasil", path: "/", historyId: BRAZIL_ID, filters: {} };
+	const [data, history] = await Promise.all([
+		getFires(hours),
+		loadRegionHistory(target.historyId),
+	]);
+	return {
+		name: target.name,
+		path: target.path,
+		...common(data),
+		...counts(data, target.filters),
+		history: history && { ytd: history.ytd, season: history.season },
+	};
 }

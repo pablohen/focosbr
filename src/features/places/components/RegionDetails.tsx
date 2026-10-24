@@ -20,11 +20,13 @@ import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
 import { AGE_BANDS } from "~/features/fires/view";
 import { HistorySection } from "~/features/history/components/HistorySection";
 import { biomeByName } from "../biomes";
+import { slugify } from "../places";
 import type {
 	getBiomeDetails,
 	getCityDetails,
 	getStateDetails,
 } from "../regions.functions";
+import { EmbedButton } from "./EmbedButton";
 import { regionSentence } from "./RegionIntro";
 import { BiomeLink, MunicipalityLink, StateLink } from "./RegionLinks";
 import { RegionMap } from "./RegionMap";
@@ -132,6 +134,11 @@ export function RegionDetails({
 		: city
 			? { state: city.uf, city: city.label, h }
 			: { state: state?.uf, h };
+	const embedPath = biome
+		? `/embed/biomes/${biome.slug}`
+		: city
+			? `/embed/cities/${city.uf.toLowerCase()}/${slugify(city.name)}`
+			: `/embed/states/${state?.uf.toLowerCase()}`;
 
 	return (
 		<Stack gap="xl">
@@ -175,16 +182,19 @@ export function RegionDetails({
 						data={WINDOWS.map((h) => ({ value: String(h), label: `${h} h` }))}
 						aria-label="Período"
 					/>
-					<Button
-						size="xs"
-						variant="light"
-						leftSection={<MapTrifoldIcon size={16} />}
-						renderRoot={(props) => (
-							<Link {...props} to="/" search={mapSearch} />
-						)}
-					>
-						Ver no mapa interativo
-					</Button>
+					<Group gap="xs">
+						<EmbedButton embedPath={embedPath} name={name} />
+						<Button
+							size="xs"
+							variant="light"
+							leftSection={<MapTrifoldIcon size={16} />}
+							renderRoot={(props) => (
+								<Link {...props} to="/" search={mapSearch} />
+							)}
+						>
+							Ver no mapa interativo
+						</Button>
+					</Group>
 				</Group>
 			</Stack>
 

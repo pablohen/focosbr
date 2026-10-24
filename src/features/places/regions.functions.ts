@@ -41,3 +41,17 @@ export const getBiomesSummary = createServerFn({ method: "GET" })
 		const { biomesSummary } = await import("./regions.server");
 		return biomesSummary(data.h);
 	});
+
+export const getEmbed = createServerFn({ method: "GET" })
+	.validator(
+		z.object({
+			state: z.string().max(2).optional(),
+			city: z.string().max(80).optional(),
+			biome: z.string().max(40).optional(),
+			h: hours,
+		}),
+	)
+	.handler(async ({ data }) => {
+		const { embedDetails } = await import("./regions.server");
+		return embedDetails(data, data.h);
+	});

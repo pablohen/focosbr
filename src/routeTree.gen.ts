@@ -16,9 +16,13 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
 import { Route as BiomesIndexRouteImport } from './routes/biomes.index'
 import { Route as BiomesBiomeRouteImport } from './routes/biomes.$biome'
+import { Route as EmbedIndexRouteImport } from './routes/embed.index'
 import { Route as StatesIndexRouteImport } from './routes/states.index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
 import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
+import { Route as EmbedBiomesBiomeRouteImport } from './routes/embed.biomes.$biome'
+import { Route as EmbedStatesStateRouteImport } from './routes/embed.states.$state'
+import { Route as EmbedCitiesStateCityRouteImport } from './routes/embed.cities.$state.$city'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,6 +59,11 @@ const BiomesBiomeRoute = BiomesBiomeRouteImport.update({
   path: '/biomes/$biome',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbedIndexRoute = EmbedIndexRouteImport.update({
+  id: '/embed/',
+  path: '/embed/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatesIndexRoute = StatesIndexRouteImport.update({
   id: '/states/',
   path: '/states/',
@@ -70,6 +79,21 @@ const CitiesStateCityRoute = CitiesStateCityRouteImport.update({
   path: '/cities/$state/$city',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmbedBiomesBiomeRoute = EmbedBiomesBiomeRouteImport.update({
+  id: '/embed/biomes/$biome',
+  path: '/embed/biomes/$biome',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedStatesStateRoute = EmbedStatesStateRouteImport.update({
+  id: '/embed/states/$state',
+  path: '/embed/states/$state',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedCitiesStateCityRoute = EmbedCitiesStateCityRouteImport.update({
+  id: '/embed/cities/$state/$city',
+  path: '/embed/cities/$state/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,8 +104,12 @@ export interface FileRoutesByFullPath {
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
   '/biomes/': typeof BiomesIndexRoute
+  '/embed/': typeof EmbedIndexRoute
   '/states/': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
+  '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
+  '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -92,8 +120,12 @@ export interface FileRoutesByTo {
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
   '/biomes': typeof BiomesIndexRoute
+  '/embed': typeof EmbedIndexRoute
   '/states': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
+  '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
+  '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -105,8 +137,12 @@ export interface FileRoutesById {
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
   '/biomes/': typeof BiomesIndexRoute
+  '/embed/': typeof EmbedIndexRoute
   '/states/': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
+  '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
+  '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,8 +155,12 @@ export interface FileRouteTypes {
     | '/biomes/$biome'
     | '/states/$state'
     | '/biomes/'
+    | '/embed/'
     | '/states/'
     | '/cities/$state/$city'
+    | '/embed/biomes/$biome'
+    | '/embed/states/$state'
+    | '/embed/cities/$state/$city'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -131,8 +171,12 @@ export interface FileRouteTypes {
     | '/biomes/$biome'
     | '/states/$state'
     | '/biomes'
+    | '/embed'
     | '/states'
     | '/cities/$state/$city'
+    | '/embed/biomes/$biome'
+    | '/embed/states/$state'
+    | '/embed/cities/$state/$city'
   id:
     | '__root__'
     | '/'
@@ -143,8 +187,12 @@ export interface FileRouteTypes {
     | '/biomes/$biome'
     | '/states/$state'
     | '/biomes/'
+    | '/embed/'
     | '/states/'
     | '/cities/$state/$city'
+    | '/embed/biomes/$biome'
+    | '/embed/states/$state'
+    | '/embed/cities/$state/$city'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -156,8 +204,12 @@ export interface RootRouteChildren {
   BiomesBiomeRoute: typeof BiomesBiomeRoute
   StatesStateRoute: typeof StatesStateRoute
   BiomesIndexRoute: typeof BiomesIndexRoute
+  EmbedIndexRoute: typeof EmbedIndexRoute
   StatesIndexRoute: typeof StatesIndexRoute
   CitiesStateCityRoute: typeof CitiesStateCityRoute
+  EmbedBiomesBiomeRoute: typeof EmbedBiomesBiomeRoute
+  EmbedStatesStateRoute: typeof EmbedStatesStateRoute
+  EmbedCitiesStateCityRoute: typeof EmbedCitiesStateCityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BiomesBiomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embed/': {
+      id: '/embed/'
+      path: '/embed'
+      fullPath: '/embed/'
+      preLoaderRoute: typeof EmbedIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/states/': {
       id: '/states/'
       path: '/states'
@@ -232,6 +291,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CitiesStateCityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/embed/biomes/$biome': {
+      id: '/embed/biomes/$biome'
+      path: '/embed/biomes/$biome'
+      fullPath: '/embed/biomes/$biome'
+      preLoaderRoute: typeof EmbedBiomesBiomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/states/$state': {
+      id: '/embed/states/$state'
+      path: '/embed/states/$state'
+      fullPath: '/embed/states/$state'
+      preLoaderRoute: typeof EmbedStatesStateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/cities/$state/$city': {
+      id: '/embed/cities/$state/$city'
+      path: '/embed/cities/$state/$city'
+      fullPath: '/embed/cities/$state/$city'
+      preLoaderRoute: typeof EmbedCitiesStateCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -244,8 +324,12 @@ const rootRouteChildren: RootRouteChildren = {
   BiomesBiomeRoute: BiomesBiomeRoute,
   StatesStateRoute: StatesStateRoute,
   BiomesIndexRoute: BiomesIndexRoute,
+  EmbedIndexRoute: EmbedIndexRoute,
   StatesIndexRoute: StatesIndexRoute,
   CitiesStateCityRoute: CitiesStateCityRoute,
+  EmbedBiomesBiomeRoute: EmbedBiomesBiomeRoute,
+  EmbedStatesStateRoute: EmbedStatesStateRoute,
+  EmbedCitiesStateCityRoute: EmbedCitiesStateCityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
