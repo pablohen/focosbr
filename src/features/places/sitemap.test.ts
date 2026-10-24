@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { sitemapPaths, sitemapXml } from "./sitemap";
 
 describe("sitemapPaths", () => {
-	it("lists home, the index, every state and the given cities", () => {
+	it("lists home, the index, the rankings, every state and the given cities", () => {
 		const paths = sitemapPaths([
 			{ id: 1500602, name: "Altamira", uf: "PA" },
 			{ id: 1, name: "São Félix do Xingu", uf: "PA" },
 		]);
-		expect(paths.slice(0, 2)).toEqual(["/", "/states"]);
+		expect(paths.slice(0, 3)).toEqual(["/", "/states", "/rankings"]);
 		expect(paths.filter((p) => p.startsWith("/states/"))).toHaveLength(27);
 		expect(paths.slice(-2)).toEqual([
 			"/cities/pa/altamira",

@@ -77,3 +77,33 @@ export const RegionHistorySchema = z.object({
 	daysSince: z.string().nullable(),
 });
 export type RegionHistory = z.infer<typeof RegionHistorySchema>;
+
+/** Rankings need a city's past to mean something: below this yearly average, a few detections make a huge ratio. */
+export const RANKING_MIN_AVERAGE = 50;
+/** Rows per city ranking. */
+export const RANKING_SIZE = 20;
+
+const RankingRow = z.object({
+	/** State code ("PA"); for a city, its state. */
+	uf: z.string(),
+	/** IBGE's name of the state or city. */
+	name: z.string(),
+	current: z.number().int(),
+	average: z.number(),
+	ratio: z.number().nullable(),
+});
+export type RankingRow = z.infer<typeof RankingRow>;
+
+/** What /rankings shows: this year to date, by state and by city. */
+export const RankingsSchema = z.object({
+	/** Last day counted, "2026-10-23". */
+	through: z.string(),
+	firstYear: z.number().int(),
+	/** Every state, most detections first. */
+	states: z.array(RankingRow),
+	/** The RANKING_SIZE cities with most detections. */
+	cities: z.array(RankingRow),
+	/** The RANKING_SIZE cities furthest above their own average (at least RANKING_MIN_AVERAGE). */
+	aboveAverage: z.array(RankingRow),
+});
+export type Rankings = z.infer<typeof RankingsSchema>;

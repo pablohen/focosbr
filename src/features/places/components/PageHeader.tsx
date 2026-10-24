@@ -34,6 +34,12 @@ export function PageHeader() {
 				>
 					Estados
 				</Anchor>
+				<Anchor
+					renderRoot={(props) => <Link {...props} to="/rankings" />}
+					size="sm"
+				>
+					Rankings
+				</Anchor>
 			</Group>
 			<Group gap="xs" wrap="nowrap">
 				<CopyLinkButton />

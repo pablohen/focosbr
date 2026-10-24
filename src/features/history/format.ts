@@ -15,3 +15,9 @@ export function versusAverage(ratio: number) {
 	if (pct === 0) return "na média";
 	return `${Math.abs(pct)}% ${pct > 0 ? "acima" : "abaixo"} da média`;
 }
+
+/** "+12%", "−29%" or "0%" against the average, for tables. */
+export function percentVsAverage(ratio: number) {
+	const pct = Math.round((ratio - 1) * 100);
+	return pct > 0 ? `+${pct}%` : pct < 0 ? `−${-pct}%` : "0%";
+}

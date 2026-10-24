@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { versusAverage, ytdPeriod } from "./format";
+import { percentVsAverage, versusAverage, ytdPeriod } from "./format";
 
 describe("ytdPeriod", () => {
 	it("names the period from 1 January", () => {
@@ -17,5 +17,13 @@ describe("versusAverage", () => {
 
 	it("calls a rounded zero the average", () => {
 		expect(versusAverage(1.004)).toBe("na média");
+	});
+});
+
+describe("percentVsAverage", () => {
+	it("signs the difference with a true minus", () => {
+		expect(percentVsAverage(1.124)).toBe("+12%");
+		expect(percentVsAverage(0.714)).toBe("−29%");
+		expect(percentVsAverage(0.999)).toBe("0%");
 	});
 });

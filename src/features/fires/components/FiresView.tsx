@@ -1,4 +1,12 @@
-import { AppShell, Box, Center, Group, Loader, Text } from "@mantine/core";
+import {
+	Anchor,
+	AppShell,
+	Box,
+	Center,
+	Group,
+	Loader,
+	Text,
+} from "@mantine/core";
 import { FireIcon } from "@phosphor-icons/react";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import {
@@ -139,7 +147,20 @@ export function FiresView({ title, intro, search, onSearchChange }: Props) {
 								FocosBR
 							</Text>
 						</Link>
-						<Text size="sm" c="dimmed" visibleFrom="sm">
+						<Anchor
+							renderRoot={(props) => <Link {...props} to="/states" />}
+							size="sm"
+							ml={{ base: 4, sm: "xs" }}
+						>
+							Estados
+						</Anchor>
+						<Anchor
+							renderRoot={(props) => <Link {...props} to="/rankings" />}
+							size="sm"
+						>
+							Rankings
+						</Anchor>
+						<Text size="sm" c="dimmed" visibleFrom="lg">
 							Focos de calor detectados por satélite, quase em tempo real
 						</Text>
 					</Group>
