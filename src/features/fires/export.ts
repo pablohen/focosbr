@@ -3,6 +3,7 @@
  * formats can be tested; the panel turns the strings into files.
  */
 import type { Feature, FeatureCollection, Point } from "geojson";
+import { slugify as slug } from "../places/places";
 import { sensorOf } from "./inpe";
 import type { FiresResponse } from "./schemas";
 import { type FireGroups, SENSOR_LABELS } from "./view";
@@ -141,16 +142,6 @@ export function toGeoJson(rows: ExportRow[]): FeatureCollection<
 			}),
 		),
 	};
-}
-
-/** ASCII slug for file names: "São Félix do Xingu (PA)" → "sao-felix-do-xingu-pa". */
-function slug(text: string): string {
-	return text
-		.normalize("NFD")
-		.replace(/[̀-ͯ]/g, "")
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-|-$/g, "");
 }
 
 /** "focos-pa-cerrado-24h-20261024-0230.csv": region, window and when. */

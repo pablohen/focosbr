@@ -1,5 +1,6 @@
 // Bundled into the function: public/ isn't on its filesystem on Vercel.
 import outlinesText from "../../../public/data/state-outlines.geojson?raw";
+import { municipalities } from "../places/places.server";
 import {
 	buildFiresResponse,
 	type Detection,
@@ -34,7 +35,10 @@ async function fetchDay(url: string): Promise<DayFile> {
 	if (!res.ok) throw new Error(`INPE ${res.status} for ${url}`);
 	const modified = Date.parse(res.headers.get("last-modified") ?? "");
 	return {
-		detections: parseInpeCsv(await res.text()),
+		detections: parseInpeCsv(
+			await res.text(),
+			(id) => municipalities.byId.get(id)?.name,
+		),
 		updatedAt: Number.isNaN(modified) ? null : modified,
 	};
 }

@@ -136,7 +136,11 @@ export function parseGmt(value: string): number {
  * Parses one daily file. Columns are found by header name, so a reordering
  * upstream doesn't silently shift fields; rows that don't fit are skipped.
  */
-export function parseInpeCsv(text: string): Detection[] {
+export function parseInpeCsv(
+	text: string,
+	/** Official name for an IBGE municipality code (INPE's `municipio_id`). */
+	officialName: (ibgeId: number) => string | undefined = () => undefined,
+): Detection[] {
 	const lines = text.split(/\r?\n/);
 	const header = lines[0]?.split(",").map((h) => h.trim()) ?? [];
 	const col = (name: string) => header.indexOf(name);
@@ -146,6 +150,7 @@ export function parseInpeCsv(text: string): Detection[] {
 		time: col("data_hora_gmt"),
 		satellite: col("satelite"),
 		municipality: col("municipio"),
+		municipalityId: col("municipio_id"),
 		stateId: col("estado_id"),
 		biome: col("bioma"),
 		frp: col("frp"),
@@ -168,7 +173,11 @@ export function parseInpeCsv(text: string): Detection[] {
 		if (!Number.isFinite(lat) || !Number.isFinite(lon) || Number.isNaN(time))
 			continue;
 		const state = UF_BY_IBGE[f[idx.stateId]?.trim() ?? ""] ?? "";
-		const municipality = titleCase(f[idx.municipality] ?? "");
+		// IBGE's name when INPE gives a known code: INPE's names are uppercase
+		// and some predate renames ("SÃO LUIZ" is now São Luiz do Anauá).
+		const municipality =
+			officialName(Number(f[idx.municipalityId])) ??
+			titleCase(f[idx.municipality] ?? "");
 		const frp = optionalNumber(f[idx.frp]);
 		out.push({
 			lat,

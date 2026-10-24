@@ -43,6 +43,14 @@ describe("parseInpeCsv", () => {
 		expect(rows[1]).toMatchObject({ dryDays: 12, rain: 0.5, risk: 0.8 });
 	});
 
+	it("uses IBGE's official name when it knows the code", () => {
+		const names = new Map([[2111201, "São José de Ribamar"]]);
+		const rows = parseInpeCsv(CSV, (id) => names.get(id));
+		expect(rows[1]?.place).toBe("São José de Ribamar (MA)");
+		// Unknown codes fall back to INPE's name, title-cased.
+		expect(rows[0]?.place).toBe("Corrente (PI)");
+	});
+
 	it("refuses a header it doesn't recognise", () => {
 		expect(() => parseInpeCsv("lat,lon,data\n1,2,3")).toThrow(/header/);
 	});
