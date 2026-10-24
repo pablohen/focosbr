@@ -62,6 +62,23 @@ describe("createHistoryAggregator", () => {
 		expect(byId.get("MT")?.months.size).toBe(0);
 		expect(byId.get("5100102")?.days.get("2026-10-23")).toBe(1);
 	});
+
+	it("counts biomes by INPE's name and skips empty or unknown ones", () => {
+		const agg = createHistoryAggregator();
+		const time = at(2010, 8, 6);
+		agg.add({ kind: "reference", time, uf: "PA", biome: "Amazônia" });
+		agg.add({ kind: "daily", time, uf: "PA", biome: "Amazônia" });
+		agg.add({ kind: "reference", time, uf: "MS", biome: "" });
+		agg.add({ kind: "reference", time, uf: "MS", biome: "Oceano" });
+		const byId = new Map(agg.regions().map((r) => [r.id, r]));
+
+		expect(byId.get("biome/amazonia")).toMatchObject({ kind: "biome" });
+		expect(byId.get("biome/amazonia")?.months.get("2010-08")).toBe(1);
+		expect(byId.get("biome/amazonia")?.days.get("2010-08-06")).toBe(1);
+		expect([...byId.keys()].filter((k) => k.startsWith("biome/"))).toEqual([
+			"biome/amazonia",
+		]);
+	});
 });
 
 describe("regionSeries", () => {

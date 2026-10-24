@@ -2,7 +2,7 @@
  * Fills the `history` collection the state and city pages read (see
  * src/features/history): detections per month since 2003 from INPE's
  * reference satellite, and per day from all satellites, for Brazil, each
- * state and each municipality.
+ * state, each municipality and each biome.
  *
  * Daily (default): this month and last month from the monthly files (the
  * reference satellite by month, all satellites by day), then the last 31
@@ -123,14 +123,20 @@ function add(d: HistoryDetection | null) {
 
 /** Rows of a yearly reference file: names, no codes. */
 function addYearly(text: string) {
-	eachRow(text, ["data_pas", "estado", "municipio"], (get) => {
+	eachRow(text, ["data_pas", "estado", "municipio", "bioma"], (get) => {
 		const uf = ufByStateName.get(slugify(get("estado")));
 		const time = parseGmt(get("data_pas"));
 		if (!uf || Number.isNaN(time)) return add(null);
 		const slug = slugify(get("municipio"));
 		const renamed = RENAMED[`${uf}/${slug}`];
 		const city = municipalities.find(uf, renamed ? slugify(renamed) : slug);
-		add({ kind: "reference", time, uf, cityId: city?.id });
+		add({
+			kind: "reference",
+			time,
+			uf,
+			cityId: city?.id,
+			biome: get("bioma"),
+		});
 	});
 }
 
@@ -142,16 +148,17 @@ function addYearly(text: string) {
 function addCoded(text: string, { months = false, days = false }) {
 	eachRow(
 		text,
-		["data_hora_gmt", "satelite", "estado_id", "municipio_id"],
+		["data_hora_gmt", "satelite", "estado_id", "municipio_id", "bioma"],
 		(get) => {
 			const uf = UF_BY_IBGE[get("estado_id")];
 			const time = parseGmt(get("data_hora_gmt"));
 			if (!uf || Number.isNaN(time)) return add(null);
 			const id = Number(get("municipio_id"));
 			const cityId = municipalities.byId.has(id) ? id : undefined;
+			const biome = get("bioma");
 			if (months && get("satelite") === REFERENCE_SATELLITE)
-				aggregator.add({ kind: "reference", time, uf, cityId });
-			if (days) add({ kind: "daily", time, uf, cityId });
+				aggregator.add({ kind: "reference", time, uf, cityId, biome });
+			if (days) add({ kind: "daily", time, uf, cityId, biome });
 		},
 	);
 }

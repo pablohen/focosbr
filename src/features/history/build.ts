@@ -3,6 +3,7 @@
  * can be tested; scripts/history.ts feeds it INPE's files and writes the
  * result to MongoDB, and the pages read it back through `regionSeries`.
  */
+import { biomeByName, biomeHistoryId } from "../places/biomes";
 import {
 	BRAZIL_ID,
 	DAYS_SHOWN,
@@ -33,11 +34,13 @@ export type HistoryDetection = {
 	uf: string;
 	/** IBGE municipality code, when known. */
 	cityId?: number;
+	/** INPE's biome name ("Amazônia"), when known. */
+	biome?: string;
 };
 
 export type RegionCounts = {
 	id: string;
-	kind: "country" | "state" | "city";
+	kind: "country" | "state" | "city" | "biome";
 	uf?: string;
 	cityId?: number;
 	months: Map<string, number>;
@@ -46,7 +49,7 @@ export type RegionCounts = {
 	days: Map<string, number>;
 };
 
-/** Counts per region (Brazil, each state, each city) by month and by day. */
+/** Counts per region (Brazil, each state, city and biome) by month and by day. */
 export function createHistoryAggregator() {
 	const regions = new Map<string, RegionCounts>();
 	const region = (
@@ -82,6 +85,8 @@ export function createHistoryAggregator() {
 			];
 			if (d.cityId !== undefined)
 				targets.push(region(String(d.cityId), "city", d.uf, d.cityId));
+			const biome = d.biome ? biomeByName(d.biome) : undefined;
+			if (biome) targets.push(region(biomeHistoryId(biome.slug), "biome"));
 			for (const r of targets)
 				if (d.kind === "reference") {
 					bump(r.months, month);
