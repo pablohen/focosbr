@@ -7,7 +7,7 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { Fire } from "@phosphor-icons/react";
+import { FireIcon } from "@phosphor-icons/react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import maplibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
 import { lazy, Suspense, useMemo, useState } from "react";
@@ -99,7 +99,7 @@ function FiresPage() {
 					wrap="nowrap"
 				>
 					<Group gap="xs" wrap="nowrap">
-						<Fire
+						<FireIcon
 							size={26}
 							weight="duotone"
 							color="var(--mantine-primary-color-filled)"

@@ -4,7 +4,7 @@ import {
 	useMantineColorScheme,
 } from "@mantine/core";
 import { useMounted } from "@mantine/hooks";
-import { Moon, Sun } from "@phosphor-icons/react";
+import { MoonIcon, SunIcon } from "@phosphor-icons/react";
 
 /** Light/dark switch for the header. */
 export function ColorSchemeToggle() {
@@ -24,7 +24,7 @@ export function ColorSchemeToggle() {
 			onClick={() => setColorScheme(next)}
 			aria-label={next === "dark" ? "Usar tema escuro" : "Usar tema claro"}
 		>
-			{dark ? <Sun size={18} /> : <Moon size={18} />}
+			{dark ? <SunIcon size={18} /> : <MoonIcon size={18} />}
 		</ActionIcon>
 	);
 }

@@ -1,6 +1,6 @@
 import { Group, Text } from "@mantine/core";
 import { useInterval } from "@mantine/hooks";
-import { Clock, WarningCircle } from "@phosphor-icons/react";
+import { ClockIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { formatAgo, freshness } from "../view";
 
@@ -26,9 +26,9 @@ export function Freshness({
 	return (
 		<Group gap={6} wrap="nowrap" c={age.stale ? "orange" : "dimmed"}>
 			{age.stale ? (
-				<WarningCircle size={16} weight="bold" aria-hidden />
+				<WarningCircleIcon size={16} weight="bold" aria-hidden />
 			) : (
-				<Clock size={16} aria-hidden />
+				<ClockIcon size={16} aria-hidden />
 			)}
 			<Text size="xs" c="inherit" fw={age.stale ? 600 : undefined}>
 				{age.stale

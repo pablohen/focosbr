@@ -16,7 +16,7 @@ import {
 	Title,
 	UnstyledButton,
 } from "@mantine/core";
-import { WarningCircle } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import {
 	type FiresResponse,
 	SENSORS,
@@ -188,7 +188,7 @@ export function FirePanel({
 						<Alert
 							color="red"
 							variant="light"
-							icon={<WarningCircle />}
+							icon={<WarningCircleIcon />}
 							title="Não foi possível carregar os focos"
 						>
 							O servidor do INPE não respondeu. Tentaremos de novo em alguns
