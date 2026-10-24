@@ -19,22 +19,22 @@
 
 Columns are looked up **by header name**; a renamed or missing column makes the parser throw instead of silently shifting fields.
 
-| INPE column             | Used as                                                                                                       |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `lat`, `lon`            | Position (leading spaces are normal).                                                                         |
-| `data_hora_gmt`         | Detection time, UTC (`2026-10-23 20:40:00`).                                                                  |
-| `satelite`              | Satellite name, grouped into sensor families by `sensorOf`.                                                   |
-| `municipio`             | Municipality, title-cased (`SÃO JOSÉ DO RIBAMAR` → `São José do Ribamar`).                                    |
-| `estado_id`             | IBGE state code → two-letter UF (`22` → `PI`).                                                                |
-| `bioma`                 | Biome, verbatim (`Amazônia`, `Cerrado`, `Caatinga`, `Mata Atlântica`, `Pantanal`, `Pampa`).                   |
-| `frp`                   | Fire radiative power in MW; empty for some sensors (→ `null`).                                                |
-| `numero_dias_sem_chuva` | Days without rain at the spot.                                                                                |
-| `precipitacao`          | Precipitation, mm.                                                                                            |
-| `risco_fogo`            | Fire risk, 0–1, shown with INPE's classes: Mínimo < 0.15 ≤ Baixo < 0.4 ≤ Médio < 0.7 ≤ Alto < 0.95 ≤ Crítico. |
+| INPE column                 | Used as                                                                                                                                                |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lat`, `lon`                | Position (leading spaces are normal).                                                                                                                  |
+| `data_hora_gmt`             | Detection time, UTC (`2026-10-23 20:40:00`).                                                                                                           |
+| `satelite`                  | Satellite name, grouped into sensor families by `sensorOf`.                                                                                            |
+| `municipio`, `municipio_id` | Municipality: IBGE's official name for the code (`SÃO LUIZ` → São Luiz do Anauá, `D'OESTE` → D'Oeste); INPE's name title-cased if the code is unknown. |
+| `estado_id`                 | IBGE state code → two-letter UF (`22` → `PI`).                                                                                                         |
+| `bioma`                     | Biome, verbatim (`Amazônia`, `Cerrado`, `Caatinga`, `Mata Atlântica`, `Pantanal`, `Pampa`).                                                            |
+| `frp`                       | Fire radiative power in MW; empty for some sensors (→ `null`).                                                                                         |
+| `numero_dias_sem_chuva`     | Days without rain at the spot.                                                                                                                         |
+| `precipitacao`              | Precipitation, mm.                                                                                                                                     |
+| `risco_fogo`                | Fire risk, 0–1, shown with INPE's classes: Mínimo < 0.15 ≤ Baixo < 0.4 ≤ Médio < 0.7 ≤ Alto < 0.95 ≤ Crítico.                                          |
 
 **The three weather columns are empty in today's file.** INPE fills them when it closes the day (the next morning's rewrite), so they show up for yesterday's detections in the 24 h and 48 h windows. `-999` and blanks become `null` (`optionalNumber`). On 2026-10-22, all 28,869 detections had them; on the same evening, none of 2026-10-23's did.
 
-Ignored for now: `id`, `estado`, `pais*`, `municipio_id`.
+Ignored for now: `id`, `estado`, `pais*`.
 
 ### Sensor families
 
@@ -89,6 +89,10 @@ Detections are sorted oldest first, so the newest draw on top. The columnar shap
 - **CSV:** RFC 4180 quoting, a dot as the decimal separator, a UTF-8 BOM so spreadsheet apps read the accents, CRLF line ends. Missing values are empty fields, never `0`.
 - **GeoJSON:** points as `[longitude, latitude]`, the other columns as properties, and a top-level `attribution` crediting INPE.
 - **File names:** `focos-<region>-<window>h-<YYYYMMDD-HHMM>.<ext>`, with the time in Brasília, e.g. `focos-mt-24h-20261024-1136.csv`.
+
+## Municipalities
+
+`src/features/places/municipalities.json`: every municipality's IBGE code and official name, by state (`pnpm geo:municipalities`, from IBGE's localidades API; ~140 KB, server only). It names the detections, resolves `/cities/<state>/<city>` slugs (unique within a state) and lists the city pages in the sitemap. On 2026-10-23, 1,183 of the 1,185 municipalities with fires already matched INPE's name by slug; the 2 that didn't were renames, which the code match fixes.
 
 ## Static data
 

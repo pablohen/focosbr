@@ -45,4 +45,4 @@ They aren't in production builds: `__root.tsx` loads them only when `import.meta
 - **Simulating focus in a test script:** TanStack Query listens for `visibilitychange` on `window`, and a background browser tab counts as unfocused. Front the tab and dispatch the event on `window`.
 - **The map is blank in dev.** Check the console for "Worker failed to load". `setWorkerUrl(workerUrl)` in `FireMap.tsx` must stay.
 - **`routeTree.gen.ts` is generated** by the TanStack plugin on `dev`/`build` and is committed. Biome ignores it.
-- **Testing in the browser pane:** the in-app preview tab is shared with you. Clicks there change the URL state (`h`, `uf`…), so don't mistake them for app bugs.
+- **Testing in the browser pane:** the in-app preview tab is shared with you. Clicks there change the URL (`h`, `biome`, the page…), so don't mistake them for app bugs.
