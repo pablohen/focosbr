@@ -164,6 +164,7 @@ function FiresPage() {
 						}
 						data={data}
 						summary={summary}
+						indices={indices}
 						hourly={hourly}
 						onSelectFire={(fire) =>
 							setTarget((t) => ({ nonce: (t?.nonce ?? 0) + 1, fire }))

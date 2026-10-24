@@ -33,6 +33,7 @@ import {
 	type summarize,
 	type TopFire,
 } from "../view";
+import { Download } from "./Download";
 import { Freshness } from "./Freshness";
 import { HourlyChart } from "./HourlyChart";
 import { TopFires } from "./TopFires";
@@ -55,6 +56,8 @@ type Props = {
 	onRegionChange: (region: Region) => void;
 	data: FiresResponse | undefined;
 	summary: ReturnType<typeof summarize> | undefined;
+	/** The detections on screen, for the download. */
+	indices: number[];
 	hourly: HourBucket[] | undefined;
 	onSelectFire: (fire: TopFire) => void;
 	loading: boolean;
@@ -140,6 +143,7 @@ export function FirePanel({
 	onRegionChange,
 	data,
 	summary,
+	indices,
 	hourly,
 	onSelectFire,
 	loading,
@@ -346,6 +350,15 @@ export function FirePanel({
 							rows={summary.places}
 							selected={place}
 							onToggle={(next) => onRegionChange({ uf, biome, place: next })}
+						/>
+					)}
+
+					{data && summary && (
+						<Download
+							data={data}
+							indices={indices}
+							groups={summary.groups}
+							region={{ uf, biome, place }}
 						/>
 					)}
 
