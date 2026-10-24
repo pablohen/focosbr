@@ -19,13 +19,19 @@ import { HourlyChart } from "~/features/fires/components/HourlyChart";
 import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
 import { AGE_BANDS } from "~/features/fires/view";
 import { HistorySection } from "~/features/history/components/HistorySection";
-import type { getCityDetails, getStateDetails } from "../regions.functions";
+import { biomeByName } from "../biomes";
+import type {
+	getBiomeDetails,
+	getCityDetails,
+	getStateDetails,
+} from "../regions.functions";
 import { regionSentence } from "./RegionIntro";
-import { MunicipalityLink, StateLink } from "./RegionLinks";
+import { BiomeLink, MunicipalityLink, StateLink } from "./RegionLinks";
 import { RegionMap } from "./RegionMap";
 
 type StateDetails = NonNullable<Awaited<ReturnType<typeof getStateDetails>>>;
 type CityDetails = NonNullable<Awaited<ReturnType<typeof getCityDetails>>>;
+type BiomeDetails = NonNullable<Awaited<ReturnType<typeof getBiomeDetails>>>;
 
 const NUMBER = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
@@ -105,7 +111,7 @@ function CountTable({
 }
 
 /**
- * A state's or city's page: its numbers, a map, the hourly profile, the
+ * A state's, city's or biome's page: its numbers, a map, the hourly profile, the
  * biggest fires and breakdowns, all rendered on the server. The interactive
  * map is one link away.
  */
@@ -113,39 +119,53 @@ export function RegionDetails({
 	details: d,
 	onHoursChange,
 }: {
-	details: StateDetails | CityDetails;
+	details: StateDetails | CityDetails | BiomeDetails;
 	onHoursChange: (hours: Window) => void;
 }) {
+	const biome = "biome" in d ? d : null;
 	const city = "label" in d ? d : null;
+	const state = !biome && !city ? (d as StateDetails) : null;
 	const name = city ? city.label : d.name;
-	const stateName = city ? city.stateName : d.name;
-	const mapSearch = {
-		state: d.uf,
-		city: city?.label,
-		h: d.hours === 24 ? undefined : d.hours,
-	};
+	const h = d.hours === 24 ? undefined : d.hours;
+	const mapSearch = biome
+		? { biome: biome.biome, h }
+		: city
+			? { state: city.uf, city: city.label, h }
+			: { state: state?.uf, h };
 
 	return (
 		<Stack gap="xl">
 			<Stack gap="xs">
-				<Breadcrumbs separator="›" fz="sm">
-					<Anchor
-						renderRoot={(props) => <Link {...props} to="/states" />}
-						size="sm"
-					>
-						Estados
-					</Anchor>
-					{city ? (
-						<StateLink uf={d.uf} hours={d.hours} size="sm">
-							{stateName}
-						</StateLink>
-					) : (
-						<Text size="sm">{stateName}</Text>
-					)}
-					{city && <Text size="sm">{city.name}</Text>}
-				</Breadcrumbs>
+				{biome ? (
+					<Breadcrumbs separator="›" fz="sm">
+						<Anchor
+							renderRoot={(props) => <Link {...props} to="/biomes" />}
+							size="sm"
+						>
+							Biomas
+						</Anchor>
+						<Text size="sm">{biome.name}</Text>
+					</Breadcrumbs>
+				) : (
+					<Breadcrumbs separator="›" fz="sm">
+						<Anchor
+							renderRoot={(props) => <Link {...props} to="/states" />}
+							size="sm"
+						>
+							Estados
+						</Anchor>
+						{city ? (
+							<StateLink uf={city.uf} hours={d.hours} size="sm">
+								{city.stateName}
+							</StateLink>
+						) : (
+							<Text size="sm">{d.name}</Text>
+						)}
+						{city && <Text size="sm">{city.name}</Text>}
+					</Breadcrumbs>
+				)}
 				<Title order={1} size="h2">
-					Focos de calor em {name}
+					Focos de calor {biome ? biome.in : `em ${name}`}
 				</Title>
 				<Group justify="space-between" align="center">
 					<SegmentedControl
@@ -300,7 +320,8 @@ export function RegionDetails({
 							key: c.name,
 							name: (
 								<MunicipalityLink uf={c.uf} name={c.name} hours={d.hours}>
-									{c.name}
+									{/* A biome spans states: say which. */}
+									{biome ? `${c.name} (${c.uf})` : c.name}
 								</MunicipalityLink>
 							),
 							values: [c.fires, c.total],
@@ -313,16 +334,27 @@ export function RegionDetails({
 
 			{d.total > 0 && (
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
-					<Section title="Biomas">
-						<CountTable
-							head={["Bioma", "Focos"]}
-							rows={d.biomes.map((b) => ({
-								key: b.name,
-								name: b.name,
-								values: [b.count],
-							}))}
-						/>
-					</Section>
+					{!biome && (
+						<Section title="Biomas">
+							<CountTable
+								head={["Bioma", "Focos"]}
+								rows={d.biomes.map((b) => {
+									const known = biomeByName(b.name);
+									return {
+										key: b.name,
+										name: known ? (
+											<BiomeLink slug={known.slug} hours={d.hours}>
+												{b.name}
+											</BiomeLink>
+										) : (
+											b.name
+										),
+										values: [b.count],
+									};
+								})}
+							/>
+						</Section>
+					)}
 					<Section title="Sensores">
 						<CountTable
 							head={["Sensor", "Focos"]}

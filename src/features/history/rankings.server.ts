@@ -1,4 +1,5 @@
 import { STATE_NAMES } from "~/features/fires/states";
+import { biomeBySlug } from "~/features/places/biomes";
 import { municipalities } from "~/features/places/places.server";
 import {
 	BRAZIL,
@@ -46,7 +47,7 @@ function stateShapes() {
 const YTD = { "ytd.current": 1, "ytd.average": 1, "ytd.ratio": 1 } as const;
 
 /**
- * This year to date by state and by city, from the `ytd` summaries the
+ * This year to date by state, biome and city, from the `ytd` summaries the
  * history script stores (sorted by the collection's ytd indexes), or null
  * when the database can't be reached. Cities are named from IBGE's list.
  */
@@ -59,9 +60,13 @@ export async function loadRankings(): Promise<Rankings | null> {
 		);
 		const through = brazil?.ytd?.through;
 		if (!through) return null;
-		const [states, cities, aboveAverage] = await Promise.all([
+		const [states, biomes, cities, aboveAverage] = await Promise.all([
 			history
 				.find({ kind: "state" }, { projection: YTD })
+				.sort({ "ytd.current": -1 })
+				.toArray(),
+			history
+				.find({ kind: "biome" }, { projection: YTD })
 				.sort({ "ytd.current": -1 })
 				.toArray(),
 			history
@@ -86,6 +91,7 @@ export async function loadRankings(): Promise<Rankings | null> {
 			through,
 			firstYear: FIRST_YEAR,
 			states: states.flatMap((d) => row(d, "state")),
+			biomes: biomes.flatMap((d) => row(d, "biome")),
 			cities: cities.flatMap((d) => row(d, "city")),
 			aboveAverage: aboveAverage.flatMap((d) => row(d, "city")),
 			map: { ...RANKING_MAP, states: stateShapes() },
@@ -97,9 +103,24 @@ export async function loadRankings(): Promise<Rankings | null> {
 }
 
 /** A ranking row, or none for an unknown code or a document without a summary. */
-function row(doc: Doc, kind: "state" | "city"): RankingRow[] {
+function row(doc: Doc, kind: "state" | "biome" | "city"): RankingRow[] {
 	if (!doc.ytd) return [];
 	const { current, average, ratio } = doc.ytd;
+	if (kind === "biome") {
+		const biome = biomeBySlug(doc._id.replace(/^biome\//, ""));
+		return biome
+			? [
+					{
+						uf: "",
+						slug: biome.slug,
+						name: biome.name,
+						current,
+						average,
+						ratio,
+					},
+				]
+			: [];
+	}
 	if (kind === "state") {
 		const name = STATE_NAMES[doc._id];
 		return name ? [{ uf: doc._id, name, current, average, ratio }] : [];

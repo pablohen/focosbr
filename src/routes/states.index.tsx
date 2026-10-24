@@ -1,5 +1,13 @@
-import { Container, Group, Stack, Table, Text, Title } from "@mantine/core";
-import { createFileRoute } from "@tanstack/react-router";
+import {
+	Anchor,
+	Container,
+	Group,
+	Stack,
+	Table,
+	Text,
+	Title,
+} from "@mantine/core";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
 import { HistorySection } from "~/features/history/components/HistorySection";
@@ -44,7 +52,11 @@ function StatesPage() {
 				</Title>
 				<Text c="dimmed">
 					{regionSentence("No Brasil", summary)} Escolha um estado para ver o
-					mapa, os municípios e os maiores fogos.
+					mapa, os municípios e os maiores fogos, ou veja{" "}
+					<Anchor renderRoot={(props) => <Link {...props} to="/biomes" />}>
+						por bioma
+					</Anchor>
+					.
 				</Text>
 				<Table striped highlightOnHover>
 					<Table.Thead>

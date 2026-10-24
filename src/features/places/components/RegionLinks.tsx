@@ -57,3 +57,26 @@ export function MunicipalityLink({
 		</Anchor>
 	);
 }
+
+export function BiomeLink({
+	slug,
+	hours = 24,
+	children,
+	...props
+}: Common & { slug: string }) {
+	return (
+		<Anchor
+			{...props}
+			renderRoot={(root) => (
+				<Link
+					{...root}
+					to="/biomes/$biome"
+					params={{ biome: slug }}
+					search={windowSearch(hours)}
+				/>
+			)}
+		>
+			{children}
+		</Anchor>
+	);
+}

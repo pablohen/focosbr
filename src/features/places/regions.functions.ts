@@ -27,3 +27,17 @@ export const getStatesSummary = createServerFn({ method: "GET" })
 		const { statesSummary } = await import("./regions.server");
 		return statesSummary(data.h);
 	});
+
+export const getBiomeDetails = createServerFn({ method: "GET" })
+	.validator(z.object({ biome: z.string().max(40), h: hours }))
+	.handler(async ({ data }) => {
+		const { biomeDetails } = await import("./regions.server");
+		return biomeDetails(data.biome, data.h);
+	});
+
+export const getBiomesSummary = createServerFn({ method: "GET" })
+	.validator(z.object({ h: hours }))
+	.handler(async ({ data }) => {
+		const { biomesSummary } = await import("./regions.server");
+		return biomesSummary(data.h);
+	});

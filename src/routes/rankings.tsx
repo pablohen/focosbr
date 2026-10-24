@@ -10,6 +10,7 @@ import {
 } from "~/features/history/schemas";
 import { PageHeader } from "~/features/places/components/PageHeader";
 import {
+	BiomeLink,
 	MunicipalityLink,
 	StateLink,
 } from "~/features/places/components/RegionLinks";
@@ -80,6 +81,15 @@ function RankingsPage() {
 							rows={rankings.states}
 							name={(r) => <StateLink uf={r.uf}>{r.name}</StateLink>}
 						/>
+						{rankings.biomes.length > 0 && (
+							<Ranking
+								title="Biomas"
+								rows={rankings.biomes}
+								name={(r) => (
+									<BiomeLink slug={r.slug ?? ""}>{r.name}</BiomeLink>
+								)}
+							/>
+						)}
 						<Ranking
 							title="Municípios com mais focos"
 							rows={rankings.cities}

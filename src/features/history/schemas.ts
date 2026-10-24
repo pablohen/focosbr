@@ -31,13 +31,14 @@ export type Ytd = z.infer<typeof YtdSchema>;
 
 /**
  * One region's history in MongoDB (`history` collection): `_id` is
- * "BR", a state code ("PA") or an IBGE municipality code ("1500602").
+ * "BR", a state code ("PA"), an IBGE municipality code ("1500602") or a
+ * biome ("biome/amazonia").
  * Maps are sparse: a missing month or day is zero. Months and days are in
  * Brasília time; the current ones are still counting.
  */
 export const RegionHistoryDocSchema = z.object({
 	_id: z.string(),
-	kind: z.enum(["country", "state", "city"]),
+	kind: z.enum(["country", "state", "city", "biome"]),
 	uf: z.string().optional(),
 	cityId: z.number().int().optional(),
 	/** Reference-satellite detections by month, "2003-01" → count. */
@@ -110,8 +111,10 @@ export const RANKING_MAP = { width: 500, height: 500 } as const;
 export const RANKING_SIZE = 20;
 
 const RankingRow = z.object({
-	/** State code ("PA"); for a city, its state. */
+	/** State code ("PA"); for a city, its state; empty for a biome. */
 	uf: z.string(),
+	/** A biome's slug ("amazonia"). */
+	slug: z.string().optional(),
 	/** IBGE's name of the state or city. */
 	name: z.string(),
 	current: z.number().int(),
@@ -127,6 +130,8 @@ export const RankingsSchema = z.object({
 	firstYear: z.number().int(),
 	/** Every state, most detections first. */
 	states: z.array(RankingRow),
+	/** Every biome, most detections first. */
+	biomes: z.array(RankingRow),
 	/** The RANKING_SIZE cities with most detections. */
 	cities: z.array(RankingRow),
 	/** The RANKING_SIZE cities furthest above their own average (at least RANKING_MIN_AVERAGE). */

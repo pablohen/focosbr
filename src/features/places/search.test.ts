@@ -44,6 +44,16 @@ describe("searchPlaces", () => {
 		});
 	});
 
+	it("finds biomes, after states and before cities", () => {
+		expect(searchPlaces(index, "mata")[0]).toMatchObject({
+			kind: "biome",
+			slug: "mata-atlantica",
+		});
+		expect(
+			searchPlaces(index, "amazon").map((e) => `${e.kind}:${e.name}`),
+		).toEqual(["state:Amazonas", "biome:Amazônia"]);
+	});
+
 	it("returns nothing for an empty query and respects the limit", () => {
 		expect(searchPlaces(index, "  ")).toEqual([]);
 		expect(searchPlaces(index, "a", 2)).toHaveLength(2);

@@ -28,6 +28,7 @@ import {
 	outlinePath,
 	projector,
 } from "../share/card-map";
+import { BIOMES, biomeBySlug, biomeHistoryId } from "./biomes";
 import {
 	isState,
 	placeLabel,
@@ -43,7 +44,10 @@ const MAX_DOTS = 2000;
 
 let outlines: Outlines | undefined;
 
-function counts(data: FiresResponse, filters: { uf?: string; place?: string }) {
+function counts(
+	data: FiresResponse,
+	filters: { uf?: string; place?: string; biome?: string },
+) {
 	const indices = selectFires(data, filters);
 	return { fires: estimateFires(data, indices), total: indices.length };
 }
@@ -51,11 +55,11 @@ function counts(data: FiresResponse, filters: { uf?: string; place?: string }) {
 /** Cities by detections, most first, with their fire estimate. */
 function cityRanking(
 	data: FiresResponse,
-	uf: string | undefined,
+	filters: { uf?: string; biome?: string },
 	limit: number,
 ): RegionCount[] {
 	const byPlace = new Map<number, number>();
-	for (const i of selectFires(data, { uf })) {
+	for (const i of selectFires(data, filters)) {
 		const p = data.fires.place[i] ?? -1;
 		if (data.places[p]) byPlace.set(p, (byPlace.get(p) ?? 0) + 1);
 	}
@@ -65,7 +69,9 @@ function cityRanking(
 		.flatMap(([p]) => {
 			const label = data.places[p] ?? "";
 			const split = splitPlaceLabel(label);
-			return split ? [{ ...split, ...counts(data, { place: label }) }] : [];
+			return split
+				? [{ ...split, ...counts(data, { ...filters, place: label }) }]
+				: [];
 		});
 }
 
@@ -77,11 +83,15 @@ const common = (data: FiresResponse) => ({
 });
 
 /**
- * Everything a state's or city's page shows. `place` narrows a state to one
- * city ("Altamira (PA)").
+ * Everything a state's, city's or biome's page shows. `place` narrows a
+ * state to one city ("Altamira (PA)"); a biome ("Amazônia") frames all of
+ * Brazil, since there are no biome outlines.
  */
-function details(data: FiresResponse, uf: string, place?: string) {
-	const filters = { uf, place };
+function details(
+	data: FiresResponse,
+	filters: { uf?: string; place?: string; biome?: string },
+) {
+	const { uf, place } = filters;
 	const indices = selectFires(data, filters);
 	const summary = summarize(data, filters);
 	const nowMs = Date.parse(data.generatedAt);
@@ -157,6 +167,7 @@ function details(data: FiresResponse, uf: string, place?: string) {
 		map: {
 			...DETAILS_MAP,
 			states: outlinePath(outlines, project, (s) => s !== uf, 2, DETAILS_MAP),
+			// A biome page has no selected state: every outline is context.
 			selected: outlinePath(outlines, project, (s) => s === uf, 1.5),
 			context: dotsPath(context.slice(-MAX_DOTS).map(xy)),
 			all: dotsPath(shown.map(xy)),
@@ -177,8 +188,8 @@ export async function stateDetails(uf: string, hours: Window) {
 	return {
 		uf: code,
 		name: STATE_NAMES[code] ?? code,
-		...details(data, code),
-		cities: cityRanking(data, code, 30),
+		...details(data, { uf: code }),
+		cities: cityRanking(data, { uf: code }, 30),
 		history,
 	};
 }
@@ -197,7 +208,7 @@ export async function cityDetails(uf: string, slug: string, hours: Window) {
 		stateName: STATE_NAMES[m.uf] ?? m.uf,
 		name: m.name,
 		label,
-		...details(data, m.uf, label),
+		...details(data, { uf: m.uf, place: label }),
 		history,
 	};
 }
@@ -212,4 +223,33 @@ export async function statesSummary(hours: Window) {
 		.map(([uf, name]) => ({ uf, name, ...counts(data, { uf }) }))
 		.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "pt-BR"));
 	return { ...common(data), ...counts(data, {}), states, history };
+}
+
+/** A biome's page (by slug, "mata-atlantica"), or null for an unknown one. */
+export async function biomeDetails(slug: string, hours: Window) {
+	const biome = biomeBySlug(slug);
+	if (!biome) return null;
+	const [data, history] = await Promise.all([
+		getFires(hours),
+		loadRegionHistory(biomeHistoryId(biome.slug)),
+	]);
+	return {
+		biome: biome.name,
+		slug: biome.slug,
+		name: biome.name,
+		in: biome.in,
+		...details(data, { biome: biome.name }),
+		cities: cityRanking(data, { biome: biome.name }, 30),
+		history,
+	};
+}
+
+/** Every biome's numbers, most detections first (/biomes). */
+export async function biomesSummary(hours: Window) {
+	const data = await getFires(hours);
+	const biomes = BIOMES.map((b) => ({
+		...b,
+		...counts(data, { biome: b.name }),
+	})).sort((a, b) => b.total - a.total);
+	return { ...common(data), ...counts(data, {}), biomes };
 }

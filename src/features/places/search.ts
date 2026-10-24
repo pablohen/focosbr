@@ -1,21 +1,22 @@
 /**
- * Place search for the header: states and IBGE municipalities matched by
+ * Place search for the header: states, biomes and IBGE municipalities matched by
  * name, ignoring accents and case. Pure, so it can be tested; the browser
  * loads the municipality list only when the search opens.
  */
 import { STATE_NAMES } from "../fires/states";
+import { BIOMES } from "./biomes";
 import { isState, type MunicipalityList, slugify } from "./places";
 
 export type SearchEntry = {
-	kind: "state" | "city";
+	kind: "state" | "biome" | "city";
 	uf: string;
 	/** IBGE's name. */
 	name: string;
-	/** `slugify(name)`: the matching key, and the city's URL segment. */
+	/** `slugify(name)`: the matching key, and the city's or biome's URL segment. */
 	slug: string;
 };
 
-/** Every state and municipality, states first. */
+/** Every state, biome and municipality, in that order. */
 export function searchIndex(list: MunicipalityList): SearchEntry[] {
 	const states = Object.entries(STATE_NAMES).map(([uf, name]) => ({
 		kind: "state" as const,
@@ -31,12 +32,21 @@ export function searchIndex(list: MunicipalityList): SearchEntry[] {
 			slug: slugify(name),
 		})),
 	);
-	return [...states, ...cities];
+	const biomes = BIOMES.map((b) => ({
+		kind: "biome" as const,
+		uf: "",
+		name: b.name,
+		slug: b.slug,
+	}));
+	return [...states, ...biomes, ...cities];
 }
+
+const KIND_ORDER = { state: 0, biome: 1, city: 2 } as const;
 
 /**
  * The best `limit` matches for `query`: whole name, then name prefix, then
- * a word's prefix, then anywhere; states before cities, then shorter names.
+ * a word's prefix, then anywhere; states, then biomes, then cities, then
+ * shorter names.
  * A trailing state code narrows cities to that state ("altamira pa"), and a
  * bare state code finds its state ("sp").
  */
@@ -72,7 +82,7 @@ export function searchPlaces(
 		.sort(
 			(a, b) =>
 				a.s - b.s ||
-				(a.e.kind === b.e.kind ? 0 : a.e.kind === "state" ? -1 : 1) ||
+				KIND_ORDER[a.e.kind] - KIND_ORDER[b.e.kind] ||
 				a.e.name.length - b.e.name.length ||
 				a.e.name.localeCompare(b.e.name, "pt-BR"),
 		)

@@ -19,12 +19,12 @@ export function SearchButton() {
 	useHotkeys([["mod+K", open]]);
 	return (
 		<>
-			<Tooltip label="Buscar estado ou município (⌘K)" withArrow>
+			<Tooltip label="Buscar estado, bioma ou município (⌘K)" withArrow>
 				<ActionIcon
 					variant="default"
 					size="lg"
 					onClick={open}
-					aria-label="Buscar estado ou município"
+					aria-label="Buscar estado, bioma ou município"
 				>
 					<MagnifyingGlassIcon size={18} />
 				</ActionIcon>

@@ -14,6 +14,8 @@ import { Route as OgRouteImport } from './routes/og'
 import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
+import { Route as BiomesIndexRouteImport } from './routes/biomes.index'
+import { Route as BiomesBiomeRouteImport } from './routes/biomes.$biome'
 import { Route as StatesIndexRouteImport } from './routes/states.index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
 import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
@@ -43,6 +45,16 @@ const ApiFiresRoute = ApiFiresRouteImport.update({
   path: '/api/fires',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BiomesIndexRoute = BiomesIndexRouteImport.update({
+  id: '/biomes/',
+  path: '/biomes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BiomesBiomeRoute = BiomesBiomeRouteImport.update({
+  id: '/biomes/$biome',
+  path: '/biomes/$biome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatesIndexRoute = StatesIndexRouteImport.update({
   id: '/states/',
   path: '/states/',
@@ -65,7 +77,9 @@ export interface FileRoutesByFullPath {
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
+  '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
+  '/biomes/': typeof BiomesIndexRoute
   '/states/': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
 }
@@ -75,7 +89,9 @@ export interface FileRoutesByTo {
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
+  '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
+  '/biomes': typeof BiomesIndexRoute
   '/states': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
 }
@@ -86,7 +102,9 @@ export interface FileRoutesById {
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
+  '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
+  '/biomes/': typeof BiomesIndexRoute
   '/states/': typeof StatesIndexRoute
   '/cities/$state/$city': typeof CitiesStateCityRoute
 }
@@ -98,7 +116,9 @@ export interface FileRouteTypes {
     | '/rankings'
     | '/sitemap.xml'
     | '/api/fires'
+    | '/biomes/$biome'
     | '/states/$state'
+    | '/biomes/'
     | '/states/'
     | '/cities/$state/$city'
   fileRoutesByTo: FileRoutesByTo
@@ -108,7 +128,9 @@ export interface FileRouteTypes {
     | '/rankings'
     | '/sitemap.xml'
     | '/api/fires'
+    | '/biomes/$biome'
     | '/states/$state'
+    | '/biomes'
     | '/states'
     | '/cities/$state/$city'
   id:
@@ -118,7 +140,9 @@ export interface FileRouteTypes {
     | '/rankings'
     | '/sitemap.xml'
     | '/api/fires'
+    | '/biomes/$biome'
     | '/states/$state'
+    | '/biomes/'
     | '/states/'
     | '/cities/$state/$city'
   fileRoutesById: FileRoutesById
@@ -129,7 +153,9 @@ export interface RootRouteChildren {
   RankingsRoute: typeof RankingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiFiresRoute: typeof ApiFiresRoute
+  BiomesBiomeRoute: typeof BiomesBiomeRoute
   StatesStateRoute: typeof StatesStateRoute
+  BiomesIndexRoute: typeof BiomesIndexRoute
   StatesIndexRoute: typeof StatesIndexRoute
   CitiesStateCityRoute: typeof CitiesStateCityRoute
 }
@@ -171,6 +197,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFiresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/biomes/': {
+      id: '/biomes/'
+      path: '/biomes'
+      fullPath: '/biomes/'
+      preLoaderRoute: typeof BiomesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biomes/$biome': {
+      id: '/biomes/$biome'
+      path: '/biomes/$biome'
+      fullPath: '/biomes/$biome'
+      preLoaderRoute: typeof BiomesBiomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/states/': {
       id: '/states/'
       path: '/states'
@@ -201,7 +241,9 @@ const rootRouteChildren: RootRouteChildren = {
   RankingsRoute: RankingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiFiresRoute: ApiFiresRoute,
+  BiomesBiomeRoute: BiomesBiomeRoute,
   StatesStateRoute: StatesStateRoute,
+  BiomesIndexRoute: BiomesIndexRoute,
   StatesIndexRoute: StatesIndexRoute,
   CitiesStateCityRoute: CitiesStateCityRoute,
 }

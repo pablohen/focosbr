@@ -1,12 +1,15 @@
 import { STATE_NAMES } from "../fires/states";
+import { BIOMES, biomePath } from "./biomes";
 import { type Municipality, municipalityPath, statePath } from "./places";
 
-/** Every page's path: home, the states index, the rankings, each state and each city. */
+/** Every page's path: home, the states index, the rankings, the biomes, each state and each city. */
 export function sitemapPaths(cities: Municipality[]): string[] {
 	return [
 		"/",
 		"/states",
 		"/rankings",
+		"/biomes",
+		...BIOMES.map((b) => biomePath(b.slug)),
 		...Object.keys(STATE_NAMES).sort().map(statePath),
 		...cities.map((c) => municipalityPath(c.uf, c.name)),
 	];
