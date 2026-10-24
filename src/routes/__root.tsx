@@ -11,7 +11,9 @@ import {
 } from "@mantine/core";
 import mantineCss from "@mantine/core/styles.css?url";
 import nprogressCss from "@mantine/nprogress/styles.css?url";
+import { QueryClientProvider } from "@tanstack/react-query";
 import {
+	ClientOnly,
 	createRootRoute,
 	HeadContent,
 	Link,
@@ -19,7 +21,8 @@ import {
 	ScriptOnce,
 	Scripts,
 } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { lazy, type ReactNode, Suspense, useState } from "react";
+import { createQueryClient } from "~/lib/query-client";
 import { RouteProgress } from "~/lib/route-progress";
 import appCss from "~/styles/app.css?url";
 import { cssVariablesResolver, theme } from "~/theme";
@@ -33,6 +36,12 @@ const COLOR_SCHEME_SCRIPT = `try {
 	var scheme = s === "light" || s === "dark" ? s : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 	document.documentElement.setAttribute("data-mantine-color-scheme", scheme);
 } catch (e) {}`;
+
+// Vite turns `import.meta.env.DEV` into `false` in production builds, so the
+// devtools module (and its dependencies) is dropped from them entirely.
+const Devtools = import.meta.env.DEV
+	? lazy(() => import("~/lib/devtools"))
+	: null;
 
 const DESCRIPTION =
 	"Focos de calor detectados por satélite no Brasil nas últimas horas, com dados do INPE.";
@@ -77,10 +86,20 @@ function NotFound() {
 }
 
 function RootComponent() {
+	const [queryClient] = useState(createQueryClient);
 	return (
-		<RootDocument>
-			<Outlet />
-		</RootDocument>
+		<QueryClientProvider client={queryClient}>
+			<RootDocument>
+				<Outlet />
+				{Devtools && (
+					<ClientOnly>
+						<Suspense>
+							<Devtools />
+						</Suspense>
+					</ClientOnly>
+				)}
+			</RootDocument>
+		</QueryClientProvider>
 	);
 }
 

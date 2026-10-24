@@ -48,7 +48,7 @@ function FiresPage() {
 		municipio: place,
 	} = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const { data, error, loading } = useFires(hours);
+	const { data, error, loading, refreshFailed, updatedAt } = useFires(hours);
 	useProgress(loading);
 	const [target, setTarget] = useState<FireTarget | null>(null);
 
@@ -75,9 +75,9 @@ function FiresPage() {
 	const hourly = useMemo(
 		() =>
 			data
-				? hourlyCounts(data, indices, hours, Date.parse(data.generatedAt))
+				? hourlyCounts(data, indices, data.hours, Date.parse(data.generatedAt))
 				: undefined,
-		[data, indices, hours],
+		[data, indices],
 	);
 	const focus = useMemo(() => {
 		const key =
@@ -171,6 +171,8 @@ function FiresPage() {
 						}
 						loading={loading}
 						error={error}
+						refreshFailed={refreshFailed}
+						updatedAt={updatedAt}
 					/>
 				</Box>
 			</AppShell.Main>

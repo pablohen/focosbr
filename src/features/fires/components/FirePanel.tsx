@@ -62,6 +62,9 @@ type Props = {
 	onSelectFire: (fire: TopFire) => void;
 	loading: boolean;
 	error: unknown;
+	/** A refresh failed; the data on screen was loaded at `updatedAt`. */
+	refreshFailed: boolean;
+	updatedAt: number;
 };
 
 type Region = { uf?: string; biome?: string; place?: string };
@@ -148,6 +151,8 @@ export function FirePanel({
 	onSelectFire,
 	loading,
 	error,
+	refreshFailed,
+	updatedAt,
 }: Props) {
 	return (
 		<Paper
@@ -207,7 +212,7 @@ export function FirePanel({
 							<Text size="sm" c="dimmed">
 								{NUMBER.format(summary.total)}{" "}
 								{summary.total === 1 ? "foco detectado" : "focos detectados"}{" "}
-								nas últimas {hours} horas
+								nas últimas {data.hours} horas
 								{(uf || biome || place) &&
 									` em ${[place ?? (uf && (STATE_NAMES[uf] ?? uf)), biome].filter(Boolean).join(" · ")}`}
 								{data.latestAt &&
@@ -226,6 +231,15 @@ export function FirePanel({
 							<Box mt={6}>
 								<Freshness sourceUpdatedAt={data.sourceUpdatedAt} />
 							</Box>
+							{refreshFailed && (
+								<Group gap={6} wrap="nowrap" c="orange" mt={4}>
+									<WarningCircleIcon size={16} weight="bold" aria-hidden />
+									<Text size="xs" c="inherit" fw={600}>
+										Não foi possível atualizar; mostrando os dados carregados às{" "}
+										{CLOCK.format(new Date(updatedAt))}. Tentando de novo.
+									</Text>
+								</Group>
+							)}
 						</Box>
 					) : (
 						<Skeleton h={52} />
