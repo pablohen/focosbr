@@ -8,9 +8,11 @@ import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle
 export function PageHeader() {
 	return (
 		<Group justify="space-between" wrap="nowrap" mb="lg">
-			<Group gap={{ base: "sm", xs: "md" }} wrap="nowrap">
+			<Group gap="sm" wrap="nowrap">
+				{/* On phones only the icon shows; the label keeps the link named. */}
 				<Anchor
 					renderRoot={(props) => <Link {...props} to="/" />}
+					aria-label="FocosBR"
 					underline="never"
 					c="inherit"
 					style={{ display: "flex", alignItems: "center", gap: 8 }}
@@ -21,7 +23,7 @@ export function PageHeader() {
 						color="var(--mantine-primary-color-filled)"
 						aria-hidden
 					/>
-					<Text fw={700} fz="h4">
+					<Text fw={700} fz="h4" visibleFrom="xs">
 						FocosBR
 					</Text>
 				</Anchor>

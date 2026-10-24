@@ -127,8 +127,10 @@ export function FiresView({ title, intro, search, onSearchChange }: Props) {
 					wrap="nowrap"
 				>
 					<Group gap="xs" wrap="nowrap">
+						{/* On phones only the icon shows; the label keeps the link named. */}
 						<Link
 							to="/"
+							aria-label="FocosBR"
 							style={{
 								display: "flex",
 								alignItems: "center",
@@ -143,7 +145,7 @@ export function FiresView({ title, intro, search, onSearchChange }: Props) {
 								color="var(--mantine-primary-color-filled)"
 								aria-hidden
 							/>
-							<Text fw={700} fz="h4">
+							<Text fw={700} fz="h4" visibleFrom="xs">
 								FocosBR
 							</Text>
 						</Link>
