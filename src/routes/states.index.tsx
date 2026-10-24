@@ -2,6 +2,7 @@ import { Container, Group, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
+import { HistorySection } from "~/features/history/components/HistorySection";
 import { PageHeader } from "~/features/places/components/PageHeader";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { StateLink } from "~/features/places/components/RegionLinks";
@@ -11,7 +12,7 @@ import { absoluteUrl } from "~/lib/site";
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const TITLE = "Focos de calor por estado · FocosBR";
 
-/** /states: every state with its current numbers, linking to its page. */
+/** /states: every state with its current numbers, linking to its page, and Brazil's history. */
 export const Route = createFileRoute("/states/")({
 	validateSearch: z.object({ h: WindowSchema.optional().catch(undefined) }),
 	loaderDeps: ({ search }) => ({ h: search.h ?? 24 }),
@@ -77,6 +78,9 @@ function StatesPage() {
 						))}
 					</Table.Tbody>
 				</Table>
+				{summary.history && (
+					<HistorySection history={summary.history} name="No Brasil" />
+				)}
 				<Group gap="xs">
 					<Text size="xs" c="dimmed">
 						Últimas {summary.hours} horas. Dados: INPE, Programa Queimadas.

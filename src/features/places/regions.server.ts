@@ -20,6 +20,7 @@ import {
 	topFires,
 } from "../fires/view";
 import { loadRegionHistory } from "../history/history.server";
+import { BRAZIL_ID } from "../history/schemas";
 import {
 	cardBounds,
 	dotsPath,
@@ -203,9 +204,12 @@ export async function cityDetails(uf: string, slug: string, hours: Window) {
 
 /** Brazil's numbers and every state's, most detections first (home page, /states). */
 export async function statesSummary(hours: Window) {
-	const data = await getFires(hours);
+	const [data, history] = await Promise.all([
+		getFires(hours),
+		loadRegionHistory(BRAZIL_ID),
+	]);
 	const states = Object.entries(STATE_NAMES)
 		.map(([uf, name]) => ({ uf, name, ...counts(data, { uf }) }))
 		.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, "pt-BR"));
-	return { ...common(data), ...counts(data, {}), states };
+	return { ...common(data), ...counts(data, {}), states, history };
 }
