@@ -1,6 +1,15 @@
 # Deployment
 
-**Status: not deployed yet.**
+**Status: live at <https://focosbr.vercel.app>** (since 2026-10-24).
+
+|                   |                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| Repository        | <https://github.com/pablohen/focosbr> (public)                                          |
+| Vercel team       | `pablohens-projects` (same as GeoparqueBR)                                              |
+| Vercel project    | `focosbr` (`prj_oyh54SQoUyaD1sROdMoBMS5MEzx5`)                                          |
+| Production branch | `main`: every push deploys to production                                                |
+| Framework preset  | `nitro` (auto-detected; GeoparqueBR's says `tanstack-start`, and both run `vite build`) |
+| Node              | 24.x                                                                                    |
 
 ## Target
 
@@ -17,11 +26,15 @@ Nitro picks its preset from the environment: on Vercel (`VERCEL=1`) the build wr
 - **No environment variables, no database, no cron.** The only external calls are to INPE (server) and OpenFreeMap tiles (browser).
 - `maxDuration: 30` covers a cold 48 h request: three ~4 MB CSVs fetched in parallel and parsed.
 
-## First deploy
+## How it was set up
 
-1. Push the repository to GitHub.
-2. Import it in Vercel. Framework preset: _Other_. Build command `pnpm build`, install command `pnpm install`; the output is detected from `.vercel/output/`.
-3. Check that the function region is `gru1` and that `/api/fires?h=24` returns JSON with a `cache-control: public, max-age=60, s-maxage=300, stale-while-revalidate=600` header.
+The project was created with the Vercel connector's `create_git_project` (linked to the GitHub repo); no CLI or `vercel.json` needed. To redeploy, push to `main`.
+
+## Checking a deploy
+
+- **Region:** the build runs on Vercel's build machines (`iad1`, Washington); that's expected. The _function_ must run in São Paulo: `curl -sI https://focosbr.vercel.app/api/fires?h=24 | grep x-vercel-id` shows `gru1::gru1::…`.
+- **CDN:** the response's `cache-control` shows only `public, max-age=60`. Vercel consumes `s-maxage` and `stale-while-revalidate` itself and strips them, so that's expected. A second request within 5 minutes shows `x-vercel-cache: HIT`.
+- **Endpoints:** `/api/fires?h=6|24|48` → 200 (cold 48 h ≈ 1.2 s), `?h=7` → 400, `/nao-existe` → 404, `/data/state-outlines.geojson` → 200.
 
 ## Operations
 
