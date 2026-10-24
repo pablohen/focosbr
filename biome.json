@@ -6,6 +6,11 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!src/routeTree.gen.ts", "!pnpm-lock.yaml"]
+		"includes": [
+			"**",
+			"!src/routeTree.gen.ts",
+			"!pnpm-lock.yaml",
+			"!src/features/places/municipalities.json"
+		]
 	}
 }

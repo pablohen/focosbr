@@ -14,7 +14,8 @@
 		"lint": "biome check .",
 		"format": "biome check --write .",
 		"test": "vitest run",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"geo:municipalities": "node scripts/municipalities.ts"
 	},
 	"dependencies": {
 		"@fontsource/inter": "5.3.0",
