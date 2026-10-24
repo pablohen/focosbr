@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OgRouteImport } from './routes/og'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OgRoute = OgRouteImport.update({
+  id: '/og',
+  path: '/og',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFiresRoute = ApiFiresRouteImport.update({
@@ -25,27 +31,31 @@ const ApiFiresRoute = ApiFiresRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/fires'
+  fullPaths: '/' | '/og' | '/api/fires'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/fires'
-  id: '__root__' | '/' | '/api/fires'
+  to: '/' | '/og' | '/api/fires'
+  id: '__root__' | '/' | '/og' | '/api/fires'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OgRoute: typeof OgRoute
   ApiFiresRoute: typeof ApiFiresRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/og': {
+      id: '/og'
+      path: '/og'
+      fullPath: '/og'
+      preLoaderRoute: typeof OgRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fires': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OgRoute: OgRoute,
   ApiFiresRoute: ApiFiresRoute,
 }
 export const routeTree = rootRouteImport

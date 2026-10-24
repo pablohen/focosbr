@@ -22,12 +22,14 @@
 		"@mantine/hooks": "^9.7.3",
 		"@mantine/nprogress": "^9.7.3",
 		"@phosphor-icons/react": "^2.1.10",
+		"@resvg/resvg-wasm": "2.6.2",
 		"@tanstack/react-query": "^5.104.5",
 		"@tanstack/react-router": "^1.170.45",
 		"@tanstack/react-start": "^1.169.3",
 		"maplibre-gl": "^6.15.0",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",
+		"satori": "0.63.2",
 		"zod": "^4.6.7"
 	},
 	"devDependencies": {

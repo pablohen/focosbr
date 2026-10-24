@@ -22,15 +22,48 @@ import {
 	summarize,
 	toFeatures,
 } from "~/features/fires/view";
+import {
+	CARD_HEIGHT,
+	CARD_WIDTH,
+	cardPath,
+	regionLabel,
+} from "~/features/share/card";
 import { CopyLinkButton } from "~/features/share/components/CopyLinkButton";
 import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
 import { useProgress } from "~/lib/route-progress";
+import { absoluteUrl } from "~/lib/site";
 
 const FireMap = lazy(() => import("~/features/fires/components/FireMap"));
 
 export const Route = createFileRoute("/")({
 	validateSearch: FiresSearchSchema,
-	head: () => ({ links: [{ rel: "stylesheet", href: maplibreCss }] }),
+	// Share previews: a card for the view (window, sensors, region) and a
+	// title naming the region. The map position doesn't change the card.
+	head: ({ match }) => {
+		const view = match.search;
+		const region = regionLabel(view);
+		const title =
+			region === "Brasil"
+				? "FocosBR · Focos de calor no Brasil agora"
+				: `Focos de calor em ${region} agora · FocosBR`;
+		const image = absoluteUrl(cardPath(view));
+		return {
+			meta: [
+				{ title },
+				{ property: "og:title", content: title },
+				{ property: "og:image", content: image },
+				{ property: "og:image:width", content: String(CARD_WIDTH) },
+				{ property: "og:image:height", content: String(CARD_HEIGHT) },
+				{
+					property: "og:image:alt",
+					content: `Mapa e número estimado de fogos: ${region}`,
+				},
+				{ name: "twitter:card", content: "summary_large_image" },
+				{ name: "twitter:image", content: image },
+			],
+			links: [{ rel: "stylesheet", href: maplibreCss }],
+		};
+	},
 	component: FiresPage,
 });
 
