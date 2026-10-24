@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-The app runs at http://localhost:3000 (same port as GeoparqueBR, so run one at a time). No `.env` is needed.
+The app runs at http://localhost:3000 (same port as GeoparqueBR, so run one at a time). The map needs no `.env`. For the pages' history, copy `.env.example` to `.env` and set `MONGODB_URI` (your IP must be in the Atlas project's access list); `pnpm history:build` fills it.
 
 `.claude/launch.json` defines the `focosbr` preview for Claude Code.
 

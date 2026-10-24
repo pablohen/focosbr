@@ -81,6 +81,18 @@ Detections are sorted oldest first, so the newest draw on top. The columnar shap
 - **Hourly counts** (`hourlyCounts`): detections per clock hour, ending with the current hour. Peaks follow satellite passes (VIIRS early afternoon local time), so the shape mixes fire activity with when the satellites looked.
 - **Freshness** (`freshness`): minutes since `sourceUpdatedAt`; stale past 120.
 
+## History (MongoDB)
+
+The state and city pages show detections per year since 2003, per month for the last 24 months and per day for the last 90 days. They read it from MongoDB (`history` collection, one document per region), which `pnpm history:build` fills:
+
+| Series                     | Source                                                                                                                    | Satellites                                                         |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Months (and years, summed) | yearly files `anual/Brasil_sat_ref/focos_br_ref_YYYY.zip` (2003 → last year), then the monthly files for the current year | **reference only** (AQUA, afternoon pass), comparable across years |
+| Days                       | monthly files `mensal/Brasil/focos_mensal_br_YYYYMM.csv` (since 2023), then the daily files for the last 31 days          | all                                                                |
+- The yearly files carry **names, not IBGE codes**: states match by name (100%), municipalities by name with a small rename table (`RENAMED` in `build.ts`), 99.86%. The rest count for their state only. Monthly and daily files carry codes.
+- Days and months are in **Brasília time** (UTC−3).
+- A run _sets_ the months and days it processed, so re-running is safe. The daily run (GitHub Actions, 12:30 UTC) covers this month, last month and the last 31 days. `--backfill` covers everything (about 6 million detections in 2003–2025, plus the monthly files since 2023; a few minutes). Completed files are cached in `.cache/history`.
+
 ## Downloads
 
 `export.ts` turns the detections on screen (window and filters) into rows. Column names follow INPE's where it has one:

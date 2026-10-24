@@ -23,7 +23,9 @@ Nitro picks its preset from the environment: on Vercel (`VERCEL=1`) the build wr
 
 ## What it needs
 
-- **No environment variables, no database, no cron.** The only external calls are to INPE (server) and OpenFreeMap tiles (browser).
+- **`MONGODB_URI`** (Vercel, production and preview; GitHub secret for the History workflow): the Atlas cluster `focosbr` (project `focosbr`, AWS `sa-east-1`, free M0), user `focosbr-app` with `readWrite` on `focosbr`. Without it the pages render and just hide their history.
+- **Atlas network access** must let Vercel functions and GitHub runners in. Neither has fixed IPs, so that means `0.0.0.0/0` (the user/password still protect the cluster); until then only the IPs listed in Atlas can connect.
+- **GitHub Actions:** `CI` on every push, and `History` daily at 12:30 UTC (and on demand: `gh workflow run History`).
 - `maxDuration: 30` covers a cold 48 h request: three ~4 MB CSVs fetched in parallel and parsed.
 
 ## How it was set up

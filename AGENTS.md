@@ -2,7 +2,7 @@
 
 Guidance for AI coding agents (and humans) working in this repository.
 
-FocosBR is a TanStack Start app that maps live satellite fire hotspots ("focos de calor") in Brazil from INPE's Programa Queimadas. It has no database: one API route fetches and caches INPE's daily CSVs, and the browser does the filtering, counting and charting.
+FocosBR is a TanStack Start app that maps live satellite fire hotspots ("focos de calor") in Brazil from INPE's Programa Queimadas. The live map has no database: one API route fetches and caches INPE's daily CSVs, and the browser does the filtering, counting and charting. The state and city pages' **history** (since 2003) lives in MongoDB Atlas, filled daily by a GitHub Action (`pnpm history:build`).
 
 Deeper docs: [architecture](docs/architecture.md) · [data](docs/data.md) · [development](docs/development.md) · [deployment](docs/deployment.md)
 
@@ -10,16 +10,17 @@ Deeper docs: [architecture](docs/architecture.md) · [data](docs/data.md) · [de
 
 Use **pnpm**, never npm or yarn.
 
-| Task                               | Command                                                          |
-| ---------------------------------- | ---------------------------------------------------------------- |
-| Install                            | `pnpm install`                                                   |
-| Dev server (http://localhost:3000) | `pnpm dev`                                                       |
-| Typecheck                          | `pnpm typecheck`                                                 |
-| Lint + format check                | `pnpm lint`                                                      |
-| Auto-fix lint/format               | `pnpm format`                                                    |
-| Tests                              | `pnpm test` (`pnpm test:watch` while developing)                 |
-| Production build                   | `pnpm build` (Nitro: `.output/`, or `.vercel/output/` on Vercel) |
-| Run production build               | `pnpm start`                                                     |
+| Task                               | Command                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Install                            | `pnpm install`                                                                                                      |
+| Dev server (http://localhost:3000) | `pnpm dev`                                                                                                          |
+| Typecheck                          | `pnpm typecheck`                                                                                                    |
+| Lint + format check                | `pnpm lint`                                                                                                         |
+| Auto-fix lint/format               | `pnpm format`                                                                                                       |
+| Tests                              | `pnpm test` (`pnpm test:watch` while developing)                                                                    |
+| Production build                   | `pnpm build` (Nitro: `.output/`, or `.vercel/output/` on Vercel)                                                    |
+| Run production build               | `pnpm start`                                                                                                        |
+| Refresh history in MongoDB         | `pnpm history:build` (daily: this and last month, last 31 days; `--backfill` once: since 2003). Needs `MONGODB_URI` |
 
 Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && pnpm build`. CI (`.github/workflows/ci.yml`) runs the same four on every push to `main` and every pull request; Vercel deploys `main` regardless, so don't push red. For UI changes, also load the page, check the browser console, and look at it at 375 px as well as desktop.
 
@@ -75,4 +76,5 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 - **Share cards show the view, not the position.** `/og` renders the window, sensors and region (`cardPath` drops `bbox`), so equal views share one CDN entry. Satori and resvg stay in the `/og` chunk only. Satori adds padding _outside_ `width`/`height`, so size boxes explicitly instead of padding the root, and Inter's Latin subset has no "≈" (the card says "cerca de").
 - **The timeline replays, it doesn't change the data.** `until` filters detections up to a moment, and map ages are measured from it, while the hourly chart always shows the whole window. A new window resets to live.
 - **State and city pages are details pages, not the map.** Their loaders call `regions.functions.ts`, and everything on them (numbers, hourly chart, biggest fires, city ranking, biomes, sensors, INPE weather, and a static SVG map drawn from server-side paths) renders on the server, for readers, crawlers and link previews. They link to the interactive map with `?state=&city=` (and `bbox` for a fire). Unknown states and cities are `notFound()` (404). Keep their HTML small: dots are one path per age band (`dotsPath`), outlines outside the frame are culled, at most 2,000 dots. `sitemap.xml` lists every page (home, `/states`, 27 states, every IBGE municipality).
+- **History is extra and comparable.** `history` holds one document per region (`_id` "BR", "PA" or the IBGE code) with sparse `months` (reference satellite, AQUA's afternoon pass) and `days` (all satellites), in Brasília time. Years are sums of months. Never mix the two series: only the reference satellite is comparable across years. The script _sets_ the periods it processed (idempotent); never `$inc`. Pages read one document through `loadRegionHistory`, which returns null on any failure so the page renders without history.
 - **All UI copy is Brazilian Portuguese.** There is no i18n layer yet; keep strings in components until there is.
