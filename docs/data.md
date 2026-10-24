@@ -83,14 +83,17 @@ Detections are sorted oldest first, so the newest draw on top. The columnar shap
 
 ## History (MongoDB)
 
-The state and city pages show detections per year since 2003, per month for the last 24 months and per day for the last 90 days. They read it from MongoDB (`history` collection, one document per region), which `pnpm history:build` fills:
+The state and city pages (and `/states`, for Brazil) show this year so far against the same period of every year since 2003, a fire-season calendar (month × year), detections per year, per month for the last 24 months and per day for the last 90 days; `/rankings` ranks states and cities by this year so far. They read it from MongoDB (`history` collection, one document per region), which `pnpm history:build` fills:
 
 | Series                     | Source                                                                                                                    | Satellites                                                         |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | Months (and years, summed) | yearly files `anual/Brasil_sat_ref/focos_br_ref_YYYY.zip` (2003 → last year), then the monthly files for the current year | **reference only** (AQUA, afternoon pass), comparable across years |
+| Reference days (`refDays`) | the same files as months, by day                                                                                          | **reference only**; for the year-to-date comparison                |
 | Days                       | monthly files `mensal/Brasil/focos_mensal_br_YYYYMM.csv` (since 2023), then the daily files for the last 31 days          | all                                                                |
 - The yearly files carry **names, not IBGE codes**: states match by name (100%), municipalities by name with a small rename table (`RENAMED` in `build.ts`), 99.86%. The rest count for their state only. Monthly and daily files carry codes.
 - Days and months are in **Brasília time** (UTC−3).
+- **Year to date** (`ytdSummary`) compares 1 January → yesterday (the last closed day) with the same month-day in every year since 2003, from `refDays`. The script stores it on every document as `ytd` (`through`, `current`, `average`, `ratio`, `record`, `years`), indexed by `kind` + `ytd.current` and `kind` + `ytd.ratio`, so `/rankings` is three indexed queries. The "above their own average" ranking only takes cities averaging at least `RANKING_MIN_AVERAGE` (50) detections in the period.
+- The **calendar** colours each month on a square-root scale of the region's busiest month (`calendarStep`), with an ordinal one-hue ramp (`--cal-1…5` in `app.css`, validated separately for light and dark) and a neutral `--cal-0` for none.
 - A run _sets_ the months and days it processed, so re-running is safe. The daily run (GitHub Actions, 12:30 UTC) covers this month, last month and the last 31 days. `--backfill` covers everything (about 6 million detections in 2003–2025, plus the monthly files since 2023; a few minutes). Completed files are cached in `.cache/history`.
 
 ## Downloads
