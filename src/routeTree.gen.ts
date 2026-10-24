@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OgRouteImport } from './routes/og'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
 import { Route as StatesIndexRouteImport } from './routes/states.index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
@@ -24,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const OgRoute = OgRouteImport.update({
   id: '/og',
   path: '/og',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFiresRoute = ApiFiresRouteImport.update({
@@ -50,6 +56,7 @@ const CitiesStateCityRoute = CitiesStateCityRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/og': typeof OgRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
   '/states/$state': typeof StatesStateRoute
   '/states/': typeof StatesIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/og': typeof OgRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
   '/states/$state': typeof StatesStateRoute
   '/states': typeof StatesIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/og': typeof OgRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/fires': typeof ApiFiresRoute
   '/states/$state': typeof StatesStateRoute
   '/states/': typeof StatesIndexRoute
@@ -77,6 +86,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/og'
+    | '/sitemap.xml'
     | '/api/fires'
     | '/states/$state'
     | '/states/'
@@ -85,6 +95,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/og'
+    | '/sitemap.xml'
     | '/api/fires'
     | '/states/$state'
     | '/states'
@@ -93,6 +104,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/og'
+    | '/sitemap.xml'
     | '/api/fires'
     | '/states/$state'
     | '/states/'
@@ -102,6 +114,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OgRoute: typeof OgRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiFiresRoute: typeof ApiFiresRoute
   StatesStateRoute: typeof StatesStateRoute
   StatesIndexRoute: typeof StatesIndexRoute
@@ -122,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/og'
       fullPath: '/og'
       preLoaderRoute: typeof OgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fires': {
@@ -158,6 +178,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OgRoute: OgRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiFiresRoute: ApiFiresRoute,
   StatesStateRoute: StatesStateRoute,
   StatesIndexRoute: StatesIndexRoute,
