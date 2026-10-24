@@ -37,7 +37,14 @@ const hourLabel = (b: HourBucket) =>
  * fire activity and when the satellites looked. A toggle swaps the bars for
  * a table, so the numbers don't depend on hovering or seeing the chart.
  */
-export function HourlyChart({ buckets }: { buckets: HourBucket[] }) {
+export function HourlyChart({
+	buckets,
+	until = null,
+}: {
+	buckets: HourBucket[];
+	/** Timeline position (Unix seconds): later hours are faded. */
+	until?: number | null;
+}) {
 	const [asTable, setAsTable] = useState(false);
 	const max = Math.max(1, ...buckets.map((b) => b.count));
 	const first = buckets[0];
@@ -131,6 +138,9 @@ export function HourlyChart({ buckets }: { buckets: HourBucket[] }) {
 										w="100%"
 										h={b.count ? Math.max(2, (b.count / max) * HEIGHT) : 0}
 										bg="var(--chart-bar)"
+										opacity={
+											until !== null && b.start / 1000 >= until ? 0.25 : 1
+										}
 										style={{ borderRadius: "2px 2px 0 0" }}
 									/>
 								</Box>

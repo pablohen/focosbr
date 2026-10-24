@@ -10,7 +10,7 @@ import {
 import { FireIcon } from "@phosphor-icons/react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import maplibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import type { FireTarget } from "~/features/fires/components/FireMap";
 import { FirePanel } from "~/features/fires/components/FirePanel";
 import { FiresSearchSchema } from "~/features/fires/schemas";
@@ -87,9 +87,15 @@ function FiresPage() {
 	useProgress(loading);
 	const [target, setTarget] = useState<FireTarget | null>(null);
 
+	// Timeline position (Unix seconds), null for live. Playback state, not a
+	// view to share, so it stays out of the URL; a new window starts live.
+	const [until, setUntil] = useState<number | null>(null);
+	const shownHours = data?.hours;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: reset whenever the window shown changes.
+	useEffect(() => setUntil(null), [shownHours]);
 	const filters = useMemo(
-		() => ({ sensors, uf, biome, place }),
-		[sensors, uf, biome, place],
+		() => ({ sensors, uf, biome, place, until: until ?? undefined }),
+		[sensors, uf, biome, place, until],
 	);
 	const indices = useMemo(
 		() => (data ? selectFires(data, filters) : []),
@@ -102,17 +108,28 @@ function FiresPage() {
 	const features = useMemo(
 		() =>
 			data
-				? toFeatures(data, indices, Date.parse(data.generatedAt))
+				? // Ages from the timeline position, so a replay colours as it was.
+					toFeatures(
+						data,
+						indices,
+						until !== null ? until * 1000 : Date.parse(data.generatedAt),
+					)
 				: toFeatures(EMPTY, [], 0),
-		[data, indices],
+		[data, indices, until],
 	);
 
 	const hourly = useMemo(
 		() =>
 			data
-				? hourlyCounts(data, indices, data.hours, Date.parse(data.generatedAt))
+				? // The whole window, whatever the timeline position.
+					hourlyCounts(
+						data,
+						selectFires(data, { ...filters, until: undefined }),
+						data.hours,
+						Date.parse(data.generatedAt),
+					)
 				: undefined,
-		[data, indices],
+		[data, filters],
 	);
 	const focus = useMemo(() => {
 		const key =
@@ -211,6 +228,8 @@ function FiresPage() {
 						summary={summary}
 						indices={indices}
 						hourly={hourly}
+						until={until}
+						onUntilChange={setUntil}
 						onSelectFire={(fire) =>
 							setTarget((t) => ({ nonce: (t?.nonce ?? 0) + 1, fire }))
 						}

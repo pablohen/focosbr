@@ -35,9 +35,16 @@ import {
 import { Download } from "./Download";
 import { Freshness } from "./Freshness";
 import { HourlyChart } from "./HourlyChart";
+import { Timeline } from "./Timeline";
 import { TopFires } from "./TopFires";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
+const UNTIL = new Intl.DateTimeFormat("pt-BR", {
+	weekday: "short",
+	hour: "2-digit",
+	minute: "2-digit",
+	timeZone: "America/Sao_Paulo",
+});
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
 	timeStyle: "short",
 	timeZone: "America/Sao_Paulo",
@@ -58,6 +65,9 @@ type Props = {
 	/** The detections on screen, for the download. */
 	indices: number[];
 	hourly: HourBucket[] | undefined;
+	/** Timeline position (Unix seconds), null for live. */
+	until: number | null;
+	onUntilChange: (until: number | null) => void;
 	onSelectFire: (fire: TopFire) => void;
 	/** A fetch is in flight; the top progress bar shows it, the panel is aria-busy. */
 	loading: boolean;
@@ -148,6 +158,8 @@ export function FirePanel({
 	summary,
 	indices,
 	hourly,
+	until,
+	onUntilChange,
 	onSelectFire,
 	loading,
 	error,
@@ -211,9 +223,12 @@ export function FirePanel({
 								{NUMBER.format(summary.total)}{" "}
 								{summary.total === 1 ? "foco detectado" : "focos detectados"}{" "}
 								nas últimas {data.hours} horas
+								{until !== null &&
+									`, até ${UNTIL.format(new Date(until * 1000))}`}
 								{(uf || biome || place) &&
 									` em ${[place ?? (uf && (STATE_NAMES[uf] ?? uf)), biome].filter(Boolean).join(" · ")}`}
 								{data.latestAt &&
+									until === null &&
 									` · último às ${CLOCK.format(new Date(data.latestAt))}`}
 							</Text>
 							{summary.preliminary > 0 && (
@@ -243,7 +258,16 @@ export function FirePanel({
 						<Skeleton h={52} />
 					)}
 
-					{hourly && summary?.total ? <HourlyChart buckets={hourly} /> : null}
+					{hourly && summary ? (
+						<Stack gap={6}>
+							<HourlyChart buckets={hourly} until={until} />
+							<Timeline
+								buckets={hourly}
+								until={until}
+								onChange={onUntilChange}
+							/>
+						</Stack>
+					) : null}
 
 					{data && summary && (
 						<TopFires
