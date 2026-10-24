@@ -10,11 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AlertsRouteImport } from './routes/alerts'
 import { Route as CompareRouteImport } from './routes/compare'
 import { Route as DataRouteImport } from './routes/data'
+import { Route as FeedDotxmlRouteImport } from './routes/feed[.]xml'
 import { Route as OgRouteImport } from './routes/og'
 import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiAlertsRouteImport } from './routes/api.alerts'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
 import { Route as BiomesIndexRouteImport } from './routes/biomes.index'
 import { Route as BiomesBiomeRouteImport } from './routes/biomes.$biome'
@@ -32,6 +35,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlertsRoute = AlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompareRoute = CompareRouteImport.update({
   id: '/compare',
   path: '/compare',
@@ -40,6 +48,11 @@ const CompareRoute = CompareRouteImport.update({
 const DataRoute = DataRouteImport.update({
   id: '/data',
   path: '/data',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedDotxmlRoute = FeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OgRoute = OgRouteImport.update({
@@ -55,6 +68,11 @@ const RankingsRoute = RankingsRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAlertsRoute = ApiAlertsRouteImport.update({
+  id: '/api/alerts',
+  path: '/api/alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiFiresRoute = ApiFiresRouteImport.update({
@@ -115,11 +133,14 @@ const EmbedCitiesStateCityRoute = EmbedCitiesStateCityRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/compare': typeof CompareRoute
   '/data': typeof DataRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
@@ -134,11 +155,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/compare': typeof CompareRoute
   '/data': typeof DataRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
@@ -154,11 +178,14 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
   '/compare': typeof CompareRoute
   '/data': typeof DataRoute
+  '/feed.xml': typeof FeedDotxmlRoute
   '/og': typeof OgRoute
   '/rankings': typeof RankingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
   '/states/$state': typeof StatesStateRoute
@@ -175,11 +202,14 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/alerts'
     | '/compare'
     | '/data'
+    | '/feed.xml'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
+    | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
     | '/states/$state'
@@ -194,11 +224,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/alerts'
     | '/compare'
     | '/data'
+    | '/feed.xml'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
+    | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
     | '/states/$state'
@@ -213,11 +246,14 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/alerts'
     | '/compare'
     | '/data'
+    | '/feed.xml'
     | '/og'
     | '/rankings'
     | '/sitemap.xml'
+    | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
     | '/states/$state'
@@ -233,11 +269,14 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertsRoute: typeof AlertsRoute
   CompareRoute: typeof CompareRoute
   DataRoute: typeof DataRoute
+  FeedDotxmlRoute: typeof FeedDotxmlRoute
   OgRoute: typeof OgRoute
   RankingsRoute: typeof RankingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiAlertsRoute: typeof ApiAlertsRoute
   ApiFiresRoute: typeof ApiFiresRoute
   BiomesBiomeRoute: typeof BiomesBiomeRoute
   StatesStateRoute: typeof StatesStateRoute
@@ -260,6 +299,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alerts': {
+      id: '/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compare': {
       id: '/compare'
       path: '/compare'
@@ -272,6 +318,13 @@ declare module '@tanstack/react-router' {
       path: '/data'
       fullPath: '/data'
       preLoaderRoute: typeof DataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feed.xml': {
+      id: '/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/feed.xml'
+      preLoaderRoute: typeof FeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/og': {
@@ -293,6 +346,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/alerts': {
+      id: '/api/alerts'
+      path: '/api/alerts'
+      fullPath: '/api/alerts'
+      preLoaderRoute: typeof ApiAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/fires': {
@@ -377,11 +437,14 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertsRoute: AlertsRoute,
   CompareRoute: CompareRoute,
   DataRoute: DataRoute,
+  FeedDotxmlRoute: FeedDotxmlRoute,
   OgRoute: OgRoute,
   RankingsRoute: RankingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiAlertsRoute: ApiAlertsRoute,
   ApiFiresRoute: ApiFiresRoute,
   BiomesBiomeRoute: BiomesBiomeRoute,
   StatesStateRoute: StatesStateRoute,

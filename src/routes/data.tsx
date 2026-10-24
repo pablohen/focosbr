@@ -8,7 +8,7 @@ import {
 	Text,
 	Title,
 } from "@mantine/core";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageHeader } from "~/features/places/components/PageHeader";
 import { absoluteUrl, SITE_URL } from "~/lib/site";
@@ -135,6 +135,20 @@ console.log(region.name, history.ytd.current, history.ytd.ratio);`}
 						Todas as detecções da janela em colunas (o mesmo que o mapa usa),
 						atualizadas a cada 5 minutos. Para planilhas, prefira o botão de
 						download do mapa, que gera CSV ou GeoJSON da vista atual.
+					</Text>
+				</Section>
+
+				<Section title="Alertas">
+					<Code
+						block
+					>{`GET ${SITE_URL}/api/alerts\nGET ${SITE_URL}/feed.xml`}</Code>
+					<Text size="sm">
+						Os{" "}
+						<Anchor renderRoot={(props) => <Link {...props} to="/alerts" />}>
+							alertas
+						</Anchor>{" "}
+						(lugares acima do dobro da média do ano e dias recordes) em JSON ou
+						RSS, os mais recentes primeiro. Gerados toda manhã.
 					</Text>
 				</Section>
 
