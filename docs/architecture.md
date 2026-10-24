@@ -14,7 +14,7 @@ INPE 10-minute files ─────┤ (only those published after the daily re
                             │  columnar JSON
                             ▼
                     Browser (routes/index.tsx)
-                            │  useFires: fetch, validate, refetch every 5 min
+                            │  useFires (TanStack Query): fetch, validate, cache per window, refetch
                             │  view.ts: filter → count → merge → bucket
                             ├──▶ FirePanel (counts, chart, filters)
                             └──▶ FireMap  (MapLibre, clusters, popups)
@@ -22,23 +22,25 @@ INPE 10-minute files ─────┤ (only those published after the daily re
 
 ## Files
 
-| Path                                          | Role                                                                                                                                             |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/features/fires/schemas.ts`               | Zod schemas: API payload and URL search params.                                                                                                  |
-| `src/features/fires/inpe.ts`                  | Pure: INPE CSV parsing, day/window maths, `buildFiresResponse` (columnar packing).                                                               |
-| `src/features/fires/locate.ts`                | Pure: point-in-state lookup over the IBGE outlines, for 10-minute detections.                                                                    |
-| `src/features/fires/fires.server.ts`          | Server-only: fetches the daily files and the 10-minute gap files, caches them per instance, reads `Last-Modified`. Tested with a mocked `fetch`. |
-| `src/routes/api.fires.ts`                     | `GET /api/fires?h=6\|24\|48`. Validates `h`, sets cache headers, returns 502 if INPE fails with nothing cached.                                  |
-| `src/features/fires/use-fires.ts`             | Client hook: fetches the window, validates with Zod, refetches every 5 minutes, keeps old data on screen while loading.                          |
-| `src/features/fires/view.ts`                  | Pure client shaping: `selectFires`, `summarize`, `estimateFires`, `hourlyCounts`, `boundsOf`, `toFeatures`, `freshness`.                         |
-| `src/features/fires/export.ts`                | Pure: CSV and GeoJSON downloads of the detections on screen.                                                                                     |
-| `src/features/fires/components/TopFires.tsx`  | The biggest-fires list; a row zooms the map to the fire (`FireTarget`) and opens its newest detection.                                           |
-| `src/features/fires/components/FireMap.tsx`   | MapLibre map (lazy, client-only): clustered GeoJSON source, state outline, popups, fit-to-selection.                                             |
-| `src/features/fires/components/FirePanel.tsx` | Floating panel (bottom sheet on phones): headline, freshness, hourly chart, legend, filters, rankings.                                           |
-| `src/routes/index.tsx`                        | The page: reads URL state, wires data → view helpers → map and panel. Header lives here.                                                         |
-| `src/routes/__root.tsx`                       | Document shell, Mantine provider, colour-scheme script, progress bar, not-found page.                                                            |
-| `src/lib/route-progress.tsx`                  | `RouteProgress` and `useProgress(active)` for Mantine's nprogress bar.                                                                           |
-| `public/data/state-outlines.geojson`          | IBGE state outlines (copied from GeoparqueBR) for the selected-state line.                                                                       |
+| Path                                          | Role                                                                                                                                                                                                                           |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/features/fires/schemas.ts`               | Zod schemas: API payload and URL search params.                                                                                                                                                                                |
+| `src/features/fires/inpe.ts`                  | Pure: INPE CSV parsing, day/window maths, `buildFiresResponse` (columnar packing).                                                                                                                                             |
+| `src/features/fires/locate.ts`                | Pure: point-in-state lookup over the IBGE outlines, for 10-minute detections.                                                                                                                                                  |
+| `src/features/fires/fires.server.ts`          | Server-only: fetches the daily files and the 10-minute gap files, caches them per instance, reads `Last-Modified`. Tested with a mocked `fetch`.                                                                               |
+| `src/routes/api.fires.ts`                     | `GET /api/fires?h=6\|24\|48`. Validates `h`, sets cache headers, returns 502 if INPE fails with nothing cached.                                                                                                                |
+| `src/features/fires/use-fires.ts`             | Client hook on TanStack Query: one cached entry per window, refetch every 5 minutes while visible and on refocus, 3 retries, previous window kept on screen while loading, `refreshFailed` when a refresh fails over old data. |
+| `src/features/fires/view.ts`                  | Pure client shaping: `selectFires`, `summarize`, `estimateFires`, `hourlyCounts`, `boundsOf`, `toFeatures`, `freshness`.                                                                                                       |
+| `src/features/fires/export.ts`                | Pure: CSV and GeoJSON downloads of the detections on screen.                                                                                                                                                                   |
+| `src/features/fires/components/TopFires.tsx`  | The biggest-fires list; a row zooms the map to the fire (`FireTarget`) and opens its newest detection.                                                                                                                         |
+| `src/features/fires/components/FireMap.tsx`   | MapLibre map (lazy, client-only): clustered GeoJSON source, state outline, popups, fit-to-selection.                                                                                                                           |
+| `src/features/fires/components/FirePanel.tsx` | Floating panel (bottom sheet on phones): headline, freshness, hourly chart, legend, filters, rankings.                                                                                                                         |
+| `src/routes/index.tsx`                        | The page: reads URL state, wires data → view helpers → map and panel. Header lives here.                                                                                                                                       |
+| `src/routes/__root.tsx`                       | Document shell, Mantine and TanStack Query providers, colour-scheme script, progress bar, not-found page, and the devtools in development.                                                                                     |
+| `src/lib/route-progress.tsx`                  | `RouteProgress` and `useProgress(active)` for Mantine's nprogress bar.                                                                                                                                                         |
+| `src/lib/query-client.ts`                     | TanStack Query defaults (3 retries, refetch on focus, 15-minute cache).                                                                                                                                                        |
+| `src/lib/devtools.tsx`                        | TanStack Devtools with Query and Router tabs; development only.                                                                                                                                                                |
+| `public/data/state-outlines.geojson`          | IBGE state outlines (copied from GeoparqueBR) for the selected-state line.                                                                                                                                                     |
 
 ## Request flow
 
@@ -49,13 +51,14 @@ INPE 10-minute files ─────┤ (only those published after the daily re
 
 ## Caching
 
-| Layer                         | Lifetime                                   | Notes                                                                           |
-| ----------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------- |
-| Function memory, today's file | 5 min                                      | Concurrent requests share one fetch. On error, the previous copy keeps serving. |
-| Function memory, past days    | 60 min                                     | They barely change after midnight UTC.                                          |
-| Function memory, 10-min files | 7 h                                        | Published files never change. A not-yet-published one (404) isn't cached.       |
-| CDN                           | `s-maxage=300, stale-while-revalidate=600` | Same response for everyone for 5 minutes.                                       |
-| Browser                       | `max-age=60`                               | The hook refetches every 5 minutes anyway.                                      |
+| Layer                         | Lifetime                                   | Notes                                                                                      |
+| ----------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Function memory, today's file | 5 min                                      | Concurrent requests share one fetch. On error, the previous copy keeps serving.            |
+| Function memory, past days    | 60 min                                     | They barely change after midnight UTC.                                                     |
+| Function memory, 10-min files | 7 h                                        | Published files never change. A not-yet-published one (404) isn't cached.                  |
+| CDN                           | `s-maxage=300, stale-while-revalidate=600` | Same response for everyone for 5 minutes.                                                  |
+| Browser HTTP cache            | `max-age=60`                               | Mostly bypassed by the Query cache below.                                                  |
+| TanStack Query (memory)       | fresh 1 min, kept 15 min                   | Per window. Switching back is instant; refetches every 5 min while visible and on refocus. |
 
 Memory caches are per instance and vanish on cold starts; that only costs one INPE fetch.
 

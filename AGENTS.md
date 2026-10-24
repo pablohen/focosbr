@@ -38,6 +38,7 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 
 - **TanStack Start 1.x** (Vite 8 plugin, Nitro 3). The API is a file route with `server.handlers` (`src/routes/api.fires.ts`).
 - **Zod 4**: `z.iso.datetime()`, `z.url()` and so on, not the Zod 3 method forms.
+- **TanStack Query 5** for fetching `/api/fires` (`use-fires.ts`, client in `src/lib/query-client.ts`). **TanStack Devtools** (Query and Router tabs) load only in development (`src/lib/devtools.tsx`, behind `import.meta.env.DEV`); keep them out of production builds.
 - **Mantine 9** (React 19.2+), with `@mantine/nprogress` for the top progress bar. Use Mantine components and style props before writing custom CSS.
 - **Phosphor icons** (`@phosphor-icons/react`) for every icon.
 - **MapLibre GL 6** with OpenFreeMap's `liberty` style (free, keyless).
@@ -51,9 +52,10 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 3. **Server-only code lives in `*.server.ts`** and is imported **lazily** from the API route (`await import(...)`), so it stays out of the client graph. Never import it from components.
 4. **Feature folders.** Domain code goes in `src/features/<feature>/` (`schemas.ts`, pure helpers, `<feature>.server.ts`, `components/`). Shared infrastructure goes in `src/lib/`.
 5. **URL state.** Anything a user would share or bookmark lives in search params validated by Zod: `h` (window), `sensor`, `uf`, `bioma`, `municipio`. Don't move these into `useState`. Defaults are left out of the URL (`h=24` is omitted).
-6. **The browser filters; the server doesn't.** `/api/fires` returns every detection in the window. `view.ts` selects, counts, merges and buckets on the client, so every filter change is instant and the CDN caches just three responses (one per window).
-7. **Browser-only libraries load lazily.** MapLibre sits behind `<ClientOnly>` + `React.lazy` in a default-exported component (`FireMap.tsx`). Keep `setWorkerUrl(workerUrl)` there: Vite rebundles MapLibre and its worker can't be found otherwise.
-8. **Mobile first-paint uses CSS.** Lay out with Mantine responsive style props (`top={{ base, sm }}`), not JS breakpoints. On phones the panel is a bottom sheet (45dvh); `panelPadding()` in `FireMap.tsx` keeps fits and cluster zooms in the visible part of the map. Change both together.
+6. **Fetch through TanStack Query, not `useEffect`.** `useFires` caches each window (`["fires", hours]`), refetches every 5 minutes only while the tab is visible and on refocus, retries 3 times, and keeps the previous window on screen while a new one loads. Code that labels the data must use `data.hours`, not the URL's `h`, since the two differ while a window loads. Don't render the fire payload during SSR: it's too big for the HTML.
+7. **The browser filters; the server doesn't.** `/api/fires` returns every detection in the window. `view.ts` selects, counts, merges and buckets on the client, so every filter change is instant and the CDN caches just three responses (one per window).
+8. **Browser-only libraries load lazily.** MapLibre sits behind `<ClientOnly>` + `React.lazy` in a default-exported component (`FireMap.tsx`). Keep `setWorkerUrl(workerUrl)` there: Vite rebundles MapLibre and its worker can't be found otherwise.
+9. **Mobile first-paint uses CSS.** Lay out with Mantine responsive style props (`top={{ base, sm }}`), not JS breakpoints. On phones the panel is a bottom sheet (45dvh); `panelPadding()` in `FireMap.tsx` keeps fits and cluster zooms in the visible part of the map. Change both together.
 
 ## Domain invariants
 
