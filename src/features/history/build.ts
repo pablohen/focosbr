@@ -202,6 +202,25 @@ export function regionSeries(
 	};
 }
 
+/** Steps of the fire-season calendar's colour ramp (`--cal-1`…`--cal-5`). */
+export const CALENDAR_STEPS = 5;
+
+/**
+ * A month's step on the calendar's ramp: 0 for none, then 1…CALENDAR_STEPS
+ * on a square-root scale of the region's busiest month, so quiet months
+ * still show against a peak season dozens of times bigger.
+ */
+export function calendarStep(count: number, max: number) {
+	if (count <= 0 || max <= 0) return 0;
+	return (
+		1 +
+		Math.min(
+			CALENDAR_STEPS - 1,
+			Math.floor(Math.sqrt(count / max) * CALENDAR_STEPS),
+		)
+	);
+}
+
 /**
  * INPE's yearly files name municipalities as they were; a few have been
  * renamed since. Keys are "UF/slug of INPE's name", values IBGE's names.

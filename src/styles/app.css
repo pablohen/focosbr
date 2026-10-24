@@ -53,6 +53,26 @@
 	--chart-bar: #e45a32;
 }
 
+/* Fire-season calendar: an ordinal one-hue ember ramp, fewest to most
+   detections, validated separately for each surface (the dark ramp runs
+   dark to light). Months with none get the neutral --cal-0. */
+:root {
+	--cal-0: var(--mantine-color-gray-1);
+	--cal-1: #f08a58;
+	--cal-2: #dc6234;
+	--cal-3: #bb411d;
+	--cal-4: #8f2a11;
+	--cal-5: #5f1707;
+}
+[data-mantine-color-scheme="dark"] {
+	--cal-0: var(--mantine-color-dark-5);
+	--cal-1: #a3381a;
+	--cal-2: #c94d22;
+	--cal-3: #e56d3e;
+	--cal-4: #f39a6c;
+	--cal-5: #fcc9ad;
+}
+
 /* Biggest-fires rows: a hover/focus wash, like Mantine's NavLink. */
 .top-fire:hover,
 .top-fire:focus-visible {

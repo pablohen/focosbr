@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+	CALENDAR_STEPS,
+	calendarStep,
 	createHistoryAggregator,
 	localKeys,
 	regionSeries,
@@ -147,5 +149,24 @@ describe("regionSeries calendar", () => {
 			months: [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0],
 		});
 		expect(s.calendar.at(-1)?.months[9]).toBe(2);
+	});
+});
+
+describe("calendarStep", () => {
+	it("keeps empty months apart from the ramp", () => {
+		expect(calendarStep(0, 100)).toBe(0);
+		expect(calendarStep(0, 0)).toBe(0);
+	});
+
+	it("puts the busiest month on the last step and any detection on the first or above", () => {
+		expect(calendarStep(100, 100)).toBe(CALENDAR_STEPS);
+		expect(calendarStep(1, 10_000)).toBe(1);
+	});
+
+	it("grows with the square root, so quiet months stay visible", () => {
+		// A month with a quarter of the peak is halfway up the ramp.
+		expect(calendarStep(25, 100)).toBe(3);
+		const steps = [1, 4, 9, 16, 36, 64, 100].map((n) => calendarStep(n, 100));
+		expect(steps).toEqual([...steps].sort((a, b) => a - b));
 	});
 });
