@@ -104,6 +104,8 @@ export type RegionHistory = z.infer<typeof RegionHistorySchema>;
 
 /** Rankings need a city's past to mean something: below this yearly average, a few detections make a huge ratio. */
 export const RANKING_MIN_AVERAGE = 50;
+/** The rankings map's size, in SVG units; the page scales it. */
+export const RANKING_MAP = { width: 500, height: 500 } as const;
 /** Rows per city ranking. */
 export const RANKING_SIZE = 20;
 
@@ -129,5 +131,11 @@ export const RankingsSchema = z.object({
 	cities: z.array(RankingRow),
 	/** The RANKING_SIZE cities furthest above their own average (at least RANKING_MIN_AVERAGE). */
 	aboveAverage: z.array(RankingRow),
+	/** State outlines for the above/below-average map, projected on the server. */
+	map: z.object({
+		width: z.number(),
+		height: z.number(),
+		states: z.array(z.object({ uf: z.string(), path: z.string() })),
+	}),
 });
 export type Rankings = z.infer<typeof RankingsSchema>;

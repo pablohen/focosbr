@@ -302,6 +302,22 @@ export function calendarStep(count: number, max: number) {
 }
 
 /**
+ * A region's place on the above/below-average map's diverging scale, from
+ * this year over its average: -2 (less than half), -1 (below), 0 (within
+ * 0.8–1.25×, about average), 1 (above), 2 (more than double). Symmetric in
+ * ratio terms, so half and double sit at the same distance. Null (no past
+ * detections) reads as 0.
+ */
+export function anomalyStep(ratio: number | null) {
+	if (ratio === null) return 0;
+	if (ratio < 0.5) return -2;
+	if (ratio < 0.8) return -1;
+	if (ratio <= 1.25) return 0;
+	if (ratio <= 2) return 1;
+	return 2;
+}
+
+/**
  * INPE's yearly files name municipalities as they were; a few have been
  * renamed since. Keys are "UF/slug of INPE's name", values IBGE's names.
  */

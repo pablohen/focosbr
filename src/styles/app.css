@@ -61,6 +61,24 @@
 	--season-band: var(--mantine-color-dark-5);
 }
 
+/* Above/below-average map: a diverging scale, blue (below) to ember
+   (above) around a grey midpoint; each arm validated as an ordinal ramp
+   for its surface. */
+:root {
+	--anom--2: #256abf;
+	--anom--1: #86b6ef;
+	--anom-0: #f0efec;
+	--anom-1: #f08a58;
+	--anom-2: #bb411d;
+}
+[data-mantine-color-scheme="dark"] {
+	--anom--2: #5598e7;
+	--anom--1: #1f5ba8;
+	--anom-0: #383835;
+	--anom-1: #a3381a;
+	--anom-2: #e56d3e;
+}
+
 /* Fire-season calendar: an ordinal one-hue ember ramp, fewest to most
    detections, validated separately for each surface (the dark ramp runs
    dark to light). Months with none get the neutral --cal-0. */

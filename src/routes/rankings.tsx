@@ -1,6 +1,7 @@
 import { Container, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { AnomalyMap } from "~/features/history/components/AnomalyMap";
 import { percentVsAverage, ytdPeriod } from "~/features/history/format";
 import { getRankings } from "~/features/history/history.functions";
 import {
@@ -68,6 +69,12 @@ function RankingsPage() {
 				</Stack>
 				{rankings && (
 					<>
+						<Stack gap={4}>
+							<Title order={2} size="h4">
+								Estados em relação à própria média
+							</Title>
+							<AnomalyMap map={rankings.map} states={rankings.states} />
+						</Stack>
 						<Ranking
 							title="Estados"
 							rows={rankings.states}

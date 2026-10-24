@@ -1,10 +1,18 @@
 import { STATE_NAMES } from "~/features/fires/states";
 import { municipalities } from "~/features/places/places.server";
+import {
+	BRAZIL,
+	type Outlines,
+	outlinePath,
+	projector,
+} from "~/features/share/card-map";
 import { getDb } from "~/lib/db.server";
+import outlinesText from "../../../public/data/state-outlines.geojson?raw";
 import {
 	BRAZIL_ID,
 	FIRST_YEAR,
 	HISTORY_COLLECTION,
+	RANKING_MAP,
 	RANKING_MIN_AVERAGE,
 	RANKING_SIZE,
 	type RankingRow,
@@ -20,6 +28,20 @@ type Doc = {
 		ratio: number | null;
 	};
 };
+
+let shapes: { uf: string; path: string }[] | undefined;
+
+/** Every state's outline as an SVG path, projected for the rankings map (once per instance). */
+function stateShapes() {
+	if (shapes) return shapes;
+	const outlines = JSON.parse(outlinesText) as Outlines;
+	const project = projector(BRAZIL, RANKING_MAP.width, RANKING_MAP.height);
+	shapes = outlines.features.map((f) => ({
+		uf: f.properties.uf,
+		path: outlinePath(outlines, project, (uf) => uf === f.properties.uf, 1),
+	}));
+	return shapes;
+}
 
 const YTD = { "ytd.current": 1, "ytd.average": 1, "ytd.ratio": 1 } as const;
 
@@ -66,6 +88,7 @@ export async function loadRankings(): Promise<Rankings | null> {
 			states: states.flatMap((d) => row(d, "state")),
 			cities: cities.flatMap((d) => row(d, "city")),
 			aboveAverage: aboveAverage.flatMap((d) => row(d, "city")),
+			map: { ...RANKING_MAP, states: stateShapes() },
 		};
 	} catch (err) {
 		console.warn("rankings unavailable:", String(err));

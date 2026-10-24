@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	anomalyStep,
 	CALENDAR_STEPS,
 	calendarStep,
 	createHistoryAggregator,
@@ -214,5 +215,17 @@ describe("seasonCurve", () => {
 		expect(s.current.year).toBe(2026);
 		expect(last).toEqual({ day: dayOfYear("10-23"), count: 10 });
 		expect(s.current.points[0]).toEqual({ day: 7, count: 4 });
+	});
+});
+
+describe("anomalyStep", () => {
+	it("bins the ratio to the average symmetrically", () => {
+		expect(
+			[0.3, 0.5, 0.79, 0.8, 1, 1.25, 1.26, 2, 2.01].map(anomalyStep),
+		).toEqual([-2, -1, -1, 0, 0, 0, 1, 1, 2]);
+	});
+
+	it("treats no past detections as about average", () => {
+		expect(anomalyStep(null)).toBe(0);
 	});
 });
