@@ -114,9 +114,19 @@ function csvField(value: string | number | null): string {
  * UTF-8. Missing values are empty fields; decimals use a dot.
  */
 export function toCsv(rows: ExportRow[]): string {
-	const lines = [COLUMNS.join(",")];
-	for (const row of rows)
-		lines.push(COLUMNS.map((c) => csvField(row[c])).join(","));
+	return csvTable(
+		COLUMNS,
+		rows.map((row) => COLUMNS.map((c) => row[c])),
+	);
+}
+
+/** Any table as CSV, with the same header row, BOM and quoting as `toCsv`. */
+export function csvTable(
+	header: readonly string[],
+	rows: (string | number | null)[][],
+): string {
+	const lines = [header.map(csvField).join(",")];
+	for (const row of rows) lines.push(row.map(csvField).join(","));
 	return `﻿${lines.join("\r\n")}\r\n`;
 }
 

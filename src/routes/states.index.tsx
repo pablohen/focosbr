@@ -91,7 +91,11 @@ function StatesPage() {
 					</Table.Tbody>
 				</Table>
 				{summary.history && (
-					<HistorySection history={summary.history} name="No Brasil" />
+					<HistorySection
+						history={summary.history}
+						name="No Brasil"
+						fileName="Brasil"
+					/>
 				)}
 				<Group gap="xs">
 					<Text size="xs" c="dimmed">

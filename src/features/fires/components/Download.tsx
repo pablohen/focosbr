@@ -1,17 +1,9 @@
 import { Button, Group, Text } from "@mantine/core";
 import { DownloadSimpleIcon } from "@phosphor-icons/react";
+import { saveFile as save } from "~/lib/download";
 import { exportFileName, exportRows, toCsv, toGeoJson } from "../export";
 import type { FiresResponse } from "../schemas";
 import type { FireGroups } from "../view";
-
-function save(text: string, type: string, name: string) {
-	const url = URL.createObjectURL(new Blob([text], { type }));
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = name;
-	a.click();
-	URL.revokeObjectURL(url);
-}
 
 /** Downloads the detections on screen (current window and filters). */
 export function Download({

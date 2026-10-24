@@ -1,5 +1,8 @@
-import { Stack, Text, Title } from "@mantine/core";
+import { Button, Group, Menu, Stack, Text, Title } from "@mantine/core";
+import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { BarSeries } from "~/features/fires/components/BarSeries";
+import { saveFile } from "~/lib/download";
+import { HISTORY_TABLES, historyCsv, historyFileName } from "../export";
 import { versusAverage, ytdPeriod } from "../format";
 import { FIRST_YEAR, type RegionHistory, type Ytd } from "../schemas";
 import { FireCalendar } from "./FireCalendar";
@@ -54,17 +57,49 @@ function YtdSentence({ ytd, name }: { ytd: Ytd; name: string }) {
 export function HistorySection({
 	history,
 	name,
+	fileName = name,
 }: {
 	history: RegionHistory;
 	name: string;
+	/** The region in download names, when `name` reads as a phrase ("No Brasil"). */
+	fileName?: string;
 }) {
 	const { years, months, days, ytd } = history;
 	return (
 		<Stack gap="md">
 			<Stack gap={4}>
-				<Title order={2} size="h4">
-					Histórico
-				</Title>
+				<Group justify="space-between" align="center" wrap="nowrap">
+					<Title order={2} size="h4">
+						Histórico
+					</Title>
+					<Menu position="bottom-end" withinPortal>
+						<Menu.Target>
+							<Button
+								size="xs"
+								variant="default"
+								leftSection={<DownloadSimpleIcon size={16} />}
+							>
+								Baixar CSV
+							</Button>
+						</Menu.Target>
+						<Menu.Dropdown>
+							{HISTORY_TABLES.map((t) => (
+								<Menu.Item
+									key={t.id}
+									onClick={() =>
+										saveFile(
+											historyCsv(t.id, history),
+											"text/csv;charset=utf-8",
+											historyFileName(fileName, t.id, history.ytd.through),
+										)
+									}
+								>
+									{t.label}
+								</Menu.Item>
+							))}
+						</Menu.Dropdown>
+					</Menu>
+				</Group>
 				<YtdSentence ytd={ytd} name={name} />
 			</Stack>
 			<SeasonChart season={history.season} firstYear={FIRST_YEAR} />
