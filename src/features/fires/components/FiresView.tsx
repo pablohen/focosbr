@@ -17,6 +17,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
+import { SearchButton } from "~/features/places/components/SearchButton";
 import { CopyLinkButton } from "~/features/share/components/CopyLinkButton";
 import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
 import { useProgress } from "~/lib/route-progress";
@@ -167,6 +168,7 @@ export function FiresView({ title, intro, search, onSearchChange }: Props) {
 						</Text>
 					</Group>
 					<Group gap="xs" wrap="nowrap">
+						<SearchButton />
 						<CopyLinkButton />
 						<ColorSchemeToggle />
 					</Group>

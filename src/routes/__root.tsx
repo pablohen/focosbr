@@ -11,6 +11,7 @@ import {
 } from "@mantine/core";
 import mantineCss from "@mantine/core/styles.css?url";
 import nprogressCss from "@mantine/nprogress/styles.css?url";
+import spotlightCss from "@mantine/spotlight/styles.css?url";
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
 	ClientOnly,
@@ -62,6 +63,7 @@ export const Route = createRootRoute({
 		links: [
 			{ rel: "stylesheet", href: mantineCss },
 			{ rel: "stylesheet", href: nprogressCss },
+			{ rel: "stylesheet", href: spotlightCss },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
 		],
