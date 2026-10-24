@@ -77,8 +77,18 @@ Detections are sorted oldest first, so the newest draw on top. The columnar shap
 
 - **Estimated fires** (`estimateFires`): detections within **2 km** and **1 hour** of each other are joined with union-find over a 0.02° grid, transitively, so a front that keeps burning stays one fire. On a typical day, 28.5k detections come down to about 6.7k fires. It's an estimate: big fronts can merge, and nearby separate fires can join.
 - **A detection's fire** (`fireGroups`, `describeGroup`): the same grouping, kept per detection. The popup shows how many detections the fire has, its first and last time and which satellites saw it.
+- **Biggest fires** (`topFires`): fires ranked by detection count, which reflects extent and duration (GOES sees a long fire every 10 minutes), or by total FRP, which reflects intensity. Neither is burned area, and the panel says so.
 - **Hourly counts** (`hourlyCounts`): detections per clock hour, ending with the current hour. Peaks follow satellite passes (VIIRS early afternoon local time), so the shape mixes fire activity with when the satellites looked.
 - **Freshness** (`freshness`): minutes since `sourceUpdatedAt`; stale past 120.
+
+## Downloads
+
+`export.ts` turns the detections on screen (window and filters) into rows. Column names follow INPE's where it has one:
+
+`id_fogo` (same id = same estimated fire), `data_hora_utc`, `data_hora_brasilia`, `latitude`, `longitude`, `satelite`, `sensor`, `municipio`, `uf`, `bioma`, `frp_mw`, `dias_sem_chuva`, `precipitacao_mm`, `risco_fogo`, `preliminar` (1 = from a 10-minute file).
+- **CSV:** RFC 4180 quoting, a dot as the decimal separator, a UTF-8 BOM so spreadsheet apps read the accents, CRLF line ends. Missing values are empty fields, never `0`.
+- **GeoJSON:** points as `[longitude, latitude]`, the other columns as properties, and a top-level `attribution` crediting INPE.
+- **File names:** `focos-<region>-<window>h-<YYYYMMDD-HHMM>.<ext>`, with the time in Brasília, e.g. `focos-mt-24h-20261024-1136.csv`.
 
 ## Static data
 

@@ -31,6 +31,8 @@ INPE 10-minute files ─────┤ (only those published after the daily re
 | `src/routes/api.fires.ts`                     | `GET /api/fires?h=6\|24\|48`. Validates `h`, sets cache headers, returns 502 if INPE fails with nothing cached.                                  |
 | `src/features/fires/use-fires.ts`             | Client hook: fetches the window, validates with Zod, refetches every 5 minutes, keeps old data on screen while loading.                          |
 | `src/features/fires/view.ts`                  | Pure client shaping: `selectFires`, `summarize`, `estimateFires`, `hourlyCounts`, `boundsOf`, `toFeatures`, `freshness`.                         |
+| `src/features/fires/export.ts`                | Pure: CSV and GeoJSON downloads of the detections on screen.                                                                                     |
+| `src/features/fires/components/TopFires.tsx`  | The biggest-fires list; a row zooms the map to the fire (`FireTarget`) and opens its newest detection.                                           |
 | `src/features/fires/components/FireMap.tsx`   | MapLibre map (lazy, client-only): clustered GeoJSON source, state outline, popups, fit-to-selection.                                             |
 | `src/features/fires/components/FirePanel.tsx` | Floating panel (bottom sheet on phones): headline, freshness, hourly chart, legend, filters, rankings.                                           |
 | `src/routes/index.tsx`                        | The page: reads URL state, wires data → view helpers → map and panel. Header lives here.                                                         |

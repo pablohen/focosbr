@@ -9,7 +9,9 @@ Same stack as GeoparqueBR: TanStack Start, Mantine 9, MapLibre GL 6 with OpenFre
 - Hotspots from the last 6, 24 or 48 hours, coloured by age and sized by fire radiative power. They cluster at low zoom, and clicking a cluster zooms in.
 - An estimated count of distinct fires: detections within 2 km and 1 hour are merged, shown next to the raw detection count.
 - Filters by sensor (VIIRS, MODIS, GOES…), state, biome and municipality. The map zooms to the selection, and each list keeps its counts while you filter.
-- Detections per hour as a chart, and rankings of states, biomes and municipalities.
+- The biggest fires right now, by detections or by power. Clicking one zooms the map to it and opens its newest detection.
+- Detections per hour as a chart, with a table view, and rankings of states, biomes and municipalities.
+- Download of the filtered detections as CSV or GeoJSON, with INPE's attribution.
 - Gaps between INPE's daily updates are filled from its 10-minute files. Those detections are marked preliminary, with the state located from IBGE outlines, until the next update.
 - How fresh INPE's data is, with a warning when the feed is over two hours old.
 - Every filter lives in the URL, so a view can be shared. The page refreshes every 5 minutes.
