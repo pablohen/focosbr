@@ -13,6 +13,7 @@ import {
 	selectFires,
 	summarize,
 	toFeatures,
+	topFires,
 } from "./view";
 
 const DATA: FiresResponse = {
@@ -210,6 +211,45 @@ describe("estimateFires", () => {
 		expect(fire.last.getTime() - fire.first.getTime()).toBe(30 * 60_000);
 		expect(fire.satellites).toEqual(["GOES-19", "NOAA-20"]);
 		expect(describeGroup(d, groups, 2).count).toBe(1);
+	});
+	it("ranks the biggest fires", () => {
+		// Fire A: 3 detections in Altamira; fire B: 1 in Colniza; C: 1, no FRP.
+		const d = at(
+			[-52, -3, 0],
+			[-52.005, -3, 20],
+			[-52.01, -3, 40],
+			[-59, -9, 0],
+			[-45, -10, 0],
+		);
+		d.fires.place = [0, 0, 0, 1, 2];
+		d.fires.state = [0, 0, 0, 1, 1];
+		d.fires.frp = [10, null, 5, 50, null];
+		d.places = [...DATA.places, ""];
+		const top = topFires(d, fireGroups(d, all(d)), "count", 2);
+		expect(top).toHaveLength(2);
+		expect(top[0]).toMatchObject({
+			count: 3,
+			totalFrp: 15,
+			focus: 2,
+			place: "Altamira (PA)",
+			bounds: [-52.01, -3, -52, -3],
+		});
+		const biggest = top[0];
+		expect(biggest && biggest.last.getTime() - biggest.first.getTime()).toBe(
+			40 * 60_000,
+		);
+		// Ties on count break on FRP: B (50 MW) before C (none).
+		expect(top[1]).toMatchObject({
+			count: 1,
+			totalFrp: 50,
+			place: "Colniza (MT)",
+		});
+		// By power, B (50 MW) leads despite its single detection.
+		expect(topFires(d, fireGroups(d, all(d)), "frp")[0]?.place).toBe(
+			"Colniza (MT)",
+		);
+		const c = topFires(d, fireGroups(d, [4]));
+		expect(c[0]).toMatchObject({ totalFrp: null, place: "Mato Grosso (MT)" });
 	});
 	it("only counts the given detections", () => {
 		const d = at([-50, -10, 0], [-50.05, -10, 0], [-60, -5, 0]);

@@ -200,6 +200,75 @@ export function describeGroup(
 	};
 }
 
+export type TopFire = {
+	/** The fire's id in `FireGroups.members`. */
+	id: number;
+	/** The detection to show: the fire's newest. */
+	focus: number;
+	count: number;
+	/** Sum of the detections' FRP, MW; null when no sensor reported it. */
+	totalFrp: number | null;
+	first: Date;
+	last: Date;
+	/** Most common municipality, else the state, else "Local desconhecido". */
+	place: string;
+	bounds: [number, number, number, number];
+};
+
+/**
+ * How "biggest" is measured: `count` favours wide or long-lasting fires
+ * (many pixels, or GOES seeing it every 10 minutes); `frp` favours intense
+ * ones. Neither is the fire's size, so the UI offers both.
+ */
+export type TopFireOrder = "count" | "frp";
+
+/** The biggest fires by `by`, ties broken by the other measure. */
+export function topFires(
+	data: FiresResponse,
+	groups: FireGroups,
+	by: TopFireOrder = "count",
+	limit = 10,
+): TopFire[] {
+	const f = data.fires;
+	const fires: TopFire[] = [];
+	for (const [id, members] of groups.members) {
+		let focus = members[0] ?? id;
+		let frp: number | null = null;
+		const places = new Map<string, number>();
+		for (const m of members) {
+			if ((f.t[m] ?? 0) > (f.t[focus] ?? 0)) focus = m;
+			const p = f.frp[m];
+			if (p != null) frp = (frp ?? 0) + p;
+			const place = data.places[f.place[m] ?? -1];
+			if (place) places.set(place, (places.get(place) ?? 0) + 1);
+		}
+		const times = members.map((m) => f.t[m] ?? 0);
+		const state = data.states[f.state[focus] ?? -1];
+		fires.push({
+			id,
+			focus,
+			count: members.length,
+			totalFrp: frp,
+			first: new Date(Math.min(...times) * 1000),
+			last: new Date(Math.max(...times) * 1000),
+			place:
+				[...places].sort((a, b) => b[1] - a[1])[0]?.[0] ??
+				(state
+					? `${STATE_NAMES[state] ?? state} (${state})`
+					: "Local desconhecido"),
+			bounds: boundsOf(data, members) ?? [0, 0, 0, 0],
+		});
+	}
+	const frp = (x: TopFire) => x.totalFrp ?? 0;
+	return fires
+		.sort((a, b) =>
+			by === "count"
+				? b.count - a.count || frp(b) - frp(a)
+				: frp(b) - frp(a) || b.count - a.count,
+		)
+		.slice(0, limit);
+}
+
 /** Points for MapLibre, with age in hours relative to `nowMs`. */
 export function toFeatures(
 	data: FiresResponse,
