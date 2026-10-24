@@ -15,7 +15,8 @@
  * monthly files.
  *
  * Each run sets the exact months and days it processed, so re-running is
- * safe, then refreshes every region's year-to-date summary (`ytd`). Completed years and months are cached in .cache/history.
+ * safe, then refreshes every region's year-to-date summary (`ytd`) and
+ * stores new alerts (see src/features/history/alerts.ts). Completed years and months are cached in .cache/history.
  *
  * Usage: pnpm history:build [--backfill]   (needs MONGODB_URI)
  */
@@ -24,21 +25,32 @@ import { strFromU8, unzipSync } from "fflate";
 import { parseGmt, UF_BY_IBGE } from "../src/features/fires/inpe";
 import { STATE_NAMES } from "../src/features/fires/states";
 import {
+	ALERTS_COLLECTION,
+	type Alert,
+	type AlertDraft,
+	regionAlerts,
+} from "../src/features/history/alerts";
+import {
 	createHistoryAggregator,
 	type HistoryDetection,
 	RENAMED,
 	ytdSummary,
 } from "../src/features/history/build";
 import {
+	BRAZIL_ID,
 	FIRST_YEAR,
 	HISTORY_COLLECTION,
 	REFERENCE_SATELLITE,
 } from "../src/features/history/schemas";
+import { biomeBySlug, biomePath } from "../src/features/places/biomes";
 import list from "../src/features/places/municipalities.json";
 import {
 	MunicipalityListSchema,
 	municipalityIndex,
+	municipalityPath,
+	placeLabel,
 	slugify,
+	statePath,
 } from "../src/features/places/places";
 import { closeDb, getDb } from "../src/lib/db.server";
 
@@ -56,6 +68,21 @@ const ufByStateName = new Map(
 	Object.entries(STATE_NAMES).map(([uf, name]) => [slugify(name), uf]),
 );
 const stats = { rows: 0, noState: 0, noCity: 0 };
+
+/** A history id's name and page, for alerts. */
+function describe(id: string): { name: string; path: string } | null {
+	if (id === BRAZIL_ID) return { name: "Brasil", path: "/" };
+	if (id.startsWith("biome/")) {
+		const b = biomeBySlug(id.slice(6));
+		return b ? { name: b.name, path: biomePath(b.slug) } : null;
+	}
+	const state = STATE_NAMES[id];
+	if (state) return { name: state, path: statePath(id) };
+	const m = municipalities.byId.get(Number(id));
+	return m
+		? { name: placeLabel(m.name, m.uf), path: municipalityPath(m.uf, m.name) }
+		: null;
+}
 
 /** Bytes of a URL, from the cache when `keep` and already there; null on 404. */
 async function download(
@@ -275,14 +302,23 @@ for (let i = 0; i < regions.length; i += 500) {
 // Year-to-date summaries need each region's whole series, so they're
 // computed from what's now stored, for every region (rankings sort by them).
 const summaries = [];
-for await (const doc of collection.find({}, { projection: { refDays: 1 } })) {
-	const refDays = (doc as { refDays?: Record<string, number> }).refDays ?? {};
+const alerts: AlertDraft[] = [];
+for await (const doc of collection.find(
+	{},
+	{ projection: { refDays: 1, kind: 1 } },
+)) {
+	const { refDays = {}, kind } = doc as {
+		refDays?: Record<string, number>;
+		kind?: Alert["kind"];
+	};
+	const ytd = ytdSummary(refDays, now);
 	summaries.push({
 		updateOne: {
 			filter: { _id: doc._id },
-			update: { $set: { ytd: ytdSummary(refDays, now) } },
+			update: { $set: { ytd } },
 		},
 	});
+	if (kind) alerts.push(...regionAlerts({ id: doc._id, kind }, refDays, ytd));
 }
 for (let i = 0; i < summaries.length; i += 1000)
 	await collection.bulkWrite(summaries.slice(i, i + 1000), { ordered: false });
@@ -291,6 +327,28 @@ await collection.createIndexes([
 	{ key: { kind: 1, "ytd.ratio": -1 }, name: "kind_ytd_ratio" },
 ]);
 console.log(`${summaries.length} year-to-date summaries`);
+
+// Alerts: inserted once (the id carries the region and day or year), so
+// a re-run keeps each alert's first date.
+const alertsCollection = db.collection<{ _id: string }>(ALERTS_COLLECTION);
+const described = alerts.flatMap((a) => {
+	const where = describe(a.regionId);
+	return where ? [{ ...a, ...where, createdAt: updatedAt }] : [];
+});
+if (described.length) {
+	const result = await alertsCollection.bulkWrite(
+		described.map((a) => ({
+			updateOne: {
+				filter: { _id: a._id },
+				update: { $setOnInsert: a },
+				upsert: true,
+			},
+		})),
+		{ ordered: false },
+	);
+	console.log(`${result.upsertedCount} new alerts`);
+}
+await alertsCollection.createIndex({ createdAt: -1 }, { name: "createdAt" });
 await closeDb();
 console.log(
 	`${stats.rows} rows (${stats.noState} without a state, ${stats.noCity} without a municipality);`,
