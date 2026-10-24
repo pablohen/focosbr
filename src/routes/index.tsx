@@ -22,6 +22,7 @@ import {
 	summarize,
 	toFeatures,
 } from "~/features/fires/view";
+import { CopyLinkButton } from "~/features/share/components/CopyLinkButton";
 import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
 import { useProgress } from "~/lib/route-progress";
 
@@ -113,7 +114,10 @@ function FiresPage() {
 							Focos de calor detectados por satélite, quase em tempo real
 						</Text>
 					</Group>
-					<ColorSchemeToggle />
+					<Group gap="xs" wrap="nowrap">
+						<CopyLinkButton />
+						<ColorSchemeToggle />
+					</Group>
 				</Group>
 			</AppShell.Header>
 
