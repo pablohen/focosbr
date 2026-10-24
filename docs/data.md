@@ -92,6 +92,8 @@ The state and city pages (and `/states`, for Brazil) show this year so far again
 | Days                       | monthly files `mensal/Brasil/focos_mensal_br_YYYYMM.csv` (since 2023), then the daily files for the last 31 days          | all                                                                |
 - The yearly files carry **names, not IBGE codes**: states match by name (100%), municipalities by name with a small rename table (`RENAMED` in `build.ts`), 99.86%. The rest count for their state only. Monthly and daily files carry codes.
 - Days and months are in **Brasília time** (UTC−3).
+- **Alerts** (`alerts.ts`, after the `ytd` refresh): a city, state or biome at double its average for the year so far (average at least 50), once per year; and a record day (yesterday above every earlier day since 2003, at least 10) for states, biomes and Brazil. Stored in `alerts` once; served by `/alerts`, `/feed.xml` and `/api/alerts`.
+- **Open API**: `/api/history/<key>` returns a region's `RegionHistory` with attribution, CORS-open, cached an hour.
 - **Biomes** come from INPE's `bioma` column (every file has it; the six names are consistent since 2003) and get documents `biome/<slug>`. Detections with an empty biome (offshore, border, preliminary) count for no biome.
 - **Downloads** (`history/export.ts`): years, every month since 2003, the same period year by year, the season's running totals and the last 90 days, as CSV with the map export's encoder (`csvTable`).
 - **Share cards** add the stored `ytd` for one region with every sensor (`cardHistoryId`).
