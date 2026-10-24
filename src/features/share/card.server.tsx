@@ -13,9 +13,14 @@ import resvgWasm from "@resvg/resvg-wasm/index_bg.wasm?base64";
 import satori from "satori";
 import outlinesText from "../../../public/data/state-outlines.geojson?raw";
 import { getFires } from "../fires/fires.server";
-import { FiresSearchSchema } from "../fires/schemas";
 import { SENSOR_LABELS, selectFires, summarize } from "../fires/view";
-import { CARD_HEIGHT, CARD_WIDTH, type CardView, regionLabel } from "./card";
+import {
+	CARD_HEIGHT,
+	CARD_WIDTH,
+	type CardView,
+	CardViewSchema,
+	regionLabel,
+} from "./card";
 import {
 	cardBounds,
 	cardDots,
@@ -67,24 +72,24 @@ function Mark({ size }: { size: number }) {
 export async function fireCard(
 	view: CardView,
 ): Promise<Uint8Array<ArrayBuffer>> {
-	const search = FiresSearchSchema.parse(view);
+	const search = CardViewSchema.parse(view);
 	const hours = search.h ?? 24;
 	const data = await getFires(hours);
 	const filters = {
 		sensors: search.sensor,
-		uf: search.uf,
-		biome: search.bioma,
-		place: search.municipio,
+		uf: search.state,
+		biome: search.biome,
+		place: search.city,
 	};
 	const indices = selectFires(data, filters);
 	const summary = summarize(data, filters);
 
 	outlines ??= JSON.parse(outlinesText) as Outlines;
-	const project = projector(cardBounds(outlines, search.uf), MAP, MAP);
+	const project = projector(cardBounds(outlines, search.state), MAP, MAP);
 	const size = { width: MAP, height: MAP };
 	const states = outlinePath(outlines, project);
-	const selected = search.uf
-		? outlinePath(outlines, project, (uf) => uf === search.uf)
+	const selected = search.state
+		? outlinePath(outlines, project, (uf) => uf === search.state)
 		: "";
 	const dots = cardDots(
 		data,
@@ -189,7 +194,7 @@ export async function fireCard(
 								key={k}
 								cx={d.x}
 								cy={d.y}
-								r={search.uf ? 3 : 2.2}
+								r={search.state ? 3 : 2.2}
 								fill={d.color}
 							/>
 						))}

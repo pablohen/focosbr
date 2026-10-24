@@ -8,15 +8,13 @@ import { getFires } from "../fires/fires.server";
 import type { FiresResponse, Window } from "../fires/schemas";
 import { STATE_NAMES } from "../fires/states";
 import { estimateFires, selectFires } from "../fires/view";
-import { isState, placeLabel, splitPlaceLabel } from "./places";
+import {
+	isState,
+	placeLabel,
+	type RegionCount,
+	splitPlaceLabel,
+} from "./places";
 import { municipalities } from "./places.server";
-
-export type RegionCount = {
-	name: string;
-	uf: string;
-	fires: number;
-	total: number;
-};
 
 function counts(data: FiresResponse, filters: { uf?: string; place?: string }) {
 	const indices = selectFires(data, filters);
@@ -84,7 +82,7 @@ export async function municipalitySummary(
 	};
 }
 
-/** Brazil's numbers and every state's, most detections first (home page, /estados). */
+/** Brazil's numbers and every state's, most detections first (home page, /states). */
 export async function statesSummary(hours: Window) {
 	const data = await getFires(hours);
 	const states = Object.entries(STATE_NAMES)

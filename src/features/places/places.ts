@@ -18,7 +18,7 @@ export function slugify(text: string): string {
 
 export const isState = (uf: string): boolean => uf in STATE_NAMES;
 
-/** "Altamira (PA)": the label detections and the `municipio` filter use. */
+/** "Altamira (PA)": the label detections and the city filter use. */
 export const placeLabel = (name: string, uf: string) => `${name} (${uf})`;
 
 /** "Altamira (PA)" → { name: "Altamira", uf: "PA" }; null for anything else. */
@@ -29,11 +29,19 @@ export function splitPlaceLabel(
 	return m?.[1] && m[2] ? { name: m[1], uf: m[2] } : null;
 }
 
-export const statePath = (uf: string) => `/estados/${uf.toLowerCase()}`;
+export const statePath = (uf: string) => `/states/${uf.toLowerCase()}`;
 export const municipalityPath = (uf: string, name: string) =>
-	`/municipios/${uf.toLowerCase()}/${slugify(name)}`;
+	`/cities/${uf.toLowerCase()}/${slugify(name)}`;
 
 export type Municipality = { id: number; name: string; uf: string };
+
+/** A state or municipality with its current numbers, for region summaries. */
+export type RegionCount = {
+	name: string;
+	uf: string;
+	fires: number;
+	total: number;
+};
 
 /** `{ "PA": [[1500602, "Altamira"], …] }`, as scripts/municipalities.ts writes it. */
 export const MunicipalityListSchema = z.record(

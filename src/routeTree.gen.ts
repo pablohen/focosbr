@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OgRouteImport } from './routes/og'
 import { Route as ApiFiresRouteImport } from './routes/api.fires'
+import { Route as StatesIndexRouteImport } from './routes/states.index'
+import { Route as StatesStateRouteImport } from './routes/states.$state'
+import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +31,81 @@ const ApiFiresRoute = ApiFiresRouteImport.update({
   path: '/api/fires',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StatesIndexRoute = StatesIndexRouteImport.update({
+  id: '/states/',
+  path: '/states/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatesStateRoute = StatesStateRouteImport.update({
+  id: '/states/$state',
+  path: '/states/$state',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CitiesStateCityRoute = CitiesStateCityRouteImport.update({
+  id: '/cities/$state/$city',
+  path: '/cities/$state/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
+  '/states/$state': typeof StatesStateRoute
+  '/states/': typeof StatesIndexRoute
+  '/cities/$state/$city': typeof CitiesStateCityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
+  '/states/$state': typeof StatesStateRoute
+  '/states': typeof StatesIndexRoute
+  '/cities/$state/$city': typeof CitiesStateCityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/og': typeof OgRoute
   '/api/fires': typeof ApiFiresRoute
+  '/states/$state': typeof StatesStateRoute
+  '/states/': typeof StatesIndexRoute
+  '/cities/$state/$city': typeof CitiesStateCityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/og' | '/api/fires'
+  fullPaths:
+    | '/'
+    | '/og'
+    | '/api/fires'
+    | '/states/$state'
+    | '/states/'
+    | '/cities/$state/$city'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/og' | '/api/fires'
-  id: '__root__' | '/' | '/og' | '/api/fires'
+  to:
+    | '/'
+    | '/og'
+    | '/api/fires'
+    | '/states/$state'
+    | '/states'
+    | '/cities/$state/$city'
+  id:
+    | '__root__'
+    | '/'
+    | '/og'
+    | '/api/fires'
+    | '/states/$state'
+    | '/states/'
+    | '/cities/$state/$city'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   OgRoute: typeof OgRoute
   ApiFiresRoute: typeof ApiFiresRoute
+  StatesStateRoute: typeof StatesStateRoute
+  StatesIndexRoute: typeof StatesIndexRoute
+  CitiesStateCityRoute: typeof CitiesStateCityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +131,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFiresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/states/': {
+      id: '/states/'
+      path: '/states'
+      fullPath: '/states/'
+      preLoaderRoute: typeof StatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/states/$state': {
+      id: '/states/$state'
+      path: '/states/$state'
+      fullPath: '/states/$state'
+      preLoaderRoute: typeof StatesStateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cities/$state/$city': {
+      id: '/cities/$state/$city'
+      path: '/cities/$state/$city'
+      fullPath: '/cities/$state/$city'
+      preLoaderRoute: typeof CitiesStateCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +159,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   OgRoute: OgRoute,
   ApiFiresRoute: ApiFiresRoute,
+  StatesStateRoute: StatesStateRoute,
+  StatesIndexRoute: StatesIndexRoute,
+  CitiesStateCityRoute: CitiesStateCityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

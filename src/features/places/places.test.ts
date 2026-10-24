@@ -27,9 +27,9 @@ describe("labels and paths", () => {
 		expect(splitPlaceLabel("Altamira")).toBeNull();
 	});
 	it("builds page paths", () => {
-		expect(statePath("PA")).toBe("/estados/pa");
+		expect(statePath("PA")).toBe("/states/pa");
 		expect(municipalityPath("PA", "São Félix do Xingu")).toBe(
-			"/municipios/pa/sao-felix-do-xingu",
+			"/cities/pa/sao-felix-do-xingu",
 		);
 	});
 });

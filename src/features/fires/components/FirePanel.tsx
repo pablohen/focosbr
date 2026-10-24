@@ -16,6 +16,7 @@ import {
 	UnstyledButton,
 } from "@mantine/core";
 import { WarningCircleIcon } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import {
 	type FiresResponse,
 	SENSORS,
@@ -51,6 +52,10 @@ const CLOCK = new Intl.DateTimeFormat("pt-BR", {
 });
 
 type Props = {
+	/** The page's heading, e.g. "Focos de calor em Pará". */
+	title: string;
+	/** Server-rendered text about the region, shown above the data notes. */
+	intro?: ReactNode;
 	hours: Window;
 	onHoursChange: (hours: Window) => void;
 	sensors: Sensor[];
@@ -146,6 +151,8 @@ function RankTable({
 
 /** Controls and counts, floating over the map (bottom sheet on phones). */
 export function FirePanel({
+	title,
+	intro,
 	hours,
 	onHoursChange,
 	sensors,
@@ -186,8 +193,8 @@ export function FirePanel({
 				}}
 			>
 				<Stack gap="sm" p="md">
-					<Title order={2} size="h5">
-						Focos de calor no Brasil
+					<Title order={1} size="h5">
+						{title}
 					</Title>
 
 					<SegmentedControl
@@ -325,7 +332,10 @@ export function FirePanel({
 							searchable
 							clearable
 							value={biome ?? null}
-							onChange={(v) => onRegionChange({ uf, biome: v ?? undefined })}
+							onChange={(v) =>
+								// A biome narrows the current place; it doesn't leave it.
+								onRegionChange({ uf, place, biome: v ?? undefined })
+							}
 							data={(summary?.biomes ?? [])
 								.filter((r) => r.name)
 								.map((r) => ({
@@ -376,7 +386,7 @@ export function FirePanel({
 								caption="Biomas"
 								rows={summary.biomes}
 								selected={biome}
-								onToggle={(next) => onRegionChange({ uf, biome: next })}
+								onToggle={(next) => onRegionChange({ uf, place, biome: next })}
 							/>
 						</Group>
 					)}
@@ -397,6 +407,8 @@ export function FirePanel({
 							region={{ uf, biome, place }}
 						/>
 					)}
+
+					{intro}
 
 					<Text size="xs" c="dimmed">
 						Foco de calor é uma detecção de satélite, não um incêndio

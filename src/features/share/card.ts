@@ -1,45 +1,57 @@
-import type { FiresSearch } from "../fires/schemas";
+import { z } from "zod";
+import { SensorSchema, WindowSchema } from "../fires/schemas";
 import { STATE_NAMES } from "../fires/states";
 
 export const CARD_WIDTH = 1200;
 export const CARD_HEIGHT = 630;
 
-/** The parts of the view a card shows. The map position is left out: it
- * doesn't change the card, and every distinct URL is a separate CDN entry. */
-export type CardView = Pick<
-	FiresSearch,
-	"h" | "sensor" | "uf" | "bioma" | "municipio"
->;
+/**
+ * The parts of a view a share card shows. The map position is left out: it
+ * doesn't change the card, and every distinct URL is a separate CDN entry.
+ */
+export const CardViewSchema = z.object({
+	h: WindowSchema.optional().catch(undefined),
+	sensor: z.array(SensorSchema).optional().catch(undefined),
+	biome: z.string().min(1).max(40).optional().catch(undefined),
+	/** Two-letter state code, upper case. */
+	state: z
+		.string()
+		.regex(/^[A-Z]{2}$/)
+		.optional()
+		.catch(undefined),
+	/** "Altamira (PA)", the city's label in the fire data. */
+	city: z.string().min(1).max(80).optional().catch(undefined),
+});
+export type CardView = z.infer<typeof CardViewSchema>;
 
 /** `/og?…` for a view, in a stable parameter order so equal views share a URL. */
 export function cardPath(view: CardView): string {
 	const q = new URLSearchParams();
 	if (view.h && view.h !== 24) q.set("h", String(view.h));
 	if (view.sensor?.length) q.set("sensor", [...view.sensor].sort().join(","));
-	if (view.uf) q.set("uf", view.uf);
-	if (view.bioma) q.set("bioma", view.bioma);
-	if (view.municipio) q.set("municipio", view.municipio);
+	if (view.state) q.set("state", view.state);
+	if (view.city) q.set("city", view.city);
+	if (view.biome) q.set("biome", view.biome);
 	const s = q.toString();
 	return s ? `/og?${s}` : "/og";
 }
 
 /** The `/og` query back into a view (unknown or broken values are dropped). */
-export function cardViewFrom(params: URLSearchParams): Record<string, unknown> {
-	const h = Number(params.get("h"));
-	return {
-		h: h || undefined,
+export function cardViewFrom(params: URLSearchParams): CardView {
+	return CardViewSchema.parse({
+		h: Number(params.get("h")) || undefined,
 		sensor: params.get("sensor")?.split(",").filter(Boolean),
-		uf: params.get("uf") ?? undefined,
-		bioma: params.get("bioma") ?? undefined,
-		municipio: params.get("municipio") ?? undefined,
-	};
+		state: params.get("state") ?? undefined,
+		city: params.get("city") ?? undefined,
+		biome: params.get("biome") ?? undefined,
+	});
 }
 
 /** "Mato Grosso · Cerrado", "Altamira (PA)", or "Brasil". */
 export function regionLabel(view: CardView): string {
 	const parts = [
-		view.municipio ?? (view.uf && (STATE_NAMES[view.uf] ?? view.uf)),
-		view.bioma,
+		view.city ?? (view.state && (STATE_NAMES[view.state] ?? view.state)),
+		view.biome,
 	].filter(Boolean);
 	return parts.length ? parts.join(" · ") : "Brasil";
 }

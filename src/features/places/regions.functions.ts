@@ -6,19 +6,19 @@ const hours = WindowSchema.catch(24);
 
 /** Server functions for the region pages; safe to import from routes. */
 export const getStateSummary = createServerFn({ method: "GET" })
-	.validator(z.object({ uf: z.string().max(2), h: hours }))
+	.validator(z.object({ state: z.string().max(2), h: hours }))
 	.handler(async ({ data }) => {
 		const { stateSummary } = await import("./regions.server");
-		return stateSummary(data.uf, data.h);
+		return stateSummary(data.state, data.h);
 	});
 
 export const getMunicipalitySummary = createServerFn({ method: "GET" })
 	.validator(
-		z.object({ uf: z.string().max(2), slug: z.string().max(80), h: hours }),
+		z.object({ state: z.string().max(2), city: z.string().max(80), h: hours }),
 	)
 	.handler(async ({ data }) => {
 		const { municipalitySummary } = await import("./regions.server");
-		return municipalitySummary(data.uf, data.slug, data.h);
+		return municipalitySummary(data.state, data.city, data.h);
 	});
 
 export const getStatesSummary = createServerFn({ method: "GET" })

@@ -38,16 +38,8 @@ export type BBox = z.infer<typeof BBoxSchema>;
 export const FiresSearchSchema = z.object({
 	h: WindowSchema.optional().catch(undefined),
 	sensor: z.array(SensorSchema).optional().catch(undefined),
-	/** Two-letter state code. */
-	uf: z
-		.string()
-		.regex(/^[A-Z]{2}$/)
-		.optional()
-		.catch(undefined),
 	/** Biome name as INPE publishes it ("Amazônia", "Cerrado"…). */
-	bioma: z.string().min(1).max(40).optional().catch(undefined),
-	/** "Município (UF)", as INPE's municipality plus its state. */
-	municipio: z.string().min(1).max(80).optional().catch(undefined),
+	biome: z.string().min(1).max(40).optional().catch(undefined),
 	/** Where the user left the map; set only by their own moves. */
 	bbox: BBoxSchema.optional().catch(undefined),
 });

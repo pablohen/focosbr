@@ -15,8 +15,9 @@ describe("FiresSearchSchema", () => {
 			"oops",
 		];
 		for (const bbox of broken)
-			expect(FiresSearchSchema.parse({ bbox, uf: "PA" })).toEqual({
-				uf: "PA",
+			expect(FiresSearchSchema.parse({ bbox, biome: "Cerrado" })).toEqual({
+				biome: "Cerrado",
+				bbox: undefined,
 			});
 	});
 });
