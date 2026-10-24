@@ -16,6 +16,19 @@ export const HISTORY_COLLECTION = "history";
 /** `_id` of the whole country's document. */
 export const BRAZIL_ID = "BR";
 
+const YearCount = z.object({ year: z.number().int(), count: z.number().int() });
+
+/** This year to date against the same period in past years. */
+export const YtdSchema = z.object({
+	through: z.string(),
+	current: z.number().int(),
+	average: z.number(),
+	ratio: z.number().nullable(),
+	record: YearCount.nullable(),
+	years: z.array(YearCount),
+});
+export type Ytd = z.infer<typeof YtdSchema>;
+
 /**
  * One region's history in MongoDB (`history` collection): `_id` is
  * "BR", a state code ("PA") or an IBGE municipality code ("1500602").
@@ -29,8 +42,12 @@ export const RegionHistoryDocSchema = z.object({
 	cityId: z.number().int().optional(),
 	/** Reference-satellite detections by month, "2003-01" → count. */
 	months: z.record(z.string(), z.number().int().nonnegative()).default({}),
+	/** Reference-satellite detections by day, "2003-01-01" → count. */
+	refDays: z.record(z.string(), z.number().int().nonnegative()).default({}),
 	/** All satellites' detections by day, "2026-10-23" → count. */
 	days: z.record(z.string(), z.number().int().nonnegative()).default({}),
+	/** This year to date against the same period of past years (`ytdSummary`), for rankings. */
+	ytd: YtdSchema.optional(),
 	updatedAt: z.date(),
 });
 export type RegionHistoryDoc = z.infer<typeof RegionHistoryDocSchema>;
@@ -49,6 +66,11 @@ export const RegionHistorySchema = z.object({
 	years: z.array(Point),
 	/** The last MONTHS_SHOWN months, reference satellite; `key` is "2026-10". */
 	months: z.array(Point),
+	/** Reference-satellite detections per month, one row per year (fire-season calendar). */
+	calendar: z.array(
+		z.object({ year: z.number().int(), months: z.array(z.number().int()) }),
+	),
+	ytd: YtdSchema,
 	/** The last DAYS_SHOWN days, all satellites; `key` is "2026-10-23". */
 	days: z.array(Point),
 	/** First day with all-satellite counts, if after the first one shown. */

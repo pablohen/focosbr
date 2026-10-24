@@ -41,6 +41,8 @@ export type RegionCounts = {
 	uf?: string;
 	cityId?: number;
 	months: Map<string, number>;
+	/** Reference-satellite detections by day, for same-period comparisons. */
+	refDays: Map<string, number>;
 	days: Map<string, number>;
 };
 
@@ -55,7 +57,15 @@ export function createHistoryAggregator() {
 	) => {
 		let r = regions.get(id);
 		if (!r) {
-			r = { id, kind, uf, cityId, months: new Map(), days: new Map() };
+			r = {
+				id,
+				kind,
+				uf,
+				cityId,
+				months: new Map(),
+				refDays: new Map(),
+				days: new Map(),
+			};
 			regions.set(id, r);
 		}
 		return r;
@@ -73,10 +83,51 @@ export function createHistoryAggregator() {
 			if (d.cityId !== undefined)
 				targets.push(region(String(d.cityId), "city", d.uf, d.cityId));
 			for (const r of targets)
-				if (d.kind === "reference") bump(r.months, month);
-				else bump(r.days, day);
+				if (d.kind === "reference") {
+					bump(r.months, month);
+					bump(r.refDays, day);
+				} else bump(r.days, day);
 		},
 		regions: () => [...regions.values()],
+	};
+}
+
+/**
+ * Each year's reference-satellite count from 1 January up to the same day
+ * of the year as yesterday (today is still counting in every year), and how
+ * this year compares with the average of the previous years.
+ */
+export function ytdSummary(refDays: Record<string, number>, now: Date) {
+	const through = localKeys(now.getTime() - DAY_MS).day;
+	const thisYear = Number(through.slice(0, 4));
+	const cut = through.slice(5);
+	const byYear = new Map<number, number>();
+	for (const [day, n] of Object.entries(refDays)) {
+		if (day.slice(5) > cut) continue;
+		const y = Number(day.slice(0, 4));
+		byYear.set(y, (byYear.get(y) ?? 0) + n);
+	}
+	const years = [];
+	for (let y = FIRST_YEAR; y <= thisYear; y++)
+		years.push({ year: y, count: byYear.get(y) ?? 0 });
+	const past = years.slice(0, -1);
+	const average = past.length
+		? past.reduce((a, y) => a + y.count, 0) / past.length
+		: 0;
+	const record = past.reduce<{ year: number; count: number } | null>(
+		(a, y) => (y.count > (a?.count ?? 0) ? y : a),
+		null,
+	);
+	const current = byYear.get(thisYear) ?? 0;
+	return {
+		/** Last day counted, "2026-10-23"; the same day of the year in every year. */
+		through,
+		current,
+		average: Math.round(average * 10) / 10,
+		/** This year over the average; null when the average is zero. */
+		ratio: average > 0 ? Math.round((current / average) * 1000) / 1000 : null,
+		record,
+		years,
 	};
 }
 
@@ -88,6 +139,7 @@ export function createHistoryAggregator() {
 export function regionSeries(
 	stored: {
 		months: Record<string, number>;
+		refDays: Record<string, number>;
 		days: Record<string, number>;
 		updatedAt: Date;
 	},
@@ -129,10 +181,21 @@ export function regionSeries(
 	// Day counts start in 2023 (INPE's monthly files); say so if that's
 	// later than the first day shown.
 	const firstStored = Object.keys(stored.days).sort()[0] ?? null;
+	// Month × year grid for the fire-season calendar, oldest year first.
+	const calendar = years.map((y) => ({
+		year: Number(y.key),
+		months: Array.from(
+			{ length: 12 },
+			(_, m) =>
+				stored.months[`${y.key}-${String(m + 1).padStart(2, "0")}`] ?? 0,
+		),
+	}));
 	return {
 		updatedAt: stored.updatedAt.toISOString(),
 		years,
 		months,
+		calendar,
+		ytd: ytdSummary(stored.refDays, now),
 		days,
 		daysSince:
 			firstStored && firstStored > (days[0]?.key ?? "") ? firstStored : null,

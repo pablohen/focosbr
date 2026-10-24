@@ -21,14 +21,18 @@ export async function loadRegionHistory(
 			.collection<{ _id: string }>(HISTORY_COLLECTION)
 			.findOne(
 				{ _id: id },
-				{ projection: { months: 1, days: 1, kind: 1, updatedAt: 1 } },
+				{ projection: { months: 1, refDays: 1, days: 1, updatedAt: 1 } },
 			);
 		if (!doc) {
 			// A city with no detection since 2003 has no document: all zeros.
-			return regionSeries({ months: {}, days: {}, updatedAt: now }, now);
+			return regionSeries(
+				{ months: {}, refDays: {}, days: {}, updatedAt: now },
+				now,
+			);
 		}
 		const parsed = RegionHistoryDocSchema.pick({
 			months: true,
+			refDays: true,
 			days: true,
 			updatedAt: true,
 		}).parse(doc);

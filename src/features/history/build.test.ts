@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createHistoryAggregator, localKeys, regionSeries } from "./build";
+import {
+	createHistoryAggregator,
+	localKeys,
+	regionSeries,
+	ytdSummary,
+} from "./build";
 import { DAYS_SHOWN, FIRST_YEAR, MONTHS_SHOWN } from "./schemas";
 
 const at = (y: number, m: number, d: number, h = 15) =>
@@ -38,6 +43,8 @@ describe("createHistoryAggregator", () => {
 		const byId = new Map(agg.regions().map((r) => [r.id, r]));
 
 		expect(byId.get("BR")?.months.get("2003-01")).toBe(2);
+		expect(byId.get("BR")?.refDays.get("2003-01-01")).toBe(1);
+		expect(byId.get("BR")?.refDays.get("2026-10-23")).toBeUndefined();
 		expect(byId.get("BR")?.days.get("2026-10-23")).toBe(1);
 		expect(byId.get("PA")).toMatchObject({ kind: "state", uf: "PA" });
 		expect(byId.get("PA")?.months.get("2003-01")).toBe(2);
@@ -56,6 +63,7 @@ describe("regionSeries", () => {
 	const now = new Date(at(2026, 10, 24, 15));
 	const stored = {
 		months: { "2003-03": 5, "2003-08": 7, "2025-11": 4, "2026-10": 2 },
+		refDays: {},
 		days: { "2026-10-24": 3, "2026-10-01": 1 },
 		updatedAt: new Date(at(2026, 10, 24, 9)),
 	};
@@ -90,5 +98,54 @@ describe("regionSeries", () => {
 		expect(s.days.find((d) => d.key === "2026-10-01")?.count).toBe(1);
 		// Day counts here start inside the 90 days shown.
 		expect(s.daysSince).toBe("2026-10-01");
+	});
+});
+
+describe("ytdSummary", () => {
+	// 24 Oct 2026 at noon in Brasília: counts run through 23 Oct of each year.
+	const now = new Date(at(2026, 10, 24, 15));
+	const refDays = {
+		"2003-01-05": 10,
+		"2003-10-23": 2,
+		"2003-10-24": 100, // after the cut
+		"2025-03-01": 4,
+		"2026-02-01": 9,
+		"2026-10-24": 50, // today: still counting
+	};
+
+	it("compares the same period of every year", () => {
+		const y = ytdSummary(refDays, now);
+		expect(y.through).toBe("2026-10-23");
+		expect(y.current).toBe(9);
+		expect(y.years[0]).toEqual({ year: 2003, count: 12 });
+		expect(y.years.at(-2)).toEqual({ year: 2025, count: 4 });
+		// (12 + 4) over 23 past years.
+		expect(y.average).toBe(Math.round((16 / 23) * 10) / 10);
+		expect(y.ratio).toBe(Math.round((9 / (16 / 23)) * 1000) / 1000);
+		expect(y.record).toEqual({ year: 2003, count: 12 });
+	});
+	it("has no ratio or record without past detections", () => {
+		const y = ytdSummary({ "2026-01-01": 3 }, now);
+		expect(y.ratio).toBeNull();
+		expect(y.record).toBeNull();
+	});
+});
+
+describe("regionSeries calendar", () => {
+	it("lays months out by year", () => {
+		const s = regionSeries(
+			{
+				months: { "2003-09": 7, "2026-10": 2 },
+				refDays: {},
+				days: {},
+				updatedAt: new Date(),
+			},
+			new Date(at(2026, 10, 24, 15)),
+		);
+		expect(s.calendar[0]).toEqual({
+			year: 2003,
+			months: [0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0],
+		});
+		expect(s.calendar.at(-1)?.months[9]).toBe(2);
 	});
 });

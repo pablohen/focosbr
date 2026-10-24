@@ -15,7 +15,7 @@
  * monthly files.
  *
  * Each run sets the exact months and days it processed, so re-running is
- * safe. Completed years and months are cached in .cache/history.
+ * safe, then refreshes every region's year-to-date summary (`ytd`). Completed years and months are cached in .cache/history.
  *
  * Usage: pnpm history:build [--backfill]   (needs MONGODB_URI)
  */
@@ -27,6 +27,7 @@ import {
 	createHistoryAggregator,
 	type HistoryDetection,
 	RENAMED,
+	ytdSummary,
 } from "../src/features/history/build";
 import {
 	FIRST_YEAR,
@@ -251,6 +252,9 @@ for (let i = 0; i < regions.length; i += 500) {
 							[...r.months].map(([k, n]) => [`months.${k}`, n]),
 						),
 						...Object.fromEntries(
+							[...r.refDays].map(([k, n]) => [`refDays.${k}`, n]),
+						),
+						...Object.fromEntries(
 							[...r.days].map(([k, n]) => [`days.${k}`, n]),
 						),
 					},
@@ -261,6 +265,25 @@ for (let i = 0; i < regions.length; i += 500) {
 		{ ordered: false },
 	);
 }
+// Year-to-date summaries need each region's whole series, so they're
+// computed from what's now stored, for every region (rankings sort by them).
+const summaries = [];
+for await (const doc of collection.find({}, { projection: { refDays: 1 } })) {
+	const refDays = (doc as { refDays?: Record<string, number> }).refDays ?? {};
+	summaries.push({
+		updateOne: {
+			filter: { _id: doc._id },
+			update: { $set: { ytd: ytdSummary(refDays, now) } },
+		},
+	});
+}
+for (let i = 0; i < summaries.length; i += 1000)
+	await collection.bulkWrite(summaries.slice(i, i + 1000), { ordered: false });
+await collection.createIndexes([
+	{ key: { kind: 1, "ytd.current": -1 }, name: "kind_ytd_current" },
+	{ key: { kind: 1, "ytd.ratio": -1 }, name: "kind_ytd_ratio" },
+]);
+console.log(`${summaries.length} year-to-date summaries`);
 await closeDb();
 console.log(
 	`${stats.rows} rows (${stats.noState} without a state, ${stats.noCity} without a municipality);`,
