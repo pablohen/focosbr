@@ -8,7 +8,7 @@ import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle
 export function PageHeader() {
 	return (
 		<Group justify="space-between" wrap="nowrap" mb="lg">
-			<Group gap="md" wrap="nowrap">
+			<Group gap={{ base: "sm", xs: "md" }} wrap="nowrap">
 				<Anchor
 					renderRoot={(props) => <Link {...props} to="/" />}
 					underline="never"
@@ -25,7 +25,12 @@ export function PageHeader() {
 						FocosBR
 					</Text>
 				</Anchor>
-				<Anchor renderRoot={(props) => <Link {...props} to="/" />} size="sm">
+				{/* The logo links to the map too; phones keep the room for the rest. */}
+				<Anchor
+					renderRoot={(props) => <Link {...props} to="/" />}
+					size="sm"
+					visibleFrom="xs"
+				>
 					Mapa
 				</Anchor>
 				<Anchor
