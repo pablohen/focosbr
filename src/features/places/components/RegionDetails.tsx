@@ -18,6 +18,7 @@ import { Freshness } from "~/features/fires/components/Freshness";
 import { HourlyChart } from "~/features/fires/components/HourlyChart";
 import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
 import { AGE_BANDS } from "~/features/fires/view";
+import { HistorySection } from "~/features/history/components/HistorySection";
 import type { getCityDetails, getStateDetails } from "../regions.functions";
 import { regionSentence } from "./RegionIntro";
 import { MunicipalityLink, StateLink } from "./RegionLinks";
@@ -307,6 +308,8 @@ export function RegionDetails({
 					/>
 				</Section>
 			)}
+
+			{d.history && <HistorySection history={d.history} name={name} />}
 
 			{d.total > 0 && (
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">

@@ -19,6 +19,7 @@ import {
 	summarize,
 	topFires,
 } from "../fires/view";
+import { loadRegionHistory } from "../history/history.server";
 import {
 	cardBounds,
 	dotsPath,
@@ -168,12 +169,16 @@ function details(data: FiresResponse, uf: string, place?: string) {
 export async function stateDetails(uf: string, hours: Window) {
 	const code = uf.toUpperCase();
 	if (!isState(code)) return null;
-	const data = await getFires(hours);
+	const [data, history] = await Promise.all([
+		getFires(hours),
+		loadRegionHistory(code),
+	]);
 	return {
 		uf: code,
 		name: STATE_NAMES[code] ?? code,
 		...details(data, code),
 		cities: cityRanking(data, code, 30),
+		history,
 	};
 }
 
@@ -181,7 +186,10 @@ export async function stateDetails(uf: string, hours: Window) {
 export async function cityDetails(uf: string, slug: string, hours: Window) {
 	const m = municipalities.find(uf, slug);
 	if (!m) return null;
-	const data = await getFires(hours);
+	const [data, history] = await Promise.all([
+		getFires(hours),
+		loadRegionHistory(String(m.id)),
+	]);
 	const label = placeLabel(m.name, m.uf);
 	return {
 		uf: m.uf,
@@ -189,6 +197,7 @@ export async function cityDetails(uf: string, slug: string, hours: Window) {
 		name: m.name,
 		label,
 		...details(data, m.uf, label),
+		history,
 	};
 }
 
