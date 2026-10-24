@@ -22,6 +22,7 @@ import {
 	riskClass,
 	SENSOR_LABELS,
 	SENSOR_RESOLUTION,
+	type TopFire,
 } from "../view";
 
 // MapLibre resolves its worker relative to its own module URL, which breaks
@@ -204,6 +205,40 @@ function popupContent(
 	return root;
 }
 
+/**
+ * Eases detection `i` to the bottom of the visible part of the map (beside
+ * the panel, or above the phone sheet) and opens its popup above it,
+ * replacing the one in `popup`.
+ */
+function showDetection(
+	map: MapLibreMap,
+	data: FiresResponse,
+	groups: FireGroups | undefined,
+	i: number,
+	popup: { current: Popup | null },
+	zoom?: number,
+) {
+	const at: [number, number] = [data.fires.lon[i] ?? 0, data.fires.lat[i] ?? 0];
+	const container = map.getContainer();
+	const padding = panelPadding(container);
+	const visible = container.clientHeight - padding.top - padding.bottom;
+	map.easeTo({
+		center: at,
+		zoom,
+		padding,
+		offset: [0, Math.max(0, visible / 2 - 24)],
+		duration: zoom === undefined ? 300 : 800,
+	});
+	popup.current?.remove();
+	popup.current = new Popup({ maxWidth: "300px", anchor: "bottom" })
+		.setLngLat(at)
+		.setDOMContent(popupContent(data, groups, i, Date.now()))
+		.addTo(map);
+}
+
+/** A fire picked from the list; `nonce` changes on every pick, even a repeat. */
+export type FireTarget = { nonce: number; fire: TopFire };
+
 /** The region the map should show; `key` changes when the selection does. */
 export type MapFocus = { key: string; bounds: BBox | null; uf?: string };
 
@@ -213,13 +248,21 @@ type Props = {
 	focus: MapFocus;
 	/** The shown detections grouped into fires, for the popup. */
 	groups: FireGroups | undefined;
+	target: FireTarget | null;
 };
 
 /** Hotspot map. Browser-only: load it through React.lazy behind <ClientOnly>. */
-export default function FireMap({ data, features, focus, groups }: Props) {
+export default function FireMap({
+	data,
+	features,
+	focus,
+	groups,
+	target,
+}: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
 	const [ready, setReady] = useState(false);
+	const popupRef = useRef<Popup | null>(null);
 	// The selection the map last fitted to; "" is the whole country.
 	const fittedKey = useRef("");
 	// The latest props, for handlers registered once.
@@ -361,24 +404,13 @@ export default function FireMap({ data, features, focus, groups }: Props) {
 			const feature = e.features?.[0];
 			const current = latest.current.data;
 			if (!feature || !current) return;
-			const i = Number(feature.properties?.i);
-			// Bring the dot to the bottom of the visible part of the map (beside
-			// the panel, or above the phone sheet) so the popup fits above it.
-			const container = map.getContainer();
-			const padding = panelPadding(container);
-			const visible = container.clientHeight - padding.top - padding.bottom;
-			map.easeTo({
-				center: e.lngLat,
-				padding,
-				offset: [0, Math.max(0, visible / 2 - 24)],
-				duration: 300,
-			});
-			new Popup({ maxWidth: "300px", anchor: "bottom" })
-				.setLngLat(e.lngLat)
-				.setDOMContent(
-					popupContent(current, latest.current.groups, i, Date.now()),
-				)
-				.addTo(map);
+			showDetection(
+				map,
+				current,
+				latest.current.groups,
+				Number(feature.properties?.i),
+				popupRef,
+			);
 		});
 		// A cluster zooms in to where it splits.
 		map.on("click", CLUSTERS, async (e) => {
@@ -425,6 +457,25 @@ export default function FireMap({ data, features, focus, groups }: Props) {
 			focus.uf ?? "",
 		]);
 	}, [ready, focus.uf]);
+
+	// A fire picked from the list: zoom to its extent, at its newest detection.
+	useEffect(() => {
+		const map = mapRef.current;
+		const current = latest.current.data;
+		if (!ready || !map || !target || !current) return;
+		const camera = map.cameraForBounds(target.fire.bounds, {
+			padding: panelPadding(map.getContainer()),
+			maxZoom: 12,
+		});
+		showDetection(
+			map,
+			current,
+			latest.current.groups,
+			target.fire.focus,
+			popupRef,
+			Math.max(camera?.zoom ?? 10, CLUSTER_MAX_ZOOM + 1),
+		);
+	}, [ready, target]);
 
 	// Fit once per selection, when its detections are in: a refresh or a
 	// sensor change must not yank the map away from where the user panned.

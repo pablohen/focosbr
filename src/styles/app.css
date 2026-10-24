@@ -52,3 +52,9 @@
 [data-mantine-color-scheme="dark"] {
 	--chart-bar: #e45a32;
 }
+
+/* Biggest-fires rows: a hover/focus wash, like Mantine's NavLink. */
+.top-fire:hover,
+.top-fire:focus-visible {
+	background: var(--mantine-color-default-hover);
+}

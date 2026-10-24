@@ -31,9 +31,11 @@ import {
 	type Ranked,
 	SENSOR_LABELS,
 	type summarize,
+	type TopFire,
 } from "../view";
 import { Freshness } from "./Freshness";
 import { HourlyChart } from "./HourlyChart";
+import { TopFires } from "./TopFires";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
@@ -54,6 +56,7 @@ type Props = {
 	data: FiresResponse | undefined;
 	summary: ReturnType<typeof summarize> | undefined;
 	hourly: HourBucket[] | undefined;
+	onSelectFire: (fire: TopFire) => void;
 	loading: boolean;
 	error: unknown;
 };
@@ -138,6 +141,7 @@ export function FirePanel({
 	data,
 	summary,
 	hourly,
+	onSelectFire,
 	loading,
 	error,
 }: Props) {
@@ -224,6 +228,14 @@ export function FirePanel({
 					)}
 
 					{hourly && summary?.total ? <HourlyChart buckets={hourly} /> : null}
+
+					{data && summary && (
+						<TopFires
+							data={data}
+							groups={summary.groups}
+							onSelect={onSelectFire}
+						/>
+					)}
 
 					<Stack gap={4}>
 						<Text size="sm" fw={600}>

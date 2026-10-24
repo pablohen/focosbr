@@ -10,7 +10,8 @@ import {
 import { Fire } from "@phosphor-icons/react";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import maplibreCss from "maplibre-gl/dist/maplibre-gl.css?url";
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
+import type { FireTarget } from "~/features/fires/components/FireMap";
 import { FirePanel } from "~/features/fires/components/FirePanel";
 import { FiresSearchSchema } from "~/features/fires/schemas";
 import { useFires } from "~/features/fires/use-fires";
@@ -49,6 +50,7 @@ function FiresPage() {
 	const navigate = Route.useNavigate();
 	const { data, error, loading } = useFires(hours);
 	useProgress(loading);
+	const [target, setTarget] = useState<FireTarget | null>(null);
 
 	const filters = useMemo(
 		() => ({ sensors, uf, biome, place }),
@@ -127,6 +129,7 @@ function FiresPage() {
 								features={features}
 								focus={focus}
 								groups={summary?.groups}
+								target={target}
 							/>
 						</Suspense>
 					</ClientOnly>
@@ -162,6 +165,9 @@ function FiresPage() {
 						data={data}
 						summary={summary}
 						hourly={hourly}
+						onSelectFire={(fire) =>
+							setTarget((t) => ({ nonce: (t?.nonce ?? 0) + 1, fire }))
+						}
 						loading={loading}
 						error={error}
 					/>
