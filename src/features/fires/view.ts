@@ -59,12 +59,14 @@ export type FireFilters = {
 	biome?: string;
 	/** "Município (UF)" label, as in `FiresResponse.places`. */
 	place?: string;
+	/** Timeline position: only detections up to this time (Unix seconds). */
+	until?: number;
 };
 
 /** Indices of the detections that pass every filter. */
 export function selectFires(
 	data: FiresResponse,
-	{ sensors, uf, biome, place }: FireFilters,
+	{ sensors, uf, biome, place, until }: FireFilters,
 ): number[] {
 	const allowed = sensors?.length ? new Set(sensors) : null;
 	const satOk = data.satellites.map(
@@ -80,7 +82,8 @@ export function selectFires(
 			satOk[f.sat[i] ?? -1] &&
 			stateOk[f.state[i] ?? -1] &&
 			biomeOk[f.biome[i] ?? -1] &&
-			placeOk[f.place[i] ?? -1]
+			placeOk[f.place[i] ?? -1] &&
+			(until === undefined || (f.t[i] ?? 0) <= until)
 		)
 			out.push(i);
 	return out;

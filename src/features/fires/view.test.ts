@@ -63,6 +63,11 @@ describe("selectFires", () => {
 		expect(selectFires(DATA, { uf: "PA", sensors: ["goes"] })).toEqual([]);
 		expect(selectFires(DATA, { uf: "SP" })).toEqual([]);
 		expect(selectFires(DATA, { place: "Colniza (MT)" })).toEqual([1]);
+		// Timeline: up to 18:00 UTC includes the 10:00 and 18:00 detections.
+		expect(
+			selectFires(DATA, { until: Date.UTC(2026, 9, 23, 18) / 1000 }),
+		).toEqual([0, 1]);
+		expect(selectFires(DATA, { until: 0 })).toEqual([]);
 	});
 });
 
