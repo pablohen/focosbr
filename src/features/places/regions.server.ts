@@ -28,16 +28,15 @@ import {
 	outlinePath,
 	projector,
 } from "../share/card-map";
-import { BIOMES, biomeBySlug, biomeHistoryId, biomePath } from "./biomes";
+import { BIOMES, biomeBySlug, biomeHistoryId } from "./biomes";
 import {
 	isState,
-	municipalityPath,
 	placeLabel,
 	type RegionCount,
 	splitPlaceLabel,
-	statePath,
 } from "./places";
 import { municipalities } from "./places.server";
+import { resolveRegion } from "./resolve.server";
 
 /** The details map's size, in SVG units; the page scales it. */
 export const DETAILS_MAP = { width: 640, height: 480 } as const;
@@ -265,42 +264,14 @@ export async function embedDetails(
 	region: { state?: string; city?: string; biome?: string },
 	hours: Window,
 ) {
-	let target: {
-		name: string;
-		path: string;
-		historyId: string;
-		filters: { uf?: string; place?: string; biome?: string };
-	};
-	if (region.biome) {
-		const b = biomeBySlug(region.biome);
-		if (!b) return null;
-		target = {
-			name: b.name,
-			path: biomePath(b.slug),
-			historyId: biomeHistoryId(b.slug),
-			filters: { biome: b.name },
-		};
-	} else if (region.state && region.city) {
-		const m = municipalities.find(region.state, region.city);
-		if (!m) return null;
-		const label = placeLabel(m.name, m.uf);
-		target = {
-			name: label,
-			path: municipalityPath(m.uf, m.name),
-			historyId: String(m.id),
-			filters: { uf: m.uf, place: label },
-		};
-	} else if (region.state) {
-		const uf = region.state.toUpperCase();
-		if (!isState(uf)) return null;
-		target = {
-			name: STATE_NAMES[uf] ?? uf,
-			path: statePath(uf),
-			historyId: uf,
-			filters: { uf },
-		};
-	} else
-		target = { name: "Brasil", path: "/", historyId: BRAZIL_ID, filters: {} };
+	const target = resolveRegion(
+		region.biome
+			? `biome/${region.biome}`
+			: region.state
+				? [region.state, region.city].filter(Boolean).join("/")
+				: "br",
+	);
+	if (!target) return null;
 	const [data, history] = await Promise.all([
 		getFires(hours),
 		loadRegionHistory(target.historyId),
