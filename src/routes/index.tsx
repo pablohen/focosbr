@@ -46,6 +46,7 @@ function FiresPage() {
 		uf,
 		bioma: biome,
 		municipio: place,
+		bbox,
 	} = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { data, error, loading, refreshFailed, updatedAt } = useFires(hours);
@@ -130,6 +131,13 @@ function FiresPage() {
 								focus={focus}
 								groups={summary?.groups}
 								target={target}
+								initialBBox={bbox}
+								onViewportChange={(next) =>
+									navigate({
+										search: (s) => ({ ...s, bbox: next }),
+										replace: true,
+									})
+								}
 							/>
 						</Suspense>
 					</ClientOnly>

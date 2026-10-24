@@ -11,7 +11,7 @@ import {
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "react";
 import { autoHideAttribution } from "~/lib/map-attribution";
-import type { FiresResponse } from "../schemas";
+import type { BBox, FiresResponse } from "../schemas";
 import {
 	AGE_BANDS,
 	describeFire,
@@ -31,7 +31,6 @@ setWorkerUrl(workerUrl);
 
 /** OpenFreeMap's style; free and keyless. */
 const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
-type BBox = [number, number, number, number];
 
 const BRAZIL: BBox = [-74, -34, -34.5, 5.5];
 const SOURCE = "fires";
@@ -249,6 +248,10 @@ type Props = {
 	/** The shown detections grouped into fires, for the popup. */
 	groups: FireGroups | undefined;
 	target: FireTarget | null;
+	/** Where to open the map (from the URL); read once, on mount. */
+	initialBBox: BBox | undefined;
+	/** The visible area after each move the user made (or asked for). */
+	onViewportChange: (bbox: BBox) => void;
 };
 
 /** Hotspot map. Browser-only: load it through React.lazy behind <ClientOnly>. */
@@ -258,23 +261,33 @@ export default function FireMap({
 	focus,
 	groups,
 	target,
+	initialBBox,
+	onViewportChange,
 }: Props) {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
 	const [ready, setReady] = useState(false);
 	const popupRef = useRef<Popup | null>(null);
-	// The selection the map last fitted to; "" is the whole country.
-	const fittedKey = useRef("");
+	// The selection the map last fitted to; "" is the whole country. A map
+	// opened at a URL position keeps it instead of fitting the selection.
+	const fittedKey = useRef(initialBBox ? focus.key : "");
+	// Read once: later URL updates come from the map itself.
+	const openAt = useRef(initialBBox);
+	// The selection in the URL at load: fitting to it isn't a user move.
+	const loadedKey = useRef(focus.key);
+	// Set before a move the user asked for without touching the map (a
+	// cluster, a dot, a list row, a new selection), so it reaches the URL.
+	const userMove = useRef(false);
 	// The latest props, for handlers registered once.
-	const latest = useRef({ data, features, groups });
-	latest.current = { data, features, groups };
+	const latest = useRef({ data, features, groups, onViewportChange });
+	latest.current = { data, features, groups, onViewportChange };
 
 	useEffect(() => {
 		if (!containerRef.current) return;
 		const map = new MapLibreMap({
 			container: containerRef.current,
 			style: STYLE_URL,
-			bounds: BRAZIL,
+			bounds: openAt.current ?? BRAZIL,
 			fitBoundsOptions: { padding: panelPadding(containerRef.current) },
 			attributionControl: {
 				compact: true,
@@ -290,6 +303,29 @@ export default function FireMap({
 		mapRef.current = map;
 		map.addControl(new NavigationControl({ showCompass: false }), "top-right");
 		map.addControl(new ScaleControl({ unit: "metric" }), "bottom-right");
+
+		// Report the visible area (not the part under the panel) after moves
+		// the user made: drags, zooms, controls (they carry an originalEvent)
+		// or clicks that moved the map. The fit on load isn't one of them, so
+		// a plain visit doesn't write a position into the URL.
+		map.on("moveend", (e) => {
+			if (!e.originalEvent && !userMove.current) return;
+			userMove.current = false;
+			const c = map.getContainer();
+			const pad = panelPadding(c);
+			const nw = map.unproject([pad.left, pad.top]);
+			const se = map.unproject([
+				c.clientWidth - pad.right,
+				c.clientHeight - pad.bottom,
+			]);
+			const round = (v: number) => Math.round(v * 1000) / 1000;
+			latest.current.onViewportChange([
+				round(Math.max(-180, nw.lng)),
+				round(Math.max(-90, se.lat)),
+				round(Math.min(180, se.lng)),
+				round(Math.min(90, nw.lat)),
+			]);
+		});
 
 		let cancelAutoHide = () => {};
 		map.on("load", () => {
@@ -404,6 +440,7 @@ export default function FireMap({
 			const feature = e.features?.[0];
 			const current = latest.current.data;
 			if (!feature || !current) return;
+			userMove.current = true;
 			showDetection(
 				map,
 				current,
@@ -421,6 +458,7 @@ export default function FireMap({
 			const zoom = await map
 				.getSource<GeoJSONSource>(SOURCE)
 				?.getClusterExpansionZoom(id);
+			userMove.current = true;
 			map.easeTo({
 				center: feature.geometry.coordinates as [number, number],
 				zoom: zoom ?? map.getZoom() + 2,
@@ -463,6 +501,7 @@ export default function FireMap({
 		const map = mapRef.current;
 		const current = latest.current.data;
 		if (!ready || !map || !target || !current) return;
+		userMove.current = true;
 		const camera = map.cameraForBounds(target.fire.bounds, {
 			padding: panelPadding(map.getContainer()),
 			maxZoom: 12,
@@ -485,6 +524,7 @@ export default function FireMap({
 		const target = focus.key ? focus.bounds : BRAZIL;
 		if (!target) return;
 		fittedKey.current = focus.key;
+		userMove.current = focus.key !== loadedKey.current;
 		map.fitBounds(target, {
 			padding: panelPadding(map.getContainer()),
 			maxZoom: 9,

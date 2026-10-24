@@ -18,6 +18,23 @@ export const SensorSchema = z.enum(SENSORS);
 export type Sensor = z.infer<typeof SensorSchema>;
 
 /** The map page's URL state. A missing or invalid value falls back silently. */
+/**
+ * `[west, south, east, north]` in degrees: the part of the map left visible
+ * beside (or above) the panel. Brazil never crosses the antimeridian.
+ */
+export const BBoxSchema = z
+	.tuple([
+		z.number().min(-180).max(180),
+		z.number().min(-90).max(90),
+		z.number().min(-180).max(180),
+		z.number().min(-90).max(90),
+	])
+	.refine(
+		([w, s, e, n]) => w < e && s < n,
+		"expected [west, south, east, north]",
+	);
+export type BBox = z.infer<typeof BBoxSchema>;
+
 export const FiresSearchSchema = z.object({
 	h: WindowSchema.optional().catch(undefined),
 	sensor: z.array(SensorSchema).optional().catch(undefined),
@@ -31,6 +48,8 @@ export const FiresSearchSchema = z.object({
 	bioma: z.string().min(1).max(40).optional().catch(undefined),
 	/** "Município (UF)", as INPE's municipality plus its state. */
 	municipio: z.string().min(1).max(80).optional().catch(undefined),
+	/** Where the user left the map; set only by their own moves. */
+	bbox: BBoxSchema.optional().catch(undefined),
 });
 export type FiresSearch = z.infer<typeof FiresSearchSchema>;
 
