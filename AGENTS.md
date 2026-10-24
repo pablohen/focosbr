@@ -40,7 +40,7 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 - **TanStack Start 1.x** (Vite 8 plugin, Nitro 3). The API is a file route with `server.handlers` (`src/routes/api.fires.ts`).
 - **Zod 4**: `z.iso.datetime()`, `z.url()` and so on, not the Zod 3 method forms.
 - **TanStack Query 5** for fetching `/api/fires` (`use-fires.ts`, client in `src/lib/query-client.ts`). **TanStack Devtools** (Query and Router tabs) load only in development (`src/lib/devtools.tsx`, behind `import.meta.env.DEV`); keep them out of production builds.
-- **Mantine 9** (React 19.2+), with `@mantine/nprogress` for the top progress bar. Use Mantine components and style props before writing custom CSS.
+- **Mantine 9** (React 19.2+), with `@mantine/nprogress` for the top progress bar and `@mantine/spotlight` for the header's place search (`SearchButton`, which lazy-loads the dialog and IBGE's list on first use). Use Mantine components and style props before writing custom CSS.
 - **Phosphor icons** (`@phosphor-icons/react`) for every icon.
 - **MapLibre GL 6** with OpenFreeMap's `liberty` style (free, keyless).
 - **Biome 2**: default formatting (tabs, double quotes). Don't add style overrides.
@@ -67,7 +67,7 @@ Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && 
 - Offshore and border detections can have an **empty** state or biome. Show "—" and never let it be selected.
 - **Each breakdown ignores its own filter** (`summarize`): with a state selected, the state list and sensor chips still show every option with its count.
 - **The map fits once per selection** (`focus.key`). Data refreshes and sensor changes must never move the map away from where the user panned.
-- **Colours are validated, not picked.** The age ramp (`AGE_BANDS`) is an ordinal one-hue ramp and the chart bar (`--chart-bar`) has a separate light and dark step; both were checked with the dataviz palette validator. Re-validate any colour change. Text never wears a data colour.
+- **Colours are validated, not picked.** The age ramp (`AGE_BANDS`) is an ordinal one-hue ramp and the chart bar (`--chart-bar`) has a separate light and dark step; both were checked with the dataviz palette validator, as were the calendar's ramp (`--cal-*`) and the rankings map's diverging scale (`--anom-*`, each arm as an ordinal ramp, grey midpoint). Re-validate any colour change. Text never wears a data colour.
 - **The gap is cut by publish time.** Between daily rewrites, detections come from INPE's 10-minute files published _after_ the current day's daily file was last rewritten (its `Last-Modified`), not from detections newer than the daily file's latest. Late-processed satellite passes land in files published hours after the pass, so a time-based cutoff loses them. They're merged with `mergeDetections`, which drops exact repeats.
 - **Weather fields are null until INPE closes the day.** `dry`, `rain` and `risk` are empty in today's file and filled in the next morning's rewrite. Show them only when present, and never fill them in with defaults or zeros. A missing value and `0 mm` mean different things.
 - **Preliminary detections** (`prelim: 1`) have a state we located ourselves (`locate.ts`, about 99.9% agreement with INPE), and no municipality, biome or FRP. Say so wherever they show up, and never invent the missing fields. They're replaced on INPE's next rewrite.
