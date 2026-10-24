@@ -34,6 +34,8 @@ The project was created with the Vercel connector's `create_git_project` (linked
 
 - **Region:** the build runs on Vercel's build machines (`iad1`, Washington); that's expected. The _function_ must run in São Paulo: `curl -sI https://focosbr.vercel.app/api/fires?h=24 | grep x-vercel-id` shows `gru1::gru1::…`.
 - **CDN:** the response's `cache-control` shows only `public, max-age=60`. Vercel consumes `s-maxage` and `stale-while-revalidate` itself and strips them, so that's expected. A second request within 5 minutes shows `x-vercel-cache: HIT`.
+- **CI:** GitHub Actions runs lint, typecheck, tests and build on every push and PR (`gh run list`). Vercel deploys `main` even if CI fails, so check it.
+- **Share cards:** `/og` → `image/png`, ~50–100 KB (WhatsApp drops previews over ~300 KB). Preview a link's card with any OG debugger, or open `/og?uf=PA` directly.
 - **Endpoints:** `/api/fires?h=6|24|48` → 200 (cold 48 h ≈ 1.2 s), `?h=7` → 400, `/nao-existe` → 404, `/data/state-outlines.geojson` → 200.
 
 ## Operations

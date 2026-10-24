@@ -14,7 +14,9 @@ Same stack as GeoparqueBR: TanStack Start, Mantine 9, MapLibre GL 6 with OpenFre
 - Download of the filtered detections as CSV or GeoJSON, with INPE's attribution.
 - Gaps between INPE's daily updates are filled from its 10-minute files. Those detections are marked preliminary, with the state located from IBGE outlines, until the next update.
 - How fresh INPE's data is, with a warning when the feed is over two hours old.
-- Every filter lives in the URL, so a view can be shared. The page refreshes every 5 minutes.
+- A timeline replays the window hour by hour: the map, counts and lists show what had been detected up to each hour.
+- Every filter and the map position live in the URL, with a copy-link button. Shared links get a preview card with the view's fire estimate and a mini map.
+- The page refreshes every 5 minutes.
 
 A hotspot is a satellite detection of heat, not a confirmed fire. Clouds and smoke hide fires.
 
