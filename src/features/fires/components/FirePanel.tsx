@@ -4,7 +4,6 @@ import {
 	Box,
 	Chip,
 	Group,
-	Loader,
 	Paper,
 	ScrollArea,
 	SegmentedControl,
@@ -60,6 +59,7 @@ type Props = {
 	indices: number[];
 	hourly: HourBucket[] | undefined;
 	onSelectFire: (fire: TopFire) => void;
+	/** A fetch is in flight; the top progress bar shows it, the panel is aria-busy. */
 	loading: boolean;
 	error: unknown;
 	/** A refresh failed; the data on screen was loaded at `updatedAt`. */
@@ -165,6 +165,7 @@ export function FirePanel({
 			bottom={{ base: 0, sm: "auto" }}
 			w={{ base: "100%", sm: 340 }}
 			style={{ zIndex: 2, borderRadius: "var(--mantine-radius-md)" }}
+			aria-busy={loading}
 		>
 			<ScrollArea.Autosize
 				mah={{
@@ -173,12 +174,9 @@ export function FirePanel({
 				}}
 			>
 				<Stack gap="sm" p="md">
-					<Group gap="xs" wrap="nowrap" justify="space-between">
-						<Title order={2} size="h5">
-							Focos de calor no Brasil
-						</Title>
-						{loading && <Loader size="xs" aria-label="Atualizando" />}
-					</Group>
+					<Title order={2} size="h5">
+						Focos de calor no Brasil
+					</Title>
 
 					<SegmentedControl
 						fullWidth
