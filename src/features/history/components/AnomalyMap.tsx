@@ -63,7 +63,12 @@ export function AnomalyMap({
 							<path
 								d={path}
 								fill={`var(--anom-${anomalyStep(s?.ratio ?? null)})`}
-								stroke="var(--mantine-color-body)"
+								// The grey midpoint is close to the page's surface: outline it.
+								stroke={
+									anomalyStep(s?.ratio ?? null) === 0
+										? "var(--mantine-color-dimmed)"
+										: "var(--mantine-color-body)"
+								}
 								strokeWidth={1}
 								strokeLinejoin="round"
 							/>

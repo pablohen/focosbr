@@ -76,7 +76,7 @@ export function FireCalendar({
 						<ActionIcon
 							variant="subtle"
 							color="gray"
-							size="sm"
+							size="md"
 							onClick={() => setAsTable((t) => !t)}
 							aria-label={asTable ? "Ver calendário" : "Ver tabela"}
 						>

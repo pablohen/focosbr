@@ -137,7 +137,7 @@ function ComparePage() {
 									{p.name}
 								</Anchor>
 								<CloseButton
-									size="sm"
+									size="md"
 									aria-label={`Remover ${p.name}`}
 									onClick={() => setSlots(removeSlot(slots, p.slot))}
 								/>

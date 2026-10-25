@@ -75,6 +75,10 @@ export function CompareChart({
 	const [hover, setHover] = useState<number | null>(null);
 	const { ref, width: measured } = useElementSize();
 	const width = measured || 640;
+	// Phones: the legend and table name the lines, so the end labels' margin
+	// goes to the plot instead.
+	const narrow = width < 480;
+	const pad = { ...PAD, right: narrow ? 12 : PAD.right };
 	const days = lines[0]?.average.map((p) => p.day) ?? [];
 	const fmt = (v: number) =>
 		scale === "index" ? `${NUMBER.format(v)}%` : NUMBER.format(v);
@@ -84,10 +88,10 @@ export function CompareChart({
 	);
 	const step = niceStep(top);
 	const yMax = Math.ceil(top / step) * step;
-	const plotW = width - PAD.left - PAD.right;
-	const plotH = HEIGHT - PAD.top - PAD.bottom;
-	const x = (day: number) => PAD.left + (day / 365) * plotW;
-	const y = (v: number) => PAD.top + plotH - (v / yMax) * plotH;
+	const plotW = width - pad.left - pad.right;
+	const plotH = HEIGHT - pad.top - pad.bottom;
+	const x = (day: number) => pad.left + (day / 365) * plotW;
+	const y = (v: number) => pad.top + plotH - (v / yMax) * plotH;
 	const path = (pts: { day: number; value: number }[]) =>
 		`M${x(0)},${y(0)}${pts.map((p) => `L${x(p.day).toFixed(1)},${y(p.value).toFixed(1)}`).join("")}`;
 	const ends = lines.map((l) => l.current.at(-1) ?? { day: 0, value: 0 });
@@ -100,7 +104,7 @@ export function CompareChart({
 		pts.find((p) => p.day === day)?.value;
 	const onMove = (e: React.PointerEvent<SVGSVGElement>) => {
 		const box = e.currentTarget.getBoundingClientRect();
-		const day = ((e.clientX - box.left - PAD.left) / plotW) * 365;
+		const day = ((e.clientX - box.left - pad.left) / plotW) * 365;
 		let best = 0;
 		for (let k = 1; k < days.length; k++)
 			if (Math.abs((days[k] ?? 0) - day) < Math.abs((days[best] ?? 0) - day))
@@ -122,7 +126,7 @@ export function CompareChart({
 					<ActionIcon
 						variant="subtle"
 						color="gray"
-						size="sm"
+						size="md"
 						onClick={() => setAsTable((t) => !t)}
 						aria-label={asTable ? "Ver gráfico" : "Ver tabela"}
 					>
@@ -194,15 +198,15 @@ export function CompareChart({
 							{ticks.map((t) => (
 								<g key={t}>
 									<line
-										x1={PAD.left}
-										x2={width - PAD.right}
+										x1={pad.left}
+										x2={width - pad.right}
 										y1={y(t)}
 										y2={y(t)}
 										stroke="var(--mantine-color-default-border)"
 										strokeWidth={1}
 									/>
 									<text
-										x={PAD.left - 6}
+										x={pad.left - 6}
 										y={y(t)}
 										dy="0.35em"
 										textAnchor="end"
@@ -259,16 +263,20 @@ export function CompareChart({
 											stroke="var(--mantine-color-body)"
 											strokeWidth={2}
 										/>
-										<text
-											x={x(end.day) + 8}
-											y={labelY[i]}
-											dy="0.35em"
-											fontSize={11}
-											fontWeight={600}
-											fill="var(--mantine-color-text)"
-										>
-											{l.name.length > 16 ? `${l.name.slice(0, 15)}…` : l.name}
-										</text>
+										{!narrow && (
+											<text
+												x={x(end.day) + 8}
+												y={labelY[i]}
+												dy="0.35em"
+												fontSize={11}
+												fontWeight={600}
+												fill="var(--mantine-color-text)"
+											>
+												{l.name.length > 16
+													? `${l.name.slice(0, 15)}…`
+													: l.name}
+											</text>
+										)}
 									</g>
 								);
 							})}
@@ -276,8 +284,8 @@ export function CompareChart({
 								<line
 									x1={x(hd)}
 									x2={x(hd)}
-									y1={PAD.top}
-									y2={PAD.top + plotH}
+									y1={pad.top}
+									y2={pad.top + plotH}
 									stroke="var(--mantine-color-text)"
 									strokeOpacity={0.4}
 									strokeWidth={1}

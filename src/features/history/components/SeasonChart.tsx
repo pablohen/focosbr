@@ -116,7 +116,7 @@ export function SeasonChart({
 					<ActionIcon
 						variant="subtle"
 						color="gray"
-						size="sm"
+						size="md"
 						onClick={() => setAsTable((t) => !t)}
 						aria-label={asTable ? "Ver gráfico" : "Ver tabela"}
 					>
