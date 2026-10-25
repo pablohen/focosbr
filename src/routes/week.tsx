@@ -9,6 +9,7 @@ import {
 import { getWeek } from "~/features/history/history.functions";
 import { FIRST_YEAR, type WeekRow } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -106,7 +107,7 @@ function RowTable({
 
 const COLUMNS = [
 	{ head: "Focos", value: (r: WeekRow) => NUMBER.format(r.current) },
-	{ head: "vs. semana anterior", value: vsPrevious },
+	{ head: "vs. anterior", value: vsPrevious },
 	{ head: "vs. média", value: vsAverage },
 ];
 
@@ -124,38 +125,41 @@ function WeekPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Semana de {weekLabel(week.from, week.through)}
-					</Title>
-					{brazil && (
-						<Text>
-							No Brasil, <b>{NUMBER.format(brazil.current)} focos</b> detectados
-							por todos os satélites,{" "}
-							{brazil.previous > 0 && (
-								<>
-									<b>{vsPrevious(brazil)}</b> em relação à semana anterior (
-									{NUMBER.format(brazil.previous)}).{" "}
-								</>
-							)}
-							{brazil.refAverage > 0 && (
-								<>
-									Pelo satélite de referência, {NUMBER.format(brazil.ref)}{" "}
-									focos, <b>{versusAverage(brazil.ref / brazil.refAverage)}</b>{" "}
-									dessa semana desde {FIRST_YEAR} (
-									{NUMBER.format(Math.round(brazil.refAverage))}).
-								</>
-							)}
-						</Text>
-					)}
-					<Text size="sm" c="dimmed">
-						Os últimos 7 dias fechados, no horário de Brasília. “vs. média”
-						compara o satélite de referência com os mesmos dias de cada ano
-						desde {FIRST_YEAR}; as outras colunas contam todos os satélites,
-						como o mapa. Um foco é uma detecção de satélite, não um incêndio
-						confirmado.
-					</Text>
-				</Stack>
+				<PageTitle
+					title={`Semana de ${weekLabel(week.from, week.through)}`}
+					lead={
+						brazil && (
+							<>
+								No Brasil, <b>{NUMBER.format(brazil.current)} focos</b>{" "}
+								detectados por todos os satélites,{" "}
+								{brazil.previous > 0 && (
+									<>
+										<b>{vsPrevious(brazil)}</b> em relação à semana anterior (
+										{NUMBER.format(brazil.previous)}).{" "}
+									</>
+								)}
+								{brazil.refAverage > 0 && (
+									<>
+										Pelo satélite de referência, {NUMBER.format(brazil.ref)}{" "}
+										focos,{" "}
+										<b>{versusAverage(brazil.ref / brazil.refAverage)}</b> dessa
+										semana desde {FIRST_YEAR} (
+										{NUMBER.format(Math.round(brazil.refAverage))}).
+									</>
+								)}
+							</>
+						)
+					}
+					note={
+						<>
+							Os últimos 7 dias fechados, no horário de Brasília. “vs. anterior”
+							compara com a semana anterior e “vs. média” compara o satélite de
+							referência com os mesmos dias de cada ano desde {FIRST_YEAR}; as
+							outras colunas contam todos os satélites, como o mapa. Um foco é
+							uma detecção de satélite, não um incêndio confirmado.
+						</>
+					}
+				/>
 				<RowTable
 					title="Estados"
 					head="Estado"

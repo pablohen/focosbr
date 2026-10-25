@@ -1,8 +1,9 @@
-import { Stack, Table, Text, Title } from "@mantine/core";
+import { Stack, Table, Text } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { BiomeLink } from "~/features/places/components/RegionLinks";
 import { getBiomesSummary } from "~/features/places/regions.functions";
@@ -39,13 +40,11 @@ function BiomesPage() {
 	return (
 		<PageShell>
 			<Stack gap="md">
-				<Title order={1} size="h2">
-					Focos de calor por bioma
-				</Title>
-				<Text c="dimmed">
-					{regionSentence("No Brasil", summary)} Escolha um bioma para ver o
-					mapa, os municípios, os maiores fogos e o histórico desde 2003.
-				</Text>
+				<PageTitle
+					title="Focos de calor por bioma"
+					lead={regionSentence("No Brasil", summary)}
+					note="Escolha um bioma para ver o mapa, os municípios, os maiores fogos e o histórico desde 2003."
+				/>
 				<Table {...LIST_TABLE}>
 					<Table.Thead>
 						<Table.Tr>

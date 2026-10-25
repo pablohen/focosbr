@@ -1,9 +1,10 @@
-import { Anchor, Group, Stack, Table, Text, Title } from "@mantine/core";
+import { Anchor, Group, Stack, Table, Text } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
 import { HistorySection } from "~/features/history/components/HistorySection";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { StateLink } from "~/features/places/components/RegionLinks";
 import { getStatesSummary } from "~/features/places/regions.functions";
@@ -39,17 +40,23 @@ function StatesPage() {
 	return (
 		<PageShell>
 			<Stack gap="md">
-				<Title order={1} size="h2">
-					Focos de calor por estado
-				</Title>
-				<Text c="dimmed">
-					{regionSentence("No Brasil", summary)} Escolha um estado para ver o
-					mapa, os municípios e os maiores fogos, ou veja{" "}
-					<Anchor renderRoot={(props) => <Link {...props} to="/biomes" />}>
-						por bioma
-					</Anchor>
-					.
-				</Text>
+				<PageTitle
+					title="Focos de calor por estado"
+					lead={regionSentence("No Brasil", summary)}
+					note={
+						<>
+							Escolha um estado para ver o mapa, os municípios e os maiores
+							fogos, ou veja{" "}
+							<Anchor
+								renderRoot={(props) => <Link {...props} to="/biomes" />}
+								size="sm"
+							>
+								por bioma
+							</Anchor>
+							.
+						</>
+					}
+				/>
 				<Table {...LIST_TABLE}>
 					<Table.Thead>
 						<Table.Tr>

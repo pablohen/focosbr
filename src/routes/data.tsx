@@ -2,6 +2,7 @@ import { Anchor, Code, List, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { absoluteUrl, SITE_URL } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -64,17 +65,10 @@ function DataPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Dados abertos
-					</Title>
-					<Text c="dimmed">
-						Os dados do FocosBR vêm do Programa Queimadas do INPE e podem ser
-						reusados livremente, citando a fonte: “Focos de calor: INPE,
-						Programa Queimadas. Processado por FocosBR.” Um foco é uma detecção
-						de satélite, não um incêndio confirmado.
-					</Text>
-				</Stack>
+				<PageTitle
+					title="Dados abertos"
+					lead="Os dados do FocosBR vêm do Programa Queimadas do INPE e podem ser reusados livremente, citando a fonte: “Focos de calor: INPE, Programa Queimadas. Processado por FocosBR.”"
+				/>
 
 				<Section title="Histórico por região">
 					<Code block>{`GET ${SITE_URL}/api/history/<região>`}</Code>

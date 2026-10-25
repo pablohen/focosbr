@@ -1,9 +1,10 @@
-import { Anchor, Stack, Table, Text, Title } from "@mantine/core";
+import { Anchor, Stack, Table, Text } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarSeries } from "~/features/fires/components/BarSeries";
 import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -47,16 +48,11 @@ function YearsPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Focos de calor por ano
-					</Title>
-					<Text c="dimmed">
-						O Brasil a cada ano desde {FIRST_YEAR}, pelo satélite de referência
-						do INPE (a série que permite comparar anos). Escolha um ano para ver
-						os meses, estados, biomas e municípios.
-					</Text>
-				</Stack>
+				<PageTitle
+					title="Focos de calor por ano"
+					lead={`O Brasil a cada ano desde ${FIRST_YEAR}, pelo satélite de referência do INPE.`}
+					note="É a série que permite comparar anos. Escolha um ano para ver os meses, estados, biomas e municípios."
+				/>
 				{totals.length === 0 ? (
 					<Text>O histórico está indisponível no momento.</Text>
 				) : (

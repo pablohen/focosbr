@@ -9,6 +9,7 @@ import {
 	type RankingRow,
 } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import {
 	BiomeLink,
 	MunicipalityLink,
@@ -50,24 +51,20 @@ function RankingsPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Rankings do ano
-					</Title>
-					{rankings ? (
-						<Text c="dimmed">
-							Focos de {ytdPeriod(rankings.through)} de{" "}
-							{rankings.through.slice(0, 4)} pelo satélite de referência do
-							INPE, comparados com a média do mesmo período desde{" "}
-							{rankings.firstYear}.
-						</Text>
-					) : (
-						<Text c="dimmed">
-							Os rankings estão indisponíveis no momento. Tente de novo mais
-							tarde.
-						</Text>
-					)}
-				</Stack>
+				<PageTitle
+					title="Rankings do ano"
+					lead={
+						rankings
+							? `Focos de ${ytdPeriod(rankings.through)} de ${rankings.through.slice(0, 4)} pelo satélite de referência do INPE, comparados com a média do mesmo período desde ${rankings.firstYear}.`
+							: undefined
+					}
+				/>
+				{!rankings && (
+					<Text c="dimmed">
+						Os rankings estão indisponíveis no momento. Tente de novo mais
+						tarde.
+					</Text>
+				)}
 				{rankings && (
 					<>
 						<Stack gap={4}>

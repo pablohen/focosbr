@@ -1,10 +1,11 @@
-import { Anchor, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Stack, Text } from "@mantine/core";
 import { RssIcon } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { alertText } from "~/features/history/alerts";
 import { getAlerts } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { absoluteUrl } from "~/lib/site";
 
 const TITLE = "Alertas · FocosBR";
@@ -46,22 +47,16 @@ function AlertsPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Alertas
-					</Title>
-					<Text c="dimmed">
-						Quando um município, estado ou bioma passa do dobro da média de
-						focos do ano (com média de ao menos 50 focos no período), ou quando
-						um estado, bioma ou o Brasil tem o dia com mais focos desde{" "}
-						{FIRST_YEAR}. Conta o satélite de referência do INPE; atualizado
-						toda manhã.
-					</Text>
-					<Anchor href="/feed.xml" size="sm" w="fit-content">
+				<PageTitle
+					title="Alertas"
+					lead={`Quando um município, estado ou bioma passa do dobro da média de focos do ano, ou quando um estado, bioma ou o Brasil tem o dia com mais focos desde ${FIRST_YEAR}.`}
+					note="Só lugares com média de ao menos 50 focos no período. Conta o satélite de referência do INPE; atualizado toda manhã."
+				>
+					<Anchor href="/feed.xml" size="sm" w="fit-content" py={4}>
 						<RssIcon size={14} style={{ verticalAlign: "-2px" }} /> Assinar por
 						RSS
 					</Anchor>
-				</Stack>
+				</PageTitle>
 				{alerts === null ? (
 					<Text>Os alertas estão indisponíveis no momento.</Text>
 				) : alerts.length === 0 ? (

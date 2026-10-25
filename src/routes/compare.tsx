@@ -9,7 +9,6 @@ import {
 	Stack,
 	Table,
 	Text,
-	Title,
 } from "@mantine/core";
 import { createSpotlight } from "@mantine/spotlight";
 import { PlusIcon } from "@phosphor-icons/react";
@@ -32,6 +31,7 @@ import {
 import { percentVsAverage, ytdPeriod } from "~/features/history/format";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { entryKey } from "~/features/places/search";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
@@ -108,16 +108,10 @@ function ComparePage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Title order={1} size="h2">
-						Comparar lugares
-					</Title>
-					<Text c="dimmed">
-						Até {MAX_PLACES} estados, municípios ou biomas: focos do satélite de
-						referência acumulados no ano, contra a média de cada um desde{" "}
-						{FIRST_YEAR}.
-					</Text>
-				</Stack>
+				<PageTitle
+					title="Comparar lugares"
+					lead={`Até ${MAX_PLACES} estados, municípios ou biomas: focos do satélite de referência acumulados no ano, contra a média de cada um desde ${FIRST_YEAR}.`}
+				/>
 
 				<Group gap="xs">
 					{shown.map((p) => (
