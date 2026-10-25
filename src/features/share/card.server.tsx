@@ -239,6 +239,13 @@ export async function fireCard(
 		</div>
 	);
 
+	return renderCard(node);
+}
+
+/** PNG bytes for a card's JSX (Satori, then resvg). */
+async function renderCard(
+	node: Parameters<typeof satori>[0],
+): Promise<Uint8Array<ArrayBuffer>> {
 	flags[resvgReady] ??= initWasm(bytes(resvgWasm));
 	await flags[resvgReady];
 	const svg = await satori(node, {
@@ -250,5 +257,112 @@ export async function fireCard(
 		new Resvg(svg, { fitTo: { mode: "width", value: CARD_WIDTH } })
 			.render()
 			.asPng(),
+	);
+}
+
+/**
+ * A card for a summary page (/week, /years/2024): a label, a big number
+ * with its unit, a few lines, and a top-five list in the right panel.
+ */
+export function summaryCard({
+	label,
+	value,
+	unit,
+	lines,
+	listTitle,
+	list,
+}: {
+	label: string;
+	value: number;
+	unit: string;
+	lines: string[];
+	listTitle: string;
+	list: { name: string; value: number }[];
+}): Promise<Uint8Array<ArrayBuffer>> {
+	return renderCard(
+		<div
+			style={{
+				width: CARD_WIDTH,
+				height: CARD_HEIGHT,
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				background: BG,
+				color: TEXT,
+				fontFamily: "Inter",
+			}}
+		>
+			<div
+				style={{
+					width: CARD_WIDTH - 2 * PAD,
+					height: CARD_HEIGHT - 2 * PAD,
+					display: "flex",
+					gap: 40,
+				}}
+			>
+				<div
+					style={{
+						display: "flex",
+						flexDirection: "column",
+						justifyContent: "space-between",
+						flex: 1,
+						minWidth: 0,
+					}}
+				>
+					<div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+						<Mark size={44} />
+						<div style={{ fontSize: 34, fontWeight: 700 }}>FocosBR</div>
+					</div>
+					<div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+						<div style={{ fontSize: 30, color: EMBER, fontWeight: 700 }}>
+							{label}
+						</div>
+						<div style={{ display: "flex", alignItems: "baseline", gap: 16 }}>
+							<div style={{ fontSize: 96, fontWeight: 700, lineHeight: 1 }}>
+								{NUMBER.format(value)}
+							</div>
+							<div style={{ fontSize: 40, fontWeight: 700 }}>{unit}</div>
+						</div>
+						{lines.map((line) => (
+							<div key={line} style={{ fontSize: 24, color: DIM }}>
+								{line}
+							</div>
+						))}
+					</div>
+					<div style={{ display: "flex", fontSize: 20, color: DIM }}>
+						Dados: INPE, Programa Queimadas
+					</div>
+				</div>
+				<div
+					style={{
+						display: "flex",
+						flexDirection: "column",
+						width: MAP,
+						alignSelf: "center",
+						background: PANEL,
+						borderRadius: 20,
+						padding: 32,
+						gap: 16,
+					}}
+				>
+					<div style={{ fontSize: 24, color: DIM }}>{listTitle}</div>
+					{list.slice(0, 5).map((row, k) => (
+						<div
+							key={row.name}
+							style={{
+								display: "flex",
+								justifyContent: "space-between",
+								fontSize: 28,
+							}}
+						>
+							<div style={{ display: "flex" }}>{`${k + 1}. ${row.name}`}</div>
+							<div style={{ display: "flex", fontWeight: 700 }}>
+								{NUMBER.format(row.value)}
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+		</div>,
 	);
 }

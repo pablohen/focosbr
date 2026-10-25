@@ -23,6 +23,7 @@ import { Route as ApiFiresRouteImport } from './routes/api.fires'
 import { Route as BiomesIndexRouteImport } from './routes/biomes.index'
 import { Route as BiomesBiomeRouteImport } from './routes/biomes.$biome'
 import { Route as EmbedIndexRouteImport } from './routes/embed.index'
+import { Route as OgWeekRouteImport } from './routes/og_.week'
 import { Route as StatesIndexRouteImport } from './routes/states.index'
 import { Route as StatesStateRouteImport } from './routes/states.$state'
 import { Route as YearsIndexRouteImport } from './routes/years.index'
@@ -31,6 +32,7 @@ import { Route as ApiHistorySplatRouteImport } from './routes/api.history.$'
 import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
 import { Route as EmbedBiomesBiomeRouteImport } from './routes/embed.biomes.$biome'
 import { Route as EmbedStatesStateRouteImport } from './routes/embed.states.$state'
+import { Route as OgYearsYearRouteImport } from './routes/og_.years.$year'
 import { Route as EmbedCitiesStateCityRouteImport } from './routes/embed.cities.$state.$city'
 
 const IndexRoute = IndexRouteImport.update({
@@ -103,6 +105,11 @@ const EmbedIndexRoute = EmbedIndexRouteImport.update({
   path: '/embed/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OgWeekRoute = OgWeekRouteImport.update({
+  id: '/og_/week',
+  path: '/og/week',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const StatesIndexRoute = StatesIndexRouteImport.update({
   id: '/states/',
   path: '/states/',
@@ -143,6 +150,11 @@ const EmbedStatesStateRoute = EmbedStatesStateRouteImport.update({
   path: '/embed/states/$state',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OgYearsYearRoute = OgYearsYearRouteImport.update({
+  id: '/og_/years/$year',
+  path: '/og/years/$year',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EmbedCitiesStateCityRoute = EmbedCitiesStateCityRouteImport.update({
   id: '/embed/cities/$state/$city',
   path: '/embed/cities/$state/$city',
@@ -162,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
+  '/og/week': typeof OgWeekRoute
   '/states/$state': typeof StatesStateRoute
   '/years/$year': typeof YearsYearRoute
   '/biomes/': typeof BiomesIndexRoute
@@ -172,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/og/years/$year': typeof OgYearsYearRoute
   '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRoutesByTo {
@@ -187,6 +201,7 @@ export interface FileRoutesByTo {
   '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
+  '/og/week': typeof OgWeekRoute
   '/states/$state': typeof StatesStateRoute
   '/years/$year': typeof YearsYearRoute
   '/biomes': typeof BiomesIndexRoute
@@ -197,6 +212,7 @@ export interface FileRoutesByTo {
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/og/years/$year': typeof OgYearsYearRoute
   '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRoutesById {
@@ -213,6 +229,7 @@ export interface FileRoutesById {
   '/api/alerts': typeof ApiAlertsRoute
   '/api/fires': typeof ApiFiresRoute
   '/biomes/$biome': typeof BiomesBiomeRoute
+  '/og_/week': typeof OgWeekRoute
   '/states/$state': typeof StatesStateRoute
   '/years/$year': typeof YearsYearRoute
   '/biomes/': typeof BiomesIndexRoute
@@ -223,6 +240,7 @@ export interface FileRoutesById {
   '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
+  '/og_/years/$year': typeof OgYearsYearRoute
   '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
 }
 export interface FileRouteTypes {
@@ -240,6 +258,7 @@ export interface FileRouteTypes {
     | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
+    | '/og/week'
     | '/states/$state'
     | '/years/$year'
     | '/biomes/'
@@ -250,6 +269,7 @@ export interface FileRouteTypes {
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
+    | '/og/years/$year'
     | '/embed/cities/$state/$city'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -265,6 +285,7 @@ export interface FileRouteTypes {
     | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
+    | '/og/week'
     | '/states/$state'
     | '/years/$year'
     | '/biomes'
@@ -275,6 +296,7 @@ export interface FileRouteTypes {
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
+    | '/og/years/$year'
     | '/embed/cities/$state/$city'
   id:
     | '__root__'
@@ -290,6 +312,7 @@ export interface FileRouteTypes {
     | '/api/alerts'
     | '/api/fires'
     | '/biomes/$biome'
+    | '/og_/week'
     | '/states/$state'
     | '/years/$year'
     | '/biomes/'
@@ -300,6 +323,7 @@ export interface FileRouteTypes {
     | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
+    | '/og_/years/$year'
     | '/embed/cities/$state/$city'
   fileRoutesById: FileRoutesById
 }
@@ -316,6 +340,7 @@ export interface RootRouteChildren {
   ApiAlertsRoute: typeof ApiAlertsRoute
   ApiFiresRoute: typeof ApiFiresRoute
   BiomesBiomeRoute: typeof BiomesBiomeRoute
+  OgWeekRoute: typeof OgWeekRoute
   StatesStateRoute: typeof StatesStateRoute
   YearsYearRoute: typeof YearsYearRoute
   BiomesIndexRoute: typeof BiomesIndexRoute
@@ -326,6 +351,7 @@ export interface RootRouteChildren {
   CitiesStateCityRoute: typeof CitiesStateCityRoute
   EmbedBiomesBiomeRoute: typeof EmbedBiomesBiomeRoute
   EmbedStatesStateRoute: typeof EmbedStatesStateRoute
+  OgYearsYearRoute: typeof OgYearsYearRoute
   EmbedCitiesStateCityRoute: typeof EmbedCitiesStateCityRoute
 }
 
@@ -429,6 +455,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/og_/week': {
+      id: '/og_/week'
+      path: '/og/week'
+      fullPath: '/og/week'
+      preLoaderRoute: typeof OgWeekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/states/': {
       id: '/states/'
       path: '/states'
@@ -485,6 +518,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmbedStatesStateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/og_/years/$year': {
+      id: '/og_/years/$year'
+      path: '/og/years/$year'
+      fullPath: '/og/years/$year'
+      preLoaderRoute: typeof OgYearsYearRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/embed/cities/$state/$city': {
       id: '/embed/cities/$state/$city'
       path: '/embed/cities/$state/$city'
@@ -508,6 +548,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAlertsRoute: ApiAlertsRoute,
   ApiFiresRoute: ApiFiresRoute,
   BiomesBiomeRoute: BiomesBiomeRoute,
+  OgWeekRoute: OgWeekRoute,
   StatesStateRoute: StatesStateRoute,
   YearsYearRoute: YearsYearRoute,
   BiomesIndexRoute: BiomesIndexRoute,
@@ -518,6 +559,7 @@ const rootRouteChildren: RootRouteChildren = {
   CitiesStateCityRoute: CitiesStateCityRoute,
   EmbedBiomesBiomeRoute: EmbedBiomesBiomeRoute,
   EmbedStatesStateRoute: EmbedStatesStateRoute,
+  OgYearsYearRoute: OgYearsYearRoute,
   EmbedCitiesStateCityRoute: EmbedCitiesStateCityRoute,
 }
 export const routeTree = rootRouteImport
