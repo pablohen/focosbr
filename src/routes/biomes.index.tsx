@@ -1,8 +1,8 @@
-import { Container, Stack, Table, Text, Title } from "@mantine/core";
+import { Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { BiomeLink } from "~/features/places/components/RegionLinks";
 import { getBiomesSummary } from "~/features/places/regions.functions";
@@ -36,9 +36,8 @@ export const Route = createFileRoute("/biomes/")({
 function BiomesPage() {
 	const summary = Route.useLoaderData();
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="md">
-				<PageHeader />
 				<Title order={1} size="h2">
 					Focos de calor por bioma
 				</Title>
@@ -78,6 +77,6 @@ function BiomesPage() {
 					Queimadas.
 				</Text>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

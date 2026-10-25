@@ -1,9 +1,9 @@
-import { Anchor, Container, Stack, Table, Text, Title } from "@mantine/core";
+import { Anchor, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarSeries } from "~/features/fires/components/BarSeries";
 import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -44,9 +44,8 @@ function YearsPage() {
 	const lastYear = totals.at(-1)?.year;
 	const partial = s ? s.through.slice(0, 4) === String(lastYear) : false;
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Focos de calor por ano
@@ -106,6 +105,6 @@ function YearsPage() {
 					</>
 				)}
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

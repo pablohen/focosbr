@@ -1,16 +1,7 @@
-import {
-	Anchor,
-	Code,
-	Container,
-	List,
-	Stack,
-	Table,
-	Text,
-	Title,
-} from "@mantine/core";
+import { Anchor, Code, List, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl, SITE_URL } from "~/lib/site";
 
 const TITLE = "Dados abertos · FocosBR";
@@ -70,9 +61,8 @@ const FIELDS = [
 
 function DataPage() {
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Dados abertos
@@ -160,6 +150,6 @@ console.log(region.name, history.ytd.current, history.ytd.ratio);`}
 					</Text>
 				</Section>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

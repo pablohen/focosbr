@@ -1,14 +1,5 @@
-import {
-	Anchor,
-	AppShell,
-	Box,
-	Center,
-	Group,
-	Loader,
-	Text,
-} from "@mantine/core";
-import { FireIcon } from "@phosphor-icons/react";
-import { ClientOnly, Link } from "@tanstack/react-router";
+import { AppShell, Box, Center, Loader } from "@mantine/core";
+import { ClientOnly } from "@tanstack/react-router";
 import {
 	lazy,
 	type ReactNode,
@@ -17,9 +8,7 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import { SearchButton } from "~/features/places/components/SearchButton";
-import { CopyLinkButton } from "~/features/share/components/CopyLinkButton";
-import { ColorSchemeToggle } from "~/features/theme/components/ColorSchemeToggle";
+import { SiteHeader } from "~/features/places/components/SiteHeader";
 import { useProgress } from "~/lib/route-progress";
 import type { BBox, FiresSearch, Sensor, Window } from "../schemas";
 import { useFires } from "../use-fires";
@@ -121,58 +110,7 @@ export function FiresView({ title, intro, search, onSearchChange }: Props) {
 	return (
 		<AppShell header={{ height: 56 }} padding={0}>
 			<AppShell.Header>
-				<Group
-					h="100%"
-					px={{ base: "xs", sm: "md" }}
-					justify="space-between"
-					wrap="nowrap"
-				>
-					<Group gap="xs" wrap="nowrap">
-						{/* On phones only the icon shows; the label keeps the link named. */}
-						<Link
-							to="/"
-							aria-label="FocosBR"
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: 8,
-								color: "inherit",
-								textDecoration: "none",
-							}}
-						>
-							<FireIcon
-								size={26}
-								weight="duotone"
-								color="var(--mantine-primary-color-filled)"
-								aria-hidden
-							/>
-							<Text fw={700} fz="h4" visibleFrom="xs">
-								FocosBR
-							</Text>
-						</Link>
-						<Anchor
-							renderRoot={(props) => <Link {...props} to="/states" />}
-							size="sm"
-							ml={{ base: 4, sm: "xs" }}
-						>
-							Estados
-						</Anchor>
-						<Anchor
-							renderRoot={(props) => <Link {...props} to="/rankings" />}
-							size="sm"
-						>
-							Rankings
-						</Anchor>
-						<Text size="sm" c="dimmed" visibleFrom="lg">
-							Focos de calor detectados por satélite, quase em tempo real
-						</Text>
-					</Group>
-					<Group gap="xs" wrap="nowrap">
-						<SearchButton />
-						<CopyLinkButton />
-						<ColorSchemeToggle />
-					</Group>
-				</Group>
+				<SiteHeader bare />
 			</AppShell.Header>
 
 			<AppShell.Main>

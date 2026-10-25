@@ -1,10 +1,10 @@
-import { Anchor, Container, Stack, Text, Title } from "@mantine/core";
+import { Anchor, Stack, Text, Title } from "@mantine/core";
 import { RssIcon } from "@phosphor-icons/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { alertText } from "~/features/history/alerts";
 import { getAlerts } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
 
 const TITLE = "Alertas · FocosBR";
@@ -44,9 +44,8 @@ export const Route = createFileRoute("/alerts")({
 function AlertsPage() {
 	const alerts = Route.useLoaderData();
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Alertas
@@ -105,6 +104,6 @@ function AlertsPage() {
 					</Anchor>
 				</Text>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

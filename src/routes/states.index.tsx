@@ -1,17 +1,9 @@
-import {
-	Anchor,
-	Container,
-	Group,
-	Stack,
-	Table,
-	Text,
-	Title,
-} from "@mantine/core";
+import { Anchor, Group, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
 import { HistorySection } from "~/features/history/components/HistorySection";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { StateLink } from "~/features/places/components/RegionLinks";
 import { getStatesSummary } from "~/features/places/regions.functions";
@@ -44,9 +36,8 @@ export const Route = createFileRoute("/states/")({
 function StatesPage() {
 	const summary = Route.useLoaderData();
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="md">
-				<PageHeader />
 				<Title order={1} size="h2">
 					Focos de calor por estado
 				</Title>
@@ -103,6 +94,6 @@ function StatesPage() {
 					</Text>
 				</Group>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

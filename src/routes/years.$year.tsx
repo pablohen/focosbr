@@ -1,6 +1,5 @@
 import {
 	Anchor,
-	Container,
 	Group,
 	SimpleGrid,
 	Stack,
@@ -13,7 +12,7 @@ import { BarSeries } from "~/features/fires/components/BarSeries";
 import { yearSentence } from "~/features/history/format";
 import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR, type YearRow } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -104,9 +103,8 @@ function YearPage() {
 	const s = Route.useLoaderData();
 	const last = s.totals.at(-1)?.year ?? s.year;
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Group justify="space-between">
 						<Anchor
@@ -183,6 +181,6 @@ function YearPage() {
 					Programa Queimadas.
 				</Text>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }

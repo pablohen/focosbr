@@ -1,8 +1,7 @@
-import { Container } from "@mantine/core";
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { WindowSchema } from "~/features/fires/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { RegionDetails } from "~/features/places/components/RegionDetails";
 import { regionSentence } from "~/features/places/components/RegionIntro";
 import { statePath } from "~/features/places/places";
@@ -47,14 +46,13 @@ function StatePage() {
 	const details = Route.useLoaderData();
 	const navigate = Route.useNavigate();
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
-			<PageHeader />
+		<PageShell>
 			<RegionDetails
 				details={details}
 				onHoursChange={(h) =>
 					navigate({ search: { h: h === 24 ? undefined : h } })
 				}
 			/>
-		</Container>
+		</PageShell>
 	);
 }

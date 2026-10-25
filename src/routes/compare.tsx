@@ -3,7 +3,6 @@ import {
 	Box,
 	Button,
 	CloseButton,
-	Container,
 	Group,
 	Paper,
 	SegmentedControl,
@@ -32,7 +31,7 @@ import {
 } from "~/features/compare/slots";
 import { percentVsAverage, ytdPeriod } from "~/features/history/format";
 import { FIRST_YEAR } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { entryKey } from "~/features/places/search";
 import { absoluteUrl } from "~/lib/site";
 
@@ -106,9 +105,8 @@ function ComparePage() {
 	};
 
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Comparar lugares
@@ -276,6 +274,6 @@ function ComparePage() {
 					/>
 				</Suspense>
 			)}
-		</Container>
+		</PageShell>
 	);
 }

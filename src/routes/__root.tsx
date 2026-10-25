@@ -3,10 +3,10 @@ import "@fontsource/inter/600.css";
 import "@fontsource/inter/700.css";
 import {
 	Anchor,
-	Center,
 	MantineProvider,
 	mantineHtmlProps,
 	Stack,
+	Text,
 	Title,
 } from "@mantine/core";
 import mantineCss from "@mantine/core/styles.css?url";
@@ -23,6 +23,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
+import { PageShell } from "~/features/places/components/PageShell";
 import { registerServiceWorker } from "~/lib/pwa";
 import { createQueryClient } from "~/lib/query-client";
 import { RouteProgress } from "~/lib/route-progress";
@@ -83,16 +84,22 @@ export const Route = createRootRoute({
 
 function NotFound() {
 	return (
-		<Center h="100dvh">
-			<Stack align="center" gap="xs">
+		<PageShell>
+			{/* React hoists this into <head>, over the home page's title. */}
+			<title>Página não encontrada · FocosBR</title>
+			<Stack align="center" gap="xs" py="xl">
 				<Title order={1} size="h2">
 					Página não encontrada
 				</Title>
-				<Anchor component={Link} to="/">
+				<Text c="dimmed" ta="center">
+					O endereço pode estar errado, ou o lugar não existe. Busque um estado,
+					bioma ou município no topo da página.
+				</Text>
+				<Anchor renderRoot={(props) => <Link {...props} to="/" />}>
 					Voltar ao mapa
 				</Anchor>
 			</Stack>
-		</Center>
+		</PageShell>
 	);
 }
 

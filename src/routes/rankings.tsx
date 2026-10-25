@@ -1,4 +1,4 @@
-import { Anchor, Container, Stack, Table, Text, Title } from "@mantine/core";
+import { Anchor, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { AnomalyMap } from "~/features/history/components/AnomalyMap";
@@ -8,7 +8,7 @@ import {
 	RANKING_MIN_AVERAGE,
 	type RankingRow,
 } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import {
 	BiomeLink,
 	MunicipalityLink,
@@ -47,9 +47,8 @@ export const Route = createFileRoute("/rankings")({
 function RankingsPage() {
 	const rankings = Route.useLoaderData();
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Rankings do ano
@@ -146,7 +145,7 @@ function RankingsPage() {
 					</>
 				)}
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }
 

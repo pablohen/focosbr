@@ -1,12 +1,4 @@
-import {
-	Anchor,
-	Container,
-	SimpleGrid,
-	Stack,
-	Table,
-	Text,
-	Title,
-} from "@mantine/core";
+import { Anchor, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import {
@@ -16,7 +8,7 @@ import {
 } from "~/features/history/format";
 import { getWeek } from "~/features/history/history.functions";
 import { FIRST_YEAR, type WeekRow } from "~/features/history/schemas";
-import { PageHeader } from "~/features/places/components/PageHeader";
+import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -112,23 +104,16 @@ function WeekPage() {
 	const week = Route.useLoaderData();
 	if (!week)
 		return (
-			<Container
-				component="main"
-				size="md"
-				px={{ base: "sm", sm: "md" }}
-				py="md"
-			>
-				<PageHeader />
+			<PageShell>
 				<Text>O resumo da semana está indisponível no momento.</Text>
-			</Container>
+			</PageShell>
 		);
 	const brazil = week.regions.find((r) => r.kind === "country");
 	const states = week.regions.filter((r) => r.kind === "state");
 	const biomes = week.regions.filter((r) => r.kind === "biome");
 	return (
-		<Container component="main" size="md" px={{ base: "sm", sm: "md" }} py="md">
+		<PageShell>
 			<Stack gap="lg">
-				<PageHeader />
 				<Stack gap={4}>
 					<Title order={1} size="h2">
 						Semana de {weekLabel(week.from, week.through)}
@@ -199,6 +184,6 @@ function WeekPage() {
 					.
 				</Text>
 			</Stack>
-		</Container>
+		</PageShell>
 	);
 }
