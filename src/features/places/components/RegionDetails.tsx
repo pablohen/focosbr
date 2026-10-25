@@ -153,25 +153,27 @@ export function RegionDetails({
 		<Stack gap="xl">
 			<Stack gap="xs">
 				{biome ? (
-					<Breadcrumbs separator="›" fz="sm">
+					<Breadcrumbs separator="›" fz="sm" py={4}>
 						<Anchor
 							renderRoot={(props) => <Link {...props} to="/biomes" />}
 							size="sm"
+							py={6}
 						>
 							Biomas
 						</Anchor>
 						<Text size="sm">{biome.name}</Text>
 					</Breadcrumbs>
 				) : (
-					<Breadcrumbs separator="›" fz="sm">
+					<Breadcrumbs separator="›" fz="sm" py={4}>
 						<Anchor
 							renderRoot={(props) => <Link {...props} to="/states" />}
 							size="sm"
+							py={6}
 						>
 							Estados
 						</Anchor>
 						{city ? (
-							<StateLink uf={city.uf} hours={d.hours} size="sm">
+							<StateLink uf={city.uf} hours={d.hours} size="sm" py={6}>
 								{city.stateName}
 							</StateLink>
 						) : (
@@ -326,7 +328,8 @@ export function RegionDetails({
 									</Stack>
 									<Anchor
 										size="xs"
-										style={{ whiteSpace: "nowrap" }}
+										py={6}
+										style={{ whiteSpace: "nowrap", display: "inline-block" }}
 										renderRoot={(props) => (
 											<Link
 												{...props}
@@ -424,8 +427,8 @@ export function RegionDetails({
 			)}
 
 			<Text size="xs" c="dimmed">
-				Foco de calor é uma detecção de satélite, não um incêndio confirmado;
-				nuvens e fumaça escondem focos. Dados: INPE, Programa Queimadas.
+				Nuvens e fumaça escondem focos: não ter focos não garante que não haja
+				fogo.
 			</Text>
 		</Stack>
 	);
