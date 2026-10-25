@@ -1,3 +1,4 @@
+import { useComputedColorScheme } from "@mantine/core";
 import type { FeatureCollection, Point } from "geojson";
 import {
 	type ExpressionSpecification,
@@ -30,8 +31,16 @@ import {
 // once Vite rebundles it; point it at the published worker instead.
 setWorkerUrl(workerUrl);
 
-/** OpenFreeMap's style; free and keyless. */
-const STYLE_URL = "https://tiles.openfreemap.org/styles/liberty";
+/**
+ * OpenFreeMap's styles, free and keyless: light, and dark for the dark
+ * theme. The age colours pass the palette check on both backgrounds.
+ */
+const STYLE_URL = {
+	light: "https://tiles.openfreemap.org/styles/liberty",
+	dark: "https://tiles.openfreemap.org/styles/dark",
+} as const;
+/** The selected state's outline: dark on the light map, light on the dark one. */
+const OUTLINE_COLOR = { light: "#3b3b3b", dark: "#d4d4d4" } as const;
 
 const BRAZIL: BBox = [-74, -34, -34.5, 5.5];
 const SOURCE = "fires";
@@ -250,6 +259,12 @@ export default function FireMap({
 	const containerRef = useRef<HTMLDivElement>(null);
 	const mapRef = useRef<MapLibreMap | null>(null);
 	const [ready, setReady] = useState(false);
+	// Client-only component: read the scheme now, not after an effect, so the
+	// map starts in the right style.
+	const scheme = useComputedColorScheme("light", {
+		getInitialValueInEffect: false,
+	});
+	const styleScheme = useRef(scheme);
 	const popupRef = useRef<Popup | null>(null);
 	// The selection the map last fitted to; "" is the whole country. A map
 	// opened at a URL position keeps it instead of fitting the selection.
@@ -269,7 +284,7 @@ export default function FireMap({
 		if (!containerRef.current) return;
 		const map = new MapLibreMap({
 			container: containerRef.current,
-			style: STYLE_URL,
+			style: STYLE_URL[styleScheme.current],
 			bounds: openAt.current ?? BRAZIL,
 			fitBoundsOptions: { padding: panelPadding(containerRef.current) },
 			attributionControl: {
@@ -323,7 +338,10 @@ export default function FireMap({
 				type: "line",
 				source: STATES,
 				filter: ["==", ["get", "uf"], ""],
-				paint: { "line-color": "#3b3b3b", "line-width": 1.5 },
+				paint: {
+					"line-color": OUTLINE_COLOR[styleScheme.current],
+					"line-width": 1.5,
+				},
 			});
 			// At low zoom nearby detections merge into clusters, coloured by their
 			// newest detection; 28k dots on one screen just overlap.
@@ -469,6 +487,40 @@ export default function FireMap({
 		if (!ready) return;
 		mapRef.current?.getSource<GeoJSONSource>(SOURCE)?.setData(features);
 	}, [ready, features]);
+
+	// The theme changed: swap the basemap, carrying our sources and layers
+	// (outline, clusters, dots) into the new style so nothing reloads.
+	useEffect(() => {
+		const map = mapRef.current;
+		if (!ready || !map || styleScheme.current === scheme) return;
+		styleScheme.current = scheme;
+		const ours = new Set([STATE_OUTLINE, CLUSTERS, CLUSTER_COUNT, SOURCE]);
+		map.setStyle(STYLE_URL[scheme], {
+			transformStyle: (previous, next) => ({
+				...next,
+				sources: {
+					...next.sources,
+					...(previous && {
+						[STATES]: previous.sources[STATES],
+						[SOURCE]: previous.sources[SOURCE],
+					}),
+				},
+				layers: [
+					...next.layers,
+					...(previous?.layers ?? [])
+						.filter((l) => ours.has(l.id))
+						.map((l) =>
+							l.id === STATE_OUTLINE && l.type === "line"
+								? {
+										...l,
+										paint: { ...l.paint, "line-color": OUTLINE_COLOR[scheme] },
+									}
+								: l,
+						),
+				],
+			}),
+		});
+	}, [ready, scheme]);
 
 	useEffect(() => {
 		if (!ready) return;
