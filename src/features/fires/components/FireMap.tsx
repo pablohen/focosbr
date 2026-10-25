@@ -10,6 +10,7 @@ import {
 } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import { useEffect, useRef, useState } from "react";
+import { clock, momentDay, shortMoment } from "~/lib/dates";
 import { autoHideAttribution } from "~/lib/map-attribution";
 import type { BBox, FiresResponse } from "../schemas";
 import {
@@ -65,33 +66,15 @@ function panelPadding(container: HTMLElement) {
 		: { left: 8, top: 8, right: 8, bottom: window.innerHeight * 0.45 + 8 };
 }
 
-const TIME = new Intl.DateTimeFormat("pt-BR", {
-	dateStyle: "short",
-	timeStyle: "short",
-	timeZone: "America/Sao_Paulo",
-});
-
 const NUMBER = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
 const COORD = new Intl.NumberFormat("pt-BR", {
 	minimumFractionDigits: 4,
 	maximumFractionDigits: 4,
 });
-const CLOCK = new Intl.DateTimeFormat("pt-BR", {
-	timeStyle: "short",
-	timeZone: "America/Sao_Paulo",
-});
-
-const DAY = new Intl.DateTimeFormat("pt-BR", {
-	day: "2-digit",
-	month: "2-digit",
-	timeZone: "America/Sao_Paulo",
-});
-
 /** "14:41 a 14:43", or with dates when the span crosses midnight in Brasília. */
 function span(first: Date, last: Date): string {
-	const sameDay = DAY.format(first) === DAY.format(last);
-	const at = (d: Date) =>
-		sameDay ? CLOCK.format(d) : `${DAY.format(d)} ${CLOCK.format(d)}`;
+	const sameDay = momentDay(first) === momentDay(last);
+	const at = (d: Date) => (sameDay ? clock(d) : shortMoment(d));
 	return `${at(first)} a ${at(last)}`;
 }
 
@@ -139,7 +122,7 @@ function popupContent(
 	});
 	const row = (label: string, value: string) =>
 		rows.append(el("dt", label, dimmed), el("dd", value, { margin: "0" }));
-	row("Quando", `${TIME.format(fire.time)} (Brasília)`);
+	row("Quando", `${shortMoment(fire.time)} (Brasília)`);
 	const resolution = SENSOR_RESOLUTION[fire.sensor];
 	row(
 		"Satélite",

@@ -2,6 +2,7 @@ import { Anchor, Button, Group, Menu, Stack, Text, Title } from "@mantine/core";
 import { DownloadSimpleIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import { BarSeries } from "~/features/fires/components/BarSeries";
+import { longDate, shortDate } from "~/lib/dates";
 import { saveFile } from "~/lib/download";
 import { HISTORY_TABLES, historyCsv, historyFileName } from "../export";
 import { versusAverage, ytdPeriod } from "../format";
@@ -15,13 +16,6 @@ const MONTH = new Intl.DateTimeFormat("pt-BR", {
 	year: "numeric",
 	timeZone: "UTC",
 });
-const DAY = new Intl.DateTimeFormat("pt-BR", {
-	day: "2-digit",
-	month: "2-digit",
-	year: "2-digit",
-	timeZone: "UTC",
-});
-const DATE = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 const focos = (n: number) =>
 	`${NUMBER.format(n)} ${n === 1 ? "foco" : "focos"}`;
 
@@ -135,7 +129,7 @@ export function HistorySection({
 				title="Últimos 90 dias (todos os satélites)"
 				bars={days.map((d) => ({
 					key: d.key,
-					label: DAY.format(Date.parse(`${d.key}T00:00:00Z`)),
+					label: shortDate(d.key),
 					value: d.count,
 					partial: d.partial,
 				}))}
@@ -147,7 +141,7 @@ export function HistorySection({
 				ontem, o último dia fechado, no mesmo dia do ano. Os dias contam todos
 				os satélites, como o mapa
 				{history.daysSince &&
-					` (com registros desde ${DATE.format(Date.parse(`${history.daysSince}T00:00:00Z`))})`}
+					` (com registros desde ${longDate(history.daysSince)})`}
 				. Datas no horário de Brasília; atualizado diariamente.{" "}
 				<Anchor
 					renderRoot={(props) => <Link {...props} to="/data" />}

@@ -8,6 +8,7 @@ import {
 	Title,
 } from "@mantine/core";
 import { riskClass } from "~/features/fires/view";
+import { longDayMonth } from "~/lib/dates";
 import type { ForecastDay } from "../schemas";
 
 const PERCENT = new Intl.NumberFormat("pt-BR", { style: "percent" });
@@ -19,11 +20,6 @@ const WEEKDAY = new Intl.DateTimeFormat("pt-BR", {
 	weekday: "short",
 	day: "numeric",
 	month: "short",
-	timeZone: "UTC",
-});
-const SHORT = new Intl.DateTimeFormat("pt-BR", {
-	day: "numeric",
-	month: "numeric",
 	timeZone: "UTC",
 });
 const at = (day: string) => Date.parse(`${day}T00:00:00Z`);
@@ -49,7 +45,7 @@ export function ForecastStrip({
 	forecast: { issued: string; days: ForecastDay[] };
 	name: string;
 }) {
-	const issued = SHORT.format(at(forecast.issued));
+	const issued = longDayMonth(forecast.issued);
 	return (
 		<Stack gap="xs">
 			<Title order={2} size="h4">
