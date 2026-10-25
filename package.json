@@ -47,6 +47,7 @@
 		"@types/react-dom": "^19.3.0",
 		"@vitejs/plugin-react": "^6.1.2",
 		"fflate": "0.8.3",
+		"geotiff": "^3.0.5",
 		"nitro": "3.0.260903-beta",
 		"postcss": "^8.5.31",
 		"postcss-preset-mantine": "^1.18.0",
