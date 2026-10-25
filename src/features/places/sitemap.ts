@@ -1,9 +1,14 @@
 import { STATE_NAMES } from "../fires/states";
+import { FIRST_YEAR } from "../history/schemas";
 import { BIOMES, biomePath } from "./biomes";
 import { type Municipality, municipalityPath, statePath } from "./places";
 
 /** Every page's path: home, the states index, the rankings, the biomes, each state and each city. */
-export function sitemapPaths(cities: Municipality[]): string[] {
+export function sitemapPaths(
+	cities: Municipality[],
+	/** The last year with a /years page (the current one). */
+	lastYear: number,
+): string[] {
 	return [
 		"/",
 		"/states",
@@ -12,6 +17,12 @@ export function sitemapPaths(cities: Municipality[]): string[] {
 		"/data",
 		"/compare",
 		"/alerts",
+		"/week",
+		"/years",
+		...Array.from(
+			{ length: lastYear - FIRST_YEAR + 1 },
+			(_, i) => `/years/${FIRST_YEAR + i}`,
+		),
 		...BIOMES.map((b) => biomePath(b.slug)),
 		...Object.keys(STATE_NAMES).sort().map(statePath),
 		...cities.map((c) => municipalityPath(c.uf, c.name)),

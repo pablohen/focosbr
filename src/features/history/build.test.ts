@@ -5,9 +5,11 @@ import {
 	calendarStep,
 	createHistoryAggregator,
 	dayOfYear,
+	lastWeek,
 	localKeys,
 	regionSeries,
 	seasonCurve,
+	weekStats,
 	ytdSummary,
 } from "./build";
 import { DAYS_SHOWN, FIRST_YEAR, MONTHS_SHOWN } from "./schemas";
@@ -244,5 +246,43 @@ describe("anomalyStep", () => {
 
 	it("treats no past detections as about average", () => {
 		expect(anomalyStep(null)).toBe(0);
+	});
+});
+
+describe("lastWeek", () => {
+	it("lists the 7 closed days ending yesterday, in Brasília", () => {
+		// 01:00 UTC on 26 Oct is still 25 Oct in Brasília: yesterday is the 24th.
+		expect(lastWeek(new Date(Date.UTC(2026, 9, 26, 1)))).toEqual([
+			"2026-10-18",
+			"2026-10-19",
+			"2026-10-20",
+			"2026-10-21",
+			"2026-10-22",
+			"2026-10-23",
+			"2026-10-24",
+		]);
+	});
+});
+
+describe("weekStats", () => {
+	const week = lastWeek(new Date(Date.UTC(2026, 9, 25, 15)));
+	it("sums this week and the one before, all satellites", () => {
+		const s = weekStats(
+			{ "2026-10-18": 5, "2026-10-24": 5, "2026-10-17": 4, "2026-10-11": 3 },
+			{},
+			week,
+		);
+		expect(s.current).toBe(10);
+		expect(s.previous).toBe(7);
+	});
+
+	it("compares the reference satellite with the same days of past years", () => {
+		const s = weekStats(
+			{},
+			{ "2026-10-20": 6, "2003-10-20": 46, "2010-10-24": 23, "2010-10-25": 99 },
+			week,
+		);
+		expect(s.ref).toBe(6);
+		expect(s.refAverage).toBe(Math.round((69 / (2026 - FIRST_YEAR)) * 10) / 10);
 	});
 });

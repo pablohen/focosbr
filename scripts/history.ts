@@ -33,7 +33,10 @@ import {
 import {
 	createHistoryAggregator,
 	type HistoryDetection,
+	lastWeek,
 	RENAMED,
+	weekStats,
+	yearTotals,
 	ytdSummary,
 } from "../src/features/history/build";
 import {
@@ -41,6 +44,10 @@ import {
 	FIRST_YEAR,
 	HISTORY_COLLECTION,
 	REFERENCE_SATELLITE,
+	SUMMARIES_COLLECTION,
+	SUMMARY_CITIES,
+	type WeekRow,
+	type YearRow,
 } from "../src/features/history/schemas";
 import { biomeBySlug, biomePath } from "../src/features/places/biomes";
 import list from "../src/features/places/municipalities.json";
@@ -70,17 +77,24 @@ const ufByStateName = new Map(
 const stats = { rows: 0, noState: 0, noCity: 0 };
 
 /** A history id's name and page, for alerts. */
-function describe(id: string): { name: string; path: string } | null {
-	if (id === BRAZIL_ID) return { name: "Brasil", path: "/" };
+/** A history id's region key, name and page, for alerts and summaries. */
+function describe(
+	id: string,
+): { key: string; name: string; path: string } | null {
+	if (id === BRAZIL_ID) return { key: "br", name: "Brasil", path: "/" };
 	if (id.startsWith("biome/")) {
 		const b = biomeBySlug(id.slice(6));
-		return b ? { name: b.name, path: biomePath(b.slug) } : null;
+		return b ? { key: id, name: b.name, path: biomePath(b.slug) } : null;
 	}
 	const state = STATE_NAMES[id];
-	if (state) return { name: state, path: statePath(id) };
+	if (state) return { key: id.toLowerCase(), name: state, path: statePath(id) };
 	const m = municipalities.byId.get(Number(id));
 	return m
-		? { name: placeLabel(m.name, m.uf), path: municipalityPath(m.uf, m.name) }
+		? {
+				key: `${m.uf.toLowerCase()}/${slugify(m.name)}`,
+				name: placeLabel(m.name, m.uf),
+				path: municipalityPath(m.uf, m.name),
+			}
 		: null;
 }
 
@@ -303,12 +317,28 @@ for (let i = 0; i < regions.length; i += 500) {
 // computed from what's now stored, for every region (rankings sort by them).
 const summaries = [];
 const alerts: AlertDraft[] = [];
+// The weekly and yearly pages, precomputed from every region's series.
+const week = lastWeek(now);
+const weekRows: WeekRow[] = [];
+const weekCities: WeekRow[] = [];
+const yearRows = new Map<
+	number,
+	{ states: YearRow[]; biomes: YearRow[]; cities: YearRow[] }
+>();
+let brazilMonths: Record<string, number> = {};
 for await (const doc of collection.find(
 	{},
-	{ projection: { refDays: 1, kind: 1 } },
+	{ projection: { refDays: 1, days: 1, months: 1, kind: 1 } },
 )) {
-	const { refDays = {}, kind } = doc as {
+	const {
+		refDays = {},
+		days = {},
+		months = {},
+		kind,
+	} = doc as {
 		refDays?: Record<string, number>;
+		days?: Record<string, number>;
+		months?: Record<string, number>;
 		kind?: Alert["kind"];
 	};
 	const ytd = ytdSummary(refDays, now);
@@ -318,7 +348,21 @@ for await (const doc of collection.find(
 			update: { $set: { ytd } },
 		},
 	});
-	if (kind) alerts.push(...regionAlerts({ id: doc._id, kind }, refDays, ytd));
+	if (!kind) continue;
+	alerts.push(...regionAlerts({ id: doc._id, kind }, refDays, ytd));
+	const where = describe(doc._id);
+	if (!where) continue;
+	const row = { ...where, kind, ...weekStats(days, refDays, week) };
+	(kind === "city" ? weekCities : weekRows).push(row);
+	if (kind === "country") brazilMonths = months;
+	else
+		for (const [y, count] of yearTotals(months)) {
+			const rows = yearRows.get(y) ?? { states: [], biomes: [], cities: [] };
+			rows[
+				kind === "state" ? "states" : kind === "biome" ? "biomes" : "cities"
+			].push({ ...where, kind, count });
+			yearRows.set(y, rows);
+		}
 }
 for (let i = 0; i < summaries.length; i += 1000)
 	await collection.bulkWrite(summaries.slice(i, i + 1000), { ordered: false });
@@ -327,6 +371,62 @@ await collection.createIndexes([
 	{ key: { kind: 1, "ytd.ratio": -1 }, name: "kind_ytd_ratio" },
 ]);
 console.log(`${summaries.length} year-to-date summaries`);
+
+// Summaries: the week, and every year since FIRST_YEAR.
+const summariesCollection = db.collection<{ _id: string }>(
+	SUMMARIES_COLLECTION,
+);
+const byKindOrder = { country: 0, state: 1, biome: 2, city: 3 } as const;
+weekRows.sort(
+	(a, b) => byKindOrder[a.kind] - byKindOrder[b.kind] || b.current - a.current,
+);
+await summariesCollection.replaceOne(
+	{ _id: "week" },
+	{
+		from: week[0],
+		through: week.at(-1),
+		updatedAt,
+		regions: weekRows,
+		topCities: [...weekCities]
+			.sort((a, b) => b.current - a.current)
+			.slice(0, SUMMARY_CITIES),
+		risingCities: weekCities
+			.filter((c) => c.current >= 20 && c.current > c.previous)
+			.sort((a, b) => b.current - b.previous - (a.current - a.previous))
+			.slice(0, SUMMARY_CITIES),
+	},
+	{ upsert: true },
+);
+const through = lastWeek(now).at(-1) ?? "";
+const totals = [...yearTotals(brazilMonths)]
+	.map(([year, count]) => ({ year, count }))
+	.sort((a, b) => a.year - b.year);
+const byCount = (a: YearRow, b: YearRow) => b.count - a.count;
+for (let year = FIRST_YEAR; year <= thisYear; year++) {
+	const rows = yearRows.get(year) ?? { states: [], biomes: [], cities: [] };
+	await summariesCollection.replaceOne(
+		{ _id: `year/${year}` },
+		{
+			year,
+			partial: year === thisYear,
+			through,
+			updatedAt,
+			totals,
+			months: Array.from(
+				{ length: 12 },
+				(_, m) =>
+					brazilMonths[`${year}-${String(m + 1).padStart(2, "0")}`] ?? 0,
+			),
+			states: rows.states.sort(byCount),
+			biomes: rows.biomes.sort(byCount),
+			cities: rows.cities.sort(byCount).slice(0, SUMMARY_CITIES),
+		},
+		{ upsert: true },
+	);
+}
+console.log(
+	`week ${week[0]}…${week.at(-1)} and ${thisYear - FIRST_YEAR + 1} years summarised`,
+);
 
 // Alerts: inserted once (the id carries the region and day or year), so
 // a re-run keeps each alert's first date.

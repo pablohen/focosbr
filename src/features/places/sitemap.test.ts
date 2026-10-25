@@ -3,10 +3,17 @@ import { sitemapPaths, sitemapXml } from "./sitemap";
 
 describe("sitemapPaths", () => {
 	it("lists home, the index, the rankings, every state and the given cities", () => {
-		const paths = sitemapPaths([
-			{ id: 1500602, name: "Altamira", uf: "PA" },
-			{ id: 1, name: "São Félix do Xingu", uf: "PA" },
-		]);
+		const paths = sitemapPaths(
+			[
+				{ id: 1500602, name: "Altamira", uf: "PA" },
+				{ id: 1, name: "São Félix do Xingu", uf: "PA" },
+			],
+			2026,
+		);
+		expect(paths).toContain("/week");
+		expect(paths).toContain("/years/2003");
+		expect(paths).toContain("/years/2026");
+		expect(paths).not.toContain("/years/2027");
 		expect(paths.slice(0, 7)).toEqual([
 			"/",
 			"/states",

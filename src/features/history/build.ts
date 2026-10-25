@@ -231,11 +231,7 @@ export function regionSeries(
 ): RegionHistory {
 	const today = localKeys(now.getTime());
 	const thisYear = Number(today.month.slice(0, 4));
-	const byYear = new Map<number, number>();
-	for (const [month, n] of Object.entries(stored.months)) {
-		const y = Number(month.slice(0, 4));
-		byYear.set(y, (byYear.get(y) ?? 0) + n);
-	}
+	const byYear = yearTotals(stored.months);
 	const years = [];
 	for (let y = FIRST_YEAR; y <= thisYear; y++)
 		years.push({
@@ -335,3 +331,63 @@ export const RENAMED: Record<string, string> = {
 	"RN/acu": "Assú",
 	"RN/ares": "Arez",
 };
+
+/** The 7 closed days ending yesterday (Brasília), oldest first: "2026-10-18"…"2026-10-24". */
+export function lastWeek(now: Date): string[] {
+	const yesterday = Date.parse(
+		`${localKeys(now.getTime() - DAY_MS).day}T00:00:00Z`,
+	);
+	return Array.from({ length: 7 }, (_, k) =>
+		new Date(yesterday - (6 - k) * DAY_MS).toISOString().slice(0, 10),
+	);
+}
+
+/**
+ * A region's week: all satellites this week and the week before (like the
+ * map), and the reference satellite this week against the same month-days
+ * in every past year since FIRST_YEAR (comparable across years).
+ */
+export function weekStats(
+	days: Record<string, number>,
+	refDays: Record<string, number>,
+	week: string[],
+) {
+	const sum = (m: Record<string, number>, keys: string[]) =>
+		keys.reduce((a, k) => a + (m[k] ?? 0), 0);
+	const shift = (day: string, ms: number) =>
+		new Date(Date.parse(`${day}T00:00:00Z`) + ms).toISOString().slice(0, 10);
+	const thisYear = Number(week.at(-1)?.slice(0, 4));
+	const monthDays = week.map((d) => d.slice(5));
+	const past: number[] = [];
+	for (let y = FIRST_YEAR; y < thisYear; y++)
+		past.push(
+			sum(
+				refDays,
+				monthDays.map((md) => `${y}-${md}`),
+			),
+		);
+	const refAverage = past.length
+		? past.reduce((a, b) => a + b, 0) / past.length
+		: 0;
+	return {
+		current: sum(days, week),
+		previous: sum(
+			days,
+			week.map((d) => shift(d, -7 * DAY_MS)),
+		),
+		ref: sum(refDays, week),
+		refAverage: Math.round(refAverage * 10) / 10,
+	};
+}
+
+/** Yearly sums of a region's months ("2024-08" → 2024). */
+export function yearTotals(
+	months: Record<string, number>,
+): Map<number, number> {
+	const out = new Map<number, number>();
+	for (const [month, n] of Object.entries(months)) {
+		const y = Number(month.slice(0, 4));
+		out.set(y, (out.get(y) ?? 0) + n);
+	}
+	return out;
+}

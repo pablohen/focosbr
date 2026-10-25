@@ -12,7 +12,15 @@ export const Route = createFileRoute("/sitemap.xml")({
 					"~/features/places/places.server"
 				);
 				const xml = sitemapXml(
-					sitemapPaths(municipalities.all()).map(absoluteUrl),
+					sitemapPaths(
+						municipalities.all(),
+						Number(
+							new Intl.DateTimeFormat("en", {
+								year: "numeric",
+								timeZone: "America/Sao_Paulo",
+							}).format(new Date()),
+						),
+					).map(absoluteUrl),
 				);
 				return new Response(xml, {
 					headers: {

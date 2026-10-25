@@ -144,3 +144,61 @@ export const RankingsSchema = z.object({
 	}),
 });
 export type Rankings = z.infer<typeof RankingsSchema>;
+
+/** Precomputed pages (`summaries` collection), written by the history script. */
+export const SUMMARIES_COLLECTION = "summaries";
+/** Cities listed per weekly or yearly ranking. */
+export const SUMMARY_CITIES = 15;
+
+const SummaryRegion = z.object({
+	/** Region key ("br", "pa", "pa/altamira", "biome/amazonia"). */
+	key: z.string(),
+	kind: z.enum(["country", "state", "city", "biome"]),
+	name: z.string(),
+	path: z.string(),
+});
+
+const WeekRow = SummaryRegion.extend({
+	/** All satellites this week, and the week before. */
+	current: z.number().int(),
+	previous: z.number().int(),
+	/** Reference satellite this week, and its average for the same days since FIRST_YEAR. */
+	ref: z.number().int(),
+	refAverage: z.number(),
+});
+export type WeekRow = z.infer<typeof WeekRow>;
+
+/** `_id: "week"`: the last 7 closed days (/week). */
+export const WeekSummarySchema = z.object({
+	from: z.string(),
+	through: z.string(),
+	updatedAt: z.date(),
+	/** Brazil, the states and the biomes. */
+	regions: z.array(WeekRow),
+	/** The cities with most detections this week, and those that rose most from last week. */
+	topCities: z.array(WeekRow),
+	risingCities: z.array(WeekRow),
+});
+export type WeekSummary = z.infer<typeof WeekSummarySchema>;
+
+const YearRow = SummaryRegion.extend({ count: z.number().int() });
+export type YearRow = z.infer<typeof YearRow>;
+
+/** `_id: "year/2024"`: one year, reference satellite (/years/2024). */
+export const YearSummarySchema = z.object({
+	year: z.number().int(),
+	/** The current year, still counting (through `through`). */
+	partial: z.boolean(),
+	through: z.string(),
+	updatedAt: z.date(),
+	/** Brazil's total for every year since FIRST_YEAR, to place this one. */
+	totals: z.array(
+		z.object({ year: z.number().int(), count: z.number().int() }),
+	),
+	/** Brazil's months this year. */
+	months: z.array(z.number().int()),
+	states: z.array(YearRow),
+	biomes: z.array(YearRow),
+	cities: z.array(YearRow),
+});
+export type YearSummary = z.infer<typeof YearSummarySchema>;
