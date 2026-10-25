@@ -48,9 +48,12 @@
    step is lighter to stay inside the chart lightness band). */
 :root {
 	--chart-bar: #d9431e;
+	/* The other bars when one is picked out: neutral, so only one reads as data colour. */
+	--chart-bar-muted: var(--mantine-color-gray-5);
 }
 [data-mantine-color-scheme="dark"] {
 	--chart-bar: #e45a32;
+	--chart-bar-muted: var(--mantine-color-dark-3);
 }
 
 /* Season tracker: the past years' range, a neutral band behind the lines. */

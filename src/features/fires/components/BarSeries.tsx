@@ -34,11 +34,14 @@ export function BarSeries({
 	title,
 	bars,
 	unit = "focos",
+	highlight,
 }: {
 	title: string;
 	bars: Bar[];
 	/** Plural noun for the values, in tooltips and the table header. */
 	unit?: string;
+	/** A bar's key to pick out (the page's year): the others turn neutral. */
+	highlight?: string;
 }) {
 	const [asTable, setAsTable] = useState(false);
 	const max = Math.max(1, ...bars.map((b) => b.value));
@@ -135,7 +138,11 @@ export function BarSeries({
 									<Box
 										w="100%"
 										h={b.value ? Math.max(2, (b.value / max) * HEIGHT) : 0}
-										bg="var(--chart-bar)"
+										bg={
+											highlight && b.key !== highlight
+												? "var(--chart-bar-muted)"
+												: "var(--chart-bar)"
+										}
 										opacity={b.partial ? 0.45 : 1}
 										style={{ borderRadius: "2px 2px 0 0" }}
 									/>

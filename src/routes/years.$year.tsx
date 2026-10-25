@@ -1,5 +1,6 @@
 import {
 	Anchor,
+	Breadcrumbs,
 	Group,
 	SimpleGrid,
 	Stack,
@@ -13,6 +14,7 @@ import { yearSentence } from "~/features/history/format";
 import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR, type YearRow } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
+import { PageTitle } from "~/features/places/components/PageTitle";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -115,52 +117,61 @@ function YearPage() {
 	return (
 		<PageShell>
 			<Stack gap="lg">
-				<Stack gap={4}>
-					<Group justify="space-between">
-						<Anchor
-							renderRoot={(props) => <Link {...props} to="/years" />}
-							size="sm"
-						>
-							Todos os anos
-						</Anchor>
-						<Group gap="md">
-							{s.year > FIRST_YEAR && (
+				<PageTitle
+					above={
+						<Group justify="space-between" wrap="nowrap">
+							<Breadcrumbs separator="›" fz="sm">
 								<Anchor
+									renderRoot={(props) => <Link {...props} to="/years" />}
 									size="sm"
-									renderRoot={(props) => (
-										<Link
-											{...props}
-											to="/years/$year"
-											params={{ year: String(s.year - 1) }}
-										/>
-									)}
+									py={6}
 								>
-									← {s.year - 1}
+									Anos
 								</Anchor>
-							)}
-							{s.year < last && (
-								<Anchor
-									size="sm"
-									renderRoot={(props) => (
-										<Link
-											{...props}
-											to="/years/$year"
-											params={{ year: String(s.year + 1) }}
-										/>
-									)}
-								>
-									{s.year + 1} →
-								</Anchor>
-							)}
+								<Text size="sm">{s.year}</Text>
+							</Breadcrumbs>
+							<Group gap="md" wrap="nowrap">
+								{s.year > FIRST_YEAR && (
+									<Anchor
+										size="sm"
+										py={6}
+										aria-label={`Ano anterior, ${s.year - 1}`}
+										renderRoot={(props) => (
+											<Link
+												{...props}
+												to="/years/$year"
+												params={{ year: String(s.year - 1) }}
+											/>
+										)}
+									>
+										← {s.year - 1}
+									</Anchor>
+								)}
+								{s.year < last && (
+									<Anchor
+										size="sm"
+										py={6}
+										aria-label={`Ano seguinte, ${s.year + 1}`}
+										renderRoot={(props) => (
+											<Link
+												{...props}
+												to="/years/$year"
+												params={{ year: String(s.year + 1) }}
+											/>
+										)}
+									>
+										{s.year + 1} →
+									</Anchor>
+								)}
+							</Group>
 						</Group>
-					</Group>
-					<Title order={1} size="h2">
-						Focos de calor em {s.year}
-					</Title>
-					<Text>{yearSentence(s, FIRST_YEAR)}</Text>
-				</Stack>
+					}
+					title={`Focos de calor em ${s.year}`}
+					lead={yearSentence(s, FIRST_YEAR)}
+				/>
 				<BarSeries
 					title="Por ano (satélite de referência)"
+					highlight={String(s.year)}
 					bars={s.totals.map((t) => ({
 						key: String(t.year),
 						label: String(t.year),
