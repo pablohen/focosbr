@@ -127,6 +127,20 @@ function RankingsPage() {
 								size="xs"
 							>
 								Comparar lugares
+							</Anchor>{" "}
+							·{" "}
+							<Anchor
+								renderRoot={(props) => <Link {...props} to="/week" />}
+								size="xs"
+							>
+								Resumo da semana
+							</Anchor>{" "}
+							·{" "}
+							<Anchor
+								renderRoot={(props) => <Link {...props} to="/years" />}
+								size="xs"
+							>
+								Por ano
 							</Anchor>
 						</Text>
 					</>
