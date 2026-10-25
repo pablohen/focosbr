@@ -7,6 +7,7 @@ import { regionSentence } from "~/features/places/components/RegionIntro";
 import { BiomeLink } from "~/features/places/components/RegionLinks";
 import { getBiomesSummary } from "~/features/places/regions.functions";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const TITLE = "Focos de calor por bioma · FocosBR";
@@ -45,17 +46,23 @@ function BiomesPage() {
 					{regionSentence("No Brasil", summary)} Escolha um bioma para ver o
 					mapa, os municípios, os maiores fogos e o histórico desde 2003.
 				</Text>
-				<Table striped highlightOnHover>
+				<Table {...LIST_TABLE}>
 					<Table.Thead>
 						<Table.Tr>
+							<Table.Th w={32} ta="right">
+								#
+							</Table.Th>
 							<Table.Th>Bioma</Table.Th>
 							<Table.Th ta="right">Fogos (estimativa)</Table.Th>
 							<Table.Th ta="right">Focos</Table.Th>
 						</Table.Tr>
 					</Table.Thead>
 					<Table.Tbody>
-						{summary.biomes.map((b) => (
+						{summary.biomes.map((b, i) => (
 							<Table.Tr key={b.slug}>
+								<Table.Td ta="right" c="dimmed">
+									{i + 1}
+								</Table.Td>
 								<Table.Td>
 									<BiomeLink slug={b.slug} hours={summary.hours}>
 										{b.name}

@@ -34,6 +34,7 @@ import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { entryKey } from "~/features/places/search";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const PlaceSearch = lazy(
 	() => import("~/features/places/components/PlaceSearch"),
@@ -175,7 +176,7 @@ function ComparePage() {
 					</Stack>
 				) : (
 					<>
-						<Table striped>
+						<Table {...LIST_TABLE}>
 							<Table.Thead>
 								<Table.Tr>
 									<Table.Th>Lugar</Table.Th>

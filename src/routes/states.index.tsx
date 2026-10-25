@@ -8,6 +8,7 @@ import { regionSentence } from "~/features/places/components/RegionIntro";
 import { StateLink } from "~/features/places/components/RegionLinks";
 import { getStatesSummary } from "~/features/places/regions.functions";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const TITLE = "Focos de calor por estado · FocosBR";
@@ -49,17 +50,23 @@ function StatesPage() {
 					</Anchor>
 					.
 				</Text>
-				<Table striped highlightOnHover>
+				<Table {...LIST_TABLE}>
 					<Table.Thead>
 						<Table.Tr>
+							<Table.Th w={32} ta="right">
+								#
+							</Table.Th>
 							<Table.Th>Estado</Table.Th>
 							<Table.Th ta="right">Fogos (estimativa)</Table.Th>
 							<Table.Th ta="right">Focos</Table.Th>
 						</Table.Tr>
 					</Table.Thead>
 					<Table.Tbody>
-						{summary.states.map((s) => (
+						{summary.states.map((s, i) => (
 							<Table.Tr key={s.uf}>
+								<Table.Td ta="right" c="dimmed">
+									{i + 1}
+								</Table.Td>
 								<Table.Td>
 									<StateLink uf={s.uf} hours={summary.hours}>
 										{s.name}

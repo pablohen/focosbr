@@ -14,9 +14,10 @@ import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR, type YearRow } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
-const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
+const _NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 const MONTHS = [
 	"jan.",
 	"fev.",
@@ -63,19 +64,28 @@ export const Route = createFileRoute("/years/$year")({
 	component: YearPage,
 });
 
-function YearTable({ title, rows }: { title: string; rows: YearRow[] }) {
+function YearTable({
+	title,
+	head,
+	rows,
+}: {
+	title: string;
+	/** The first column's header ("Estado"). */
+	head: string;
+	rows: YearRow[];
+}) {
 	return (
 		<Stack gap={4}>
 			<Title order={2} size="h4">
 				{title}
 			</Title>
-			<Table striped highlightOnHover style={NUMERIC}>
+			<Table {...LIST_TABLE}>
 				<Table.Thead>
 					<Table.Tr>
 						<Table.Th w={32} ta="right">
 							#
 						</Table.Th>
-						<Table.Th>Nome</Table.Th>
+						<Table.Th>{head}</Table.Th>
 						<Table.Th ta="right">Focos</Table.Th>
 					</Table.Tr>
 				</Table.Thead>
@@ -168,10 +178,14 @@ function YearPage() {
 					}))}
 				/>
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
-					<YearTable title="Estados" rows={s.states} />
+					<YearTable title="Estados" head="Estado" rows={s.states} />
 					<Stack gap="lg">
-						<YearTable title="Biomas" rows={s.biomes} />
-						<YearTable title="Municípios com mais focos" rows={s.cities} />
+						<YearTable title="Biomas" head="Bioma" rows={s.biomes} />
+						<YearTable
+							title="Municípios com mais focos"
+							head="Município"
+							rows={s.cities}
+						/>
 					</Stack>
 				</SimpleGrid>
 				<Text size="xs" c="dimmed">

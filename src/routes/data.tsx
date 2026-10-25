@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl, SITE_URL } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const TITLE = "Dados abertos · FocosBR";
 
@@ -77,7 +78,7 @@ function DataPage() {
 
 				<Section title="Histórico por região">
 					<Code block>{`GET ${SITE_URL}/api/history/<região>`}</Code>
-					<Table withTableBorder={false} fz="sm" verticalSpacing={4}>
+					<Table {...LIST_TABLE}>
 						<Table.Tbody>
 							{KEYS.map(([key, what]) => (
 								<Table.Tr key={key}>

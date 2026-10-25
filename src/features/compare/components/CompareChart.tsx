@@ -12,6 +12,7 @@ import {
 import { useElementSize } from "@mantine/hooks";
 import { ChartLineIcon, TableIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { COMPACT_TABLE } from "~/lib/tables";
 import type { CompareLine } from "../series";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -131,12 +132,7 @@ export function CompareChart({
 			</Group>
 			{asTable ? (
 				<ScrollArea.Autosize mah={320}>
-					<Table
-						verticalSpacing={2}
-						horizontalSpacing={6}
-						fz="xs"
-						style={NUMERIC}
-					>
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th>Até</Table.Th>

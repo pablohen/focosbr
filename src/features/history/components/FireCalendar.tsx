@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { SquaresFourIcon, TableIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { COMPACT_TABLE } from "~/lib/tables";
 import { CALENDAR_STEPS, calendarStep } from "../build";
 import type { RegionHistory } from "../schemas";
 
@@ -90,12 +91,7 @@ export function FireCalendar({
 			</Group>
 			{asTable ? (
 				<ScrollArea.Autosize mah={320}>
-					<Table
-						verticalSpacing={2}
-						horizontalSpacing={6}
-						fz="xs"
-						style={{ fontVariantNumeric: "tabular-nums" }}
-					>
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th>Ano</Table.Th>

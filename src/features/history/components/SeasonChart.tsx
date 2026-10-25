@@ -12,6 +12,7 @@ import {
 import { useElementSize } from "@mantine/hooks";
 import { ChartLineIcon, TableIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { COMPACT_TABLE } from "~/lib/tables";
 import type { RegionHistory } from "../schemas";
 
 type Season = RegionHistory["season"];
@@ -125,12 +126,7 @@ export function SeasonChart({
 			</Group>
 			{asTable ? (
 				<ScrollArea.Autosize mah={280}>
-					<Table
-						verticalSpacing={2}
-						horizontalSpacing={6}
-						fz="xs"
-						style={NUMERIC}
-					>
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th>Até</Table.Th>

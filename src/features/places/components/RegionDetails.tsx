@@ -21,6 +21,7 @@ import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
 import { AGE_BANDS } from "~/features/fires/view";
 import { ForecastStrip } from "~/features/forecast/components/ForecastStrip";
 import { HistorySection } from "~/features/history/components/HistorySection";
+import { LIST_TABLE } from "~/lib/tables";
 import { biomeByName } from "../biomes";
 import { slugify } from "../places";
 import type {
@@ -84,7 +85,7 @@ function CountTable({
 	head: string[];
 }) {
 	return (
-		<Table verticalSpacing={4} fz="sm" highlightOnHover>
+		<Table {...LIST_TABLE}>
 			<Table.Thead>
 				<Table.Tr>
 					{head.map((h, k) => (

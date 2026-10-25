@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { ChartBarIcon, TableIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { COMPACT_TABLE } from "~/lib/tables";
 import type { HourBucket } from "../view";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
@@ -79,7 +80,7 @@ export function HourlyChart({
 
 			{asTable ? (
 				<ScrollArea.Autosize mah={200}>
-					<Table verticalSpacing={2} horizontalSpacing={0} fz="sm">
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th fw={600}>Hora (Brasília)</Table.Th>

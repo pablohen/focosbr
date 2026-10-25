@@ -5,6 +5,7 @@ import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const TITLE = `Focos de calor por ano desde ${FIRST_YEAR} · FocosBR`;
@@ -69,11 +70,7 @@ function YearsPage() {
 								partial: partial && t.year === lastYear,
 							}))}
 						/>
-						<Table
-							striped
-							highlightOnHover
-							style={{ fontVariantNumeric: "tabular-nums" }}
-						>
+						<Table {...LIST_TABLE}>
 							<Table.Thead>
 								<Table.Tr>
 									<Table.Th>Ano</Table.Th>

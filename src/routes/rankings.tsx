@@ -16,6 +16,7 @@ import {
 } from "~/features/places/components/RegionLinks";
 import { placeLabel } from "~/features/places/places";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 const TITLE = "Rankings de focos de calor no ano · FocosBR";
@@ -77,12 +78,14 @@ function RankingsPage() {
 						</Stack>
 						<Ranking
 							title="Estados"
+							head="Estado"
 							rows={rankings.states}
 							name={(r) => <StateLink uf={r.uf}>{r.name}</StateLink>}
 						/>
 						{rankings.biomes.length > 0 && (
 							<Ranking
 								title="Biomas"
+								head="Bioma"
 								rows={rankings.biomes}
 								name={(r) => (
 									<BiomeLink slug={r.slug ?? ""}>{r.name}</BiomeLink>
@@ -91,6 +94,7 @@ function RankingsPage() {
 						)}
 						<Ranking
 							title="Municípios com mais focos"
+							head="Município"
 							rows={rankings.cities}
 							name={(r) => (
 								<MunicipalityLink uf={r.uf} name={r.name}>
@@ -100,6 +104,7 @@ function RankingsPage() {
 						/>
 						<Ranking
 							title="Municípios mais acima da própria média"
+							head="Município"
 							note={`Só municípios com média de ao menos ${RANKING_MIN_AVERAGE} focos no período; abaixo disso, poucos focos dão porcentagens enormes.`}
 							rows={rankings.aboveAverage}
 							name={(r) => (
@@ -124,11 +129,14 @@ function RankingsPage() {
 
 function Ranking({
 	title,
+	head,
 	note,
 	rows,
 	name,
 }: {
 	title: string;
+	/** The first column's header: what the rows are ("Estado"). */
+	head: string;
 	note?: string;
 	rows: RankingRow[];
 	name: (row: RankingRow) => ReactNode;
@@ -143,13 +151,13 @@ function Ranking({
 					{note}
 				</Text>
 			)}
-			<Table striped highlightOnHover>
+			<Table {...LIST_TABLE}>
 				<Table.Thead>
 					<Table.Tr>
 						<Table.Th w={32} ta="right">
 							#
 						</Table.Th>
-						<Table.Th>Nome</Table.Th>
+						<Table.Th>{head}</Table.Th>
 						<Table.Th ta="right">Focos</Table.Th>
 						<Table.Th ta="right">Média</Table.Th>
 						<Table.Th ta="right">vs. média</Table.Th>

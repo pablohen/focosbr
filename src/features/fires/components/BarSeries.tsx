@@ -10,6 +10,7 @@ import {
 } from "@mantine/core";
 import { ChartBarIcon, TableIcon } from "@phosphor-icons/react";
 import { useState } from "react";
+import { COMPACT_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
 
@@ -73,7 +74,7 @@ export function BarSeries({
 			</Group>
 			{asTable ? (
 				<ScrollArea.Autosize mah={240}>
-					<Table verticalSpacing={2} horizontalSpacing={0} fz="sm">
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th fw={600}>Período</Table.Th>

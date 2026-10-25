@@ -10,9 +10,10 @@ import { getWeek } from "~/features/history/history.functions";
 import { FIRST_YEAR, type WeekRow } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { absoluteUrl } from "~/lib/site";
+import { LIST_TABLE } from "~/lib/tables";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
-const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
+const _NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 /** "+12%" against the week before, or "novo" when it had none. */
 const vsPrevious = (r: WeekRow) =>
 	r.previous > 0
@@ -50,10 +51,13 @@ export const Route = createFileRoute("/week")({
 
 function RowTable({
 	title,
+	head,
 	rows,
 	columns,
 }: {
 	title: string;
+	/** The first column's header ("Estado"). */
+	head: string;
 	rows: WeekRow[];
 	columns: { head: string; value: (r: WeekRow) => ReactNode }[];
 }) {
@@ -62,10 +66,13 @@ function RowTable({
 			<Title order={2} size="h4">
 				{title}
 			</Title>
-			<Table striped highlightOnHover style={NUMERIC}>
+			<Table {...LIST_TABLE}>
 				<Table.Thead>
 					<Table.Tr>
-						<Table.Th>Lugar</Table.Th>
+						<Table.Th w={32} ta="right">
+							#
+						</Table.Th>
+						<Table.Th>{head}</Table.Th>
 						{columns.map((c) => (
 							<Table.Th key={c.head} ta="right">
 								{c.head}
@@ -74,8 +81,11 @@ function RowTable({
 					</Table.Tr>
 				</Table.Thead>
 				<Table.Tbody>
-					{rows.map((r) => (
+					{rows.map((r, i) => (
 						<Table.Tr key={r.key}>
+							<Table.Td ta="right" c="dimmed">
+								{i + 1}
+							</Table.Td>
 							<Table.Td>
 								<Anchor renderRoot={(props) => <Link {...props} to={r.path} />}>
 									{r.name}
@@ -146,15 +156,22 @@ function WeekPage() {
 						confirmado.
 					</Text>
 				</Stack>
-				<RowTable title="Estados" rows={states} columns={COLUMNS} />
+				<RowTable
+					title="Estados"
+					head="Estado"
+					rows={states}
+					columns={COLUMNS}
+				/>
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
 					<RowTable
 						title="Municípios com mais focos"
+						head="Município"
 						rows={week.topCities}
 						columns={COLUMNS.slice(0, 2)}
 					/>
 					<RowTable
 						title="Municípios que mais subiram"
+						head="Município"
 						rows={week.risingCities}
 						columns={[
 							{ head: "Focos", value: (r) => NUMBER.format(r.current) },
@@ -165,7 +182,7 @@ function WeekPage() {
 						]}
 					/>
 				</SimpleGrid>
-				<RowTable title="Biomas" rows={biomes} columns={COLUMNS} />
+				<RowTable title="Biomas" head="Bioma" rows={biomes} columns={COLUMNS} />
 				<Text size="xs" c="dimmed">
 					Atualizado toda manhã. Dados: INPE, Programa Queimadas.
 				</Text>

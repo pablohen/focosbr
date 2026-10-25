@@ -14,12 +14,13 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ANOMALY_STEPS } from "~/features/history/components/AnomalyMap";
 import { percentVsAverage } from "~/features/history/format";
+import { COMPACT_TABLE } from "~/lib/tables";
 import { type CityCircle, MAX_CIRCLES } from "../city-circles";
 import { MunicipalityLink } from "./RegionLinks";
 import type { RegionMapData } from "./RegionMap";
 
 const NUMBER = new Intl.NumberFormat("pt-BR");
-const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
+const _NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 
 /**
  * Where a state's season is: each city with detections this year as a
@@ -68,7 +69,7 @@ export function CityCircleMap({
 			</Text>
 			{asTable ? (
 				<ScrollArea.Autosize mah={360}>
-					<Table verticalSpacing={2} fz="sm" style={NUMERIC}>
+					<Table {...COMPACT_TABLE}>
 						<Table.Thead>
 							<Table.Tr>
 								<Table.Th>Município</Table.Th>
