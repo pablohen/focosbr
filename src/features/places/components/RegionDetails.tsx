@@ -2,6 +2,7 @@ import {
 	Anchor,
 	Breadcrumbs,
 	Button,
+	Divider,
 	Group,
 	Paper,
 	SegmentedControl,
@@ -298,7 +299,7 @@ export function RegionDetails({
 			{d.total > 0 && <HourlyChart buckets={d.hourly} />}
 
 			{d.topFires.length > 0 && (
-				<Section title="Maiores fogos">
+				<Section title={`Maiores fogos (${d.hours} h)`}>
 					<Stack
 						gap={6}
 						component="ol"
@@ -347,7 +348,7 @@ export function RegionDetails({
 			)}
 
 			{"cities" in d && d.cities.length > 0 && (
-				<Section title="Municípios com mais focos">
+				<Section title={`Municípios com mais focos (${d.hours} h)`}>
 					<CountTable
 						head={["Município", "Fogos", "Focos"]}
 						rows={d.cities.map((c) => ({
@@ -364,25 +365,10 @@ export function RegionDetails({
 				</Section>
 			)}
 
-			{"forecast" in d && d.forecast && (
-				<ForecastStrip forecast={d.forecast} name={name} />
-			)}
-
-			{d.history && <HistorySection history={d.history} name={name} />}
-
-			{state?.cityCircles && state.cityCircles.length > 0 && (
-				<CityCircleMap
-					uf={state.uf}
-					stateName={state.name}
-					map={state.map}
-					circles={state.cityCircles}
-				/>
-			)}
-
 			{d.total > 0 && (
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
 					{!biome && (
-						<Section title="Biomas">
+						<Section title={`Biomas (${d.hours} h)`}>
 							<CountTable
 								head={["Bioma", "Focos"]}
 								rows={d.biomes.map((b) => {
@@ -402,7 +388,7 @@ export function RegionDetails({
 							/>
 						</Section>
 					)}
-					<Section title="Sensores">
+					<Section title={`Sensores (${d.hours} h)`}>
 						<CountTable
 							head={["Sensor", "Focos"]}
 							rows={d.sensors.map((s) => ({
@@ -413,6 +399,27 @@ export function RegionDetails({
 						/>
 					</Section>
 				</SimpleGrid>
+			)}
+
+			{"forecast" in d && d.forecast && (
+				<Divider label="Próximos dias" labelPosition="left" />
+			)}
+			{"forecast" in d && d.forecast && (
+				<ForecastStrip forecast={d.forecast} name={name} />
+			)}
+
+			{d.history && (
+				<Divider label="No ano e desde 2003" labelPosition="left" />
+			)}
+			{d.history && <HistorySection history={d.history} name={name} />}
+
+			{state?.cityCircles && state.cityCircles.length > 0 && (
+				<CityCircleMap
+					uf={state.uf}
+					stateName={state.name}
+					map={state.map}
+					circles={state.cityCircles}
+				/>
 			)}
 
 			<Text size="xs" c="dimmed">
