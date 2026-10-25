@@ -10,6 +10,8 @@ export const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 export const LIST_TABLE = {
 	striped: true,
 	highlightOnHover: true,
+	// Five columns (with #) still fit a 375 px phone.
+	horizontalSpacing: 6,
 	fz: "sm",
 	style: NUMERIC,
 } as const;
