@@ -448,6 +448,31 @@ if (described.length) {
 	);
 	console.log(`${result.upsertedCount} new alerts`);
 }
+// An alert's name and page follow the region, not the day it was written,
+// so pages that move or get renamed keep every stored alert's link working.
+const stored = await alertsCollection
+	.find<Pick<Alert, "_id" | "regionId" | "name" | "path">>(
+		{},
+		{ projection: { regionId: 1, name: 1, path: 1 } },
+	)
+	.toArray();
+const relinked = stored.flatMap((a) => {
+	const where = describe(a.regionId);
+	return where && (where.name !== a.name || where.path !== a.path)
+		? [
+				{
+					updateOne: {
+						filter: { _id: a._id },
+						update: { $set: { name: where.name, path: where.path } },
+					},
+				},
+			]
+		: [];
+});
+if (relinked.length) {
+	await alertsCollection.bulkWrite(relinked, { ordered: false });
+	console.log(`${relinked.length} alerts relinked`);
+}
 await alertsCollection.createIndex({ createdAt: -1 }, { name: "createdAt" });
 await closeDb();
 console.log(
