@@ -31,7 +31,7 @@ export function splitPlaceLabel(
 
 export const statePath = (uf: string) => `/states/${uf.toLowerCase()}`;
 export const municipalityPath = (uf: string, name: string) =>
-	`/cities/${uf.toLowerCase()}/${slugify(name)}`;
+	`/states/${uf.toLowerCase()}/${slugify(name)}`;
 
 export type Municipality = { id: number; name: string; uf: string };
 

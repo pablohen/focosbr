@@ -41,7 +41,7 @@ export default function PlaceSearch({
 		if (e.kind === "biome")
 			return navigate({ to: "/biomes/$biome", params: { biome: e.slug } });
 		return navigate({
-			to: "/cities/$state/$city",
+			to: "/states/$state/$city",
 			params: { state: e.uf.toLowerCase(), city: e.slug },
 		});
 	};

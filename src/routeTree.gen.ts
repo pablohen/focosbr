@@ -29,11 +29,11 @@ import { Route as StatesStateRouteImport } from './routes/states.$state'
 import { Route as YearsIndexRouteImport } from './routes/years.index'
 import { Route as YearsYearRouteImport } from './routes/years.$year'
 import { Route as ApiHistorySplatRouteImport } from './routes/api.history.$'
-import { Route as CitiesStateCityRouteImport } from './routes/cities.$state.$city'
 import { Route as EmbedBiomesBiomeRouteImport } from './routes/embed.biomes.$biome'
 import { Route as EmbedStatesStateRouteImport } from './routes/embed.states.$state'
 import { Route as OgYearsYearRouteImport } from './routes/og_.years.$year'
-import { Route as EmbedCitiesStateCityRouteImport } from './routes/embed.cities.$state.$city'
+import { Route as StatesStateCityRouteImport } from './routes/states.$state_.$city'
+import { Route as EmbedStatesStateCityRouteImport } from './routes/embed.states.$state_.$city'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -135,11 +135,6 @@ const ApiHistorySplatRoute = ApiHistorySplatRouteImport.update({
   path: '/api/history/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CitiesStateCityRoute = CitiesStateCityRouteImport.update({
-  id: '/cities/$state/$city',
-  path: '/cities/$state/$city',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const EmbedBiomesBiomeRoute = EmbedBiomesBiomeRouteImport.update({
   id: '/embed/biomes/$biome',
   path: '/embed/biomes/$biome',
@@ -155,9 +150,14 @@ const OgYearsYearRoute = OgYearsYearRouteImport.update({
   path: '/og/years/$year',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EmbedCitiesStateCityRoute = EmbedCitiesStateCityRouteImport.update({
-  id: '/embed/cities/$state/$city',
-  path: '/embed/cities/$state/$city',
+const StatesStateCityRoute = StatesStateCityRouteImport.update({
+  id: '/states/$state_/$city',
+  path: '/states/$state/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedStatesStateCityRoute = EmbedStatesStateCityRouteImport.update({
+  id: '/embed/states/$state_/$city',
+  path: '/embed/states/$state/$city',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -182,11 +182,11 @@ export interface FileRoutesByFullPath {
   '/states/': typeof StatesIndexRoute
   '/years/': typeof YearsIndexRoute
   '/api/history/$': typeof ApiHistorySplatRoute
-  '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
   '/og/years/$year': typeof OgYearsYearRoute
-  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
+  '/states/$state/$city': typeof StatesStateCityRoute
+  '/embed/states/$state/$city': typeof EmbedStatesStateCityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -209,11 +209,11 @@ export interface FileRoutesByTo {
   '/states': typeof StatesIndexRoute
   '/years': typeof YearsIndexRoute
   '/api/history/$': typeof ApiHistorySplatRoute
-  '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
   '/og/years/$year': typeof OgYearsYearRoute
-  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
+  '/states/$state/$city': typeof StatesStateCityRoute
+  '/embed/states/$state/$city': typeof EmbedStatesStateCityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -237,11 +237,11 @@ export interface FileRoutesById {
   '/states/': typeof StatesIndexRoute
   '/years/': typeof YearsIndexRoute
   '/api/history/$': typeof ApiHistorySplatRoute
-  '/cities/$state/$city': typeof CitiesStateCityRoute
   '/embed/biomes/$biome': typeof EmbedBiomesBiomeRoute
   '/embed/states/$state': typeof EmbedStatesStateRoute
   '/og_/years/$year': typeof OgYearsYearRoute
-  '/embed/cities/$state/$city': typeof EmbedCitiesStateCityRoute
+  '/states/$state_/$city': typeof StatesStateCityRoute
+  '/embed/states/$state_/$city': typeof EmbedStatesStateCityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,11 +266,11 @@ export interface FileRouteTypes {
     | '/states/'
     | '/years/'
     | '/api/history/$'
-    | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
     | '/og/years/$year'
-    | '/embed/cities/$state/$city'
+    | '/states/$state/$city'
+    | '/embed/states/$state/$city'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -293,11 +293,11 @@ export interface FileRouteTypes {
     | '/states'
     | '/years'
     | '/api/history/$'
-    | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
     | '/og/years/$year'
-    | '/embed/cities/$state/$city'
+    | '/states/$state/$city'
+    | '/embed/states/$state/$city'
   id:
     | '__root__'
     | '/'
@@ -320,11 +320,11 @@ export interface FileRouteTypes {
     | '/states/'
     | '/years/'
     | '/api/history/$'
-    | '/cities/$state/$city'
     | '/embed/biomes/$biome'
     | '/embed/states/$state'
     | '/og_/years/$year'
-    | '/embed/cities/$state/$city'
+    | '/states/$state_/$city'
+    | '/embed/states/$state_/$city'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -348,11 +348,11 @@ export interface RootRouteChildren {
   StatesIndexRoute: typeof StatesIndexRoute
   YearsIndexRoute: typeof YearsIndexRoute
   ApiHistorySplatRoute: typeof ApiHistorySplatRoute
-  CitiesStateCityRoute: typeof CitiesStateCityRoute
   EmbedBiomesBiomeRoute: typeof EmbedBiomesBiomeRoute
   EmbedStatesStateRoute: typeof EmbedStatesStateRoute
   OgYearsYearRoute: typeof OgYearsYearRoute
-  EmbedCitiesStateCityRoute: typeof EmbedCitiesStateCityRoute
+  StatesStateCityRoute: typeof StatesStateCityRoute
+  EmbedStatesStateCityRoute: typeof EmbedStatesStateCityRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -497,13 +497,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHistorySplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/cities/$state/$city': {
-      id: '/cities/$state/$city'
-      path: '/cities/$state/$city'
-      fullPath: '/cities/$state/$city'
-      preLoaderRoute: typeof CitiesStateCityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/embed/biomes/$biome': {
       id: '/embed/biomes/$biome'
       path: '/embed/biomes/$biome'
@@ -525,11 +518,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OgYearsYearRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/embed/cities/$state/$city': {
-      id: '/embed/cities/$state/$city'
-      path: '/embed/cities/$state/$city'
-      fullPath: '/embed/cities/$state/$city'
-      preLoaderRoute: typeof EmbedCitiesStateCityRouteImport
+    '/states/$state_/$city': {
+      id: '/states/$state_/$city'
+      path: '/states/$state/$city'
+      fullPath: '/states/$state/$city'
+      preLoaderRoute: typeof StatesStateCityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/states/$state_/$city': {
+      id: '/embed/states/$state_/$city'
+      path: '/embed/states/$state/$city'
+      fullPath: '/embed/states/$state/$city'
+      preLoaderRoute: typeof EmbedStatesStateCityRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -556,11 +556,11 @@ const rootRouteChildren: RootRouteChildren = {
   StatesIndexRoute: StatesIndexRoute,
   YearsIndexRoute: YearsIndexRoute,
   ApiHistorySplatRoute: ApiHistorySplatRoute,
-  CitiesStateCityRoute: CitiesStateCityRoute,
   EmbedBiomesBiomeRoute: EmbedBiomesBiomeRoute,
   EmbedStatesStateRoute: EmbedStatesStateRoute,
   OgYearsYearRoute: OgYearsYearRoute,
-  EmbedCitiesStateCityRoute: EmbedCitiesStateCityRoute,
+  StatesStateCityRoute: StatesStateCityRoute,
+  EmbedStatesStateCityRoute: EmbedStatesStateCityRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

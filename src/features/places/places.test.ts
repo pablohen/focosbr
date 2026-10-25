@@ -29,7 +29,7 @@ describe("labels and paths", () => {
 	it("builds page paths", () => {
 		expect(statePath("PA")).toBe("/states/pa");
 		expect(municipalityPath("PA", "São Félix do Xingu")).toBe(
-			"/cities/pa/sao-felix-do-xingu",
+			"/states/pa/sao-felix-do-xingu",
 		);
 	});
 });

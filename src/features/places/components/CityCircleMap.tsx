@@ -124,7 +124,7 @@ export function CityCircleMap({
 						{circles.map((c) => (
 							<Tooltip key={c.slug} label={label(c)} withArrow openDelay={0}>
 								<Link
-									to="/cities/$state/$city"
+									to="/states/$state/$city"
 									params={{ state: uf.toLowerCase(), city: c.slug }}
 									aria-label={label(c)}
 								>

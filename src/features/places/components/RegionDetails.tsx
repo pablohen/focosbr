@@ -147,7 +147,7 @@ export function RegionDetails({
 	const embedPath = biome
 		? `/embed/biomes/${biome.slug}`
 		: city
-			? `/embed/cities/${city.uf.toLowerCase()}/${slugify(city.name)}`
+			? `/embed/states/${city.uf.toLowerCase()}/${slugify(city.name)}`
 			: `/embed/states/${state?.uf.toLowerCase()}`;
 
 	return (

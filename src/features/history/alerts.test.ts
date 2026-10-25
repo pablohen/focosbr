@@ -61,7 +61,7 @@ const double = {
 	_id: "double:1506807:2026",
 	type: "double" as const,
 	name: "Santarém (PA)",
-	path: "/cities/pa/santarem",
+	path: "/states/pa/santarem",
 	date: "2026-10-23",
 	current: 499,
 	average: 139,
@@ -106,7 +106,7 @@ describe("alertsRss", () => {
 		);
 		expect(xml).toContain("<title>A &amp; B passa do dobro");
 		expect(xml).toContain(
-			"<link>https://focosbr.vercel.app/cities/pa/santarem</link>",
+			"<link>https://focosbr.vercel.app/states/pa/santarem</link>",
 		);
 		expect(xml).toContain("<pubDate>Sat, 24 Oct 2026 12:40:00 GMT</pubDate>");
 		expect(xml.match(/<item>/g)).toHaveLength(1);

@@ -47,7 +47,7 @@ export function MunicipalityLink({
 			renderRoot={(root) => (
 				<Link
 					{...root}
-					to="/cities/$state/$city"
+					to="/states/$state/$city"
 					params={{ state: uf.toLowerCase(), city: slugify(name) }}
 					search={windowSearch(hours)}
 				/>

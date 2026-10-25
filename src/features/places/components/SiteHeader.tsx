@@ -12,7 +12,7 @@ const NAV = [
 	{
 		to: "/states",
 		label: "Estados",
-		match: (p: string) => p.startsWith("/states") || p.startsWith("/cities"),
+		match: (p: string) => p.startsWith("/states"),
 		phones: true,
 	},
 	{

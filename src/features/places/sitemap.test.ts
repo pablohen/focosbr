@@ -24,10 +24,12 @@ describe("sitemapPaths", () => {
 			"/alerts",
 		]);
 		expect(paths).toContain("/biomes/mata-atlantica");
-		expect(paths.filter((p) => p.startsWith("/states/"))).toHaveLength(27);
+		expect(paths.filter((p) => /^\/states\/[a-z]{2}$/.test(p))).toHaveLength(
+			27,
+		);
 		expect(paths.slice(-2)).toEqual([
-			"/cities/pa/altamira",
-			"/cities/pa/sao-felix-do-xingu",
+			"/states/pa/altamira",
+			"/states/pa/sao-felix-do-xingu",
 		]);
 	});
 });

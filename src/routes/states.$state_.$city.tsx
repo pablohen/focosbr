@@ -8,14 +8,14 @@ import { municipalityPath } from "~/features/places/places";
 import { getCityDetails } from "~/features/places/regions.functions";
 import { pageHead } from "~/features/share/head";
 
-/** A city's details page: /cities/pa/altamira. */
-export const Route = createFileRoute("/cities/$state/$city")({
+/** A city's details page: /states/pa/altamira. */
+export const Route = createFileRoute("/states/$state_/$city")({
 	validateSearch: z.object({ h: WindowSchema.optional().catch(undefined) }),
 	beforeLoad: ({ search, params }) => {
-		// One URL per city: /cities/PA/altamira → /cities/pa/altamira.
+		// One URL per city: /states/PA/altamira → /states/pa/altamira.
 		if (params.state !== params.state.toLowerCase())
 			throw redirect({
-				to: "/cities/$state/$city",
+				to: "/states/$state/$city",
 				params: { state: params.state.toLowerCase(), city: params.city },
 				search,
 				statusCode: 301,
