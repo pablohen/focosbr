@@ -194,6 +194,17 @@ export function RegionDetails({
 						aria-label="Período"
 					/>
 					<Group gap="xs">
+						{/* The page's main action: filled, and first in reading order. */}
+						<Button
+							size="xs"
+							variant="filled"
+							leftSection={<MapTrifoldIcon size={16} />}
+							renderRoot={(props) => (
+								<Link {...props} to="/" search={mapSearch} />
+							)}
+						>
+							Ver no mapa interativo
+						</Button>
 						<Button
 							size="xs"
 							variant="default"
@@ -209,16 +220,6 @@ export function RegionDetails({
 							Comparar
 						</Button>
 						<EmbedButton embedPath={embedPath} name={name} />
-						<Button
-							size="xs"
-							variant="light"
-							leftSection={<MapTrifoldIcon size={16} />}
-							renderRoot={(props) => (
-								<Link {...props} to="/" search={mapSearch} />
-							)}
-						>
-							Ver no mapa interativo
-						</Button>
 					</Group>
 				</Group>
 			</Stack>
