@@ -17,6 +17,7 @@
 		"test:watch": "vitest",
 		"geo:municipalities": "node scripts/municipalities.ts",
 		"geo:centroids": "tsx scripts/centroids.ts",
+		"icons": "tsx scripts/icons.ts",
 		"history:build": "tsx --env-file-if-exists=.env scripts/history.ts"
 	},
 	"dependencies": {

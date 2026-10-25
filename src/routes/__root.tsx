@@ -22,7 +22,8 @@ import {
 	ScriptOnce,
 	Scripts,
 } from "@tanstack/react-router";
-import { lazy, type ReactNode, Suspense, useState } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useState } from "react";
+import { registerServiceWorker } from "~/lib/pwa";
 import { createQueryClient } from "~/lib/query-client";
 import { RouteProgress } from "~/lib/route-progress";
 import appCss from "~/styles/app.css?url";
@@ -66,6 +67,8 @@ export const Route = createRootRoute({
 			{ rel: "stylesheet", href: spotlightCss },
 			{ rel: "stylesheet", href: appCss },
 			{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+			{ rel: "manifest", href: "/manifest.webmanifest" },
+			{ rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
 			{
 				rel: "alternate",
 				type: "application/rss+xml",
@@ -95,6 +98,7 @@ function NotFound() {
 
 function RootComponent() {
 	const [queryClient] = useState(createQueryClient);
+	useEffect(registerServiceWorker, []);
 	return (
 		<QueryClientProvider client={queryClient}>
 			<RootDocument>
