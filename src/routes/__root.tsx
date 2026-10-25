@@ -54,7 +54,6 @@ export const Route = createRootRoute({
 		meta: [
 			{ charSet: "utf-8" },
 			{ name: "viewport", content: "width=device-width, initial-scale=1" },
-			{ title: "FocosBR · Focos de calor no Brasil agora" },
 			{ name: "description", content: DESCRIPTION },
 			{ name: "theme-color", content: "#1f1f22" },
 			{ property: "og:site_name", content: "FocosBR" },
