@@ -242,7 +242,10 @@ export function RegionDetails({
 							atualização).
 						</Text>
 					)}
-					<Freshness sourceUpdatedAt={d.sourceUpdatedAt} />
+					<Freshness
+						sourceUpdatedAt={d.sourceUpdatedAt}
+						renderedAt={d.generatedAt}
+					/>
 					{d.weather && (
 						<Paper withBorder p="sm" radius="md">
 							<Stack gap={4}>

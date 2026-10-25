@@ -1,7 +1,7 @@
 import { Group, Text } from "@mantine/core";
 import { useInterval } from "@mantine/hooks";
 import { ClockIcon, WarningCircleIcon } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatAgo, freshness } from "../view";
 
 const CLOCK = new Intl.DateTimeFormat("pt-BR", {
@@ -12,13 +12,24 @@ const CLOCK = new Intl.DateTimeFormat("pt-BR", {
 /**
  * How old INPE's data is, ticking every minute; warns when the feed has
  * stopped updating, so an empty-looking map isn't read as "no fires".
+ *
+ * On server-rendered pages, pass `renderedAt` (the server's time): the
+ * first render then reads the same on server and client, and the clock
+ * takes over after hydration. Without it, "há 4 min" on the server and
+ * "há 5 min" in the browser fail hydration across a minute boundary.
  */
 export function Freshness({
 	sourceUpdatedAt,
+	renderedAt,
 }: {
 	sourceUpdatedAt: string | null;
+	/** ISO time the server rendered at; omit for client-only renders. */
+	renderedAt?: string;
 }) {
-	const [now, setNow] = useState(() => Date.now());
+	const [now, setNow] = useState(() =>
+		renderedAt ? Date.parse(renderedAt) : Date.now(),
+	);
+	useEffect(() => setNow(Date.now()), []);
 	useInterval(() => setNow(Date.now()), 60_000, { autoInvoke: true });
 	const age = freshness(sourceUpdatedAt, now);
 	if (!sourceUpdatedAt || !age) return null;
