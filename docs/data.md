@@ -117,7 +117,7 @@ The state and city pages (and `/states`, for Brazil) show this year so far again
 
 ## Municipalities
 
-`src/features/places/municipalities.json`: every municipality's IBGE code and official name, by state (`pnpm geo:municipalities`, from IBGE's localidades API; ~140 KB, server only). It names the detections, resolves `/cities/<state>/<city>` slugs (unique within a state) and lists the city pages in the sitemap. On 2026-10-23, 1,183 of the 1,185 municipalities with fires already matched INPE's name by slug; the 2 that didn't were renames, which the code match fixes.
+`src/features/places/municipalities.json`: every municipality's IBGE code and official name, by state (`pnpm geo:municipalities`, from IBGE's localidades API; ~140 KB, server only). It names the detections, resolves `/states/<state>/<city>` slugs (unique within a state) and lists the city pages in the sitemap. On 2026-10-23, 1,183 of the 1,185 municipalities with fires already matched INPE's name by slug; the 2 that didn't were renames, which the code match fixes.
 
 ## Static data
 
