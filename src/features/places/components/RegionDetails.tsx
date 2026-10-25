@@ -26,6 +26,7 @@ import type {
 	getCityDetails,
 	getStateDetails,
 } from "../regions.functions";
+import { CityCircleMap } from "./CityCircleMap";
 import { EmbedButton } from "./EmbedButton";
 import { regionSentence } from "./RegionIntro";
 import { BiomeLink, MunicipalityLink, StateLink } from "./RegionLinks";
@@ -360,6 +361,15 @@ export function RegionDetails({
 			)}
 
 			{d.history && <HistorySection history={d.history} name={name} />}
+
+			{state?.cityCircles && state.cityCircles.length > 0 && (
+				<CityCircleMap
+					uf={state.uf}
+					stateName={state.name}
+					map={state.map}
+					circles={state.cityCircles}
+				/>
+			)}
 
 			{d.total > 0 && (
 				<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">

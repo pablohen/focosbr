@@ -62,3 +62,27 @@ export async function loadYtd(id: string): Promise<Ytd | null> {
 		return null;
 	}
 }
+
+/** Every city's stored year-to-date summary in a state, by IBGE code (city maps). */
+export async function loadCityYtds(
+	uf: string,
+): Promise<Map<number, Ytd> | null> {
+	try {
+		const db = await getDb();
+		const docs = await db
+			.collection<{ _id: string; cityId?: number; ytd?: unknown }>(
+				HISTORY_COLLECTION,
+			)
+			.find({ kind: "city", uf }, { projection: { cityId: 1, ytd: 1 } })
+			.toArray();
+		const out = new Map<number, Ytd>();
+		for (const d of docs) {
+			const ytd = YtdSchema.safeParse(d.ytd);
+			if (ytd.success && d.cityId !== undefined) out.set(d.cityId, ytd.data);
+		}
+		return out;
+	} catch (err) {
+		console.warn(`city summaries unavailable for ${uf}:`, String(err));
+		return null;
+	}
+}

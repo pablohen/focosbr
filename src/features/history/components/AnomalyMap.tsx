@@ -6,7 +6,7 @@ import type { Rankings } from "../schemas";
 const NUMBER = new Intl.NumberFormat("pt-BR");
 
 /** The diverging scale's classes, below to above, with their labels. */
-const STEPS = [
+export const ANOMALY_STEPS = [
 	{ step: -2, label: "menos da metade" },
 	{ step: -1, label: "abaixo" },
 	{ step: 0, label: "perto da média" },
@@ -39,7 +39,7 @@ export function AnomalyMap({
 				component="svg"
 				viewBox={`0 0 ${map.width} ${map.height}`}
 				role="img"
-				aria-label={`Mapa dos estados em relação à própria média: ${STEPS.map(
+				aria-label={`Mapa dos estados em relação à própria média: ${ANOMALY_STEPS.map(
 					(s) => `${counts.get(s.step) ?? 0} ${s.label}`,
 				).join(", ")}. Os valores estão na tabela de estados.`}
 				w="100%"
@@ -72,7 +72,7 @@ export function AnomalyMap({
 				})}
 			</Box>
 			<Group gap="sm" justify="center" wrap="wrap">
-				{STEPS.map((s) => (
+				{ANOMALY_STEPS.map((s) => (
 					<Group key={s.step} gap={6} wrap="nowrap">
 						<Box
 							w={12}

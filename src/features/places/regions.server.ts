@@ -19,7 +19,7 @@ import {
 	summarize,
 	topFires,
 } from "../fires/view";
-import { loadRegionHistory } from "../history/history.server";
+import { loadCityYtds, loadRegionHistory } from "../history/history.server";
 import { BRAZIL_ID } from "../history/schemas";
 import {
 	cardBounds,
@@ -29,10 +29,13 @@ import {
 	projector,
 } from "../share/card-map";
 import { BIOMES, biomeBySlug, biomeHistoryId } from "./biomes";
+import centroids from "./centroids.json";
+import { cityCircles } from "./city-circles";
 import {
 	isState,
 	placeLabel,
 	type RegionCount,
+	slugify,
 	splitPlaceLabel,
 } from "./places";
 import { municipalities } from "./places.server";
@@ -43,7 +46,21 @@ export const DETAILS_MAP = { width: 640, height: 480 } as const;
 /** More dots than this add weight to the page without adding information. */
 const MAX_DOTS = 2000;
 
-let outlines: Outlines | undefined;
+let cachedOutlines: Outlines | undefined;
+
+/** The details map's projection, framed on a state (or Brazil). */
+function frameProjector(uf: string | undefined) {
+	cachedOutlines ??= JSON.parse(outlinesText) as Outlines;
+	const outlines = cachedOutlines;
+	return {
+		outlines,
+		project: projector(
+			cardBounds(outlines, uf),
+			DETAILS_MAP.width,
+			DETAILS_MAP.height,
+		),
+	};
+}
 
 function counts(
 	data: FiresResponse,
@@ -99,12 +116,7 @@ function details(
 
 	// The map frames the state. The region's detections are coloured by age;
 	// on a city page, the rest of the state's are drawn faintly for context.
-	outlines ??= JSON.parse(outlinesText) as Outlines;
-	const project = projector(
-		cardBounds(outlines, uf),
-		DETAILS_MAP.width,
-		DETAILS_MAP.height,
-	);
+	const { outlines, project } = frameProjector(uf);
 	const bandOf = (i: number) => {
 		const age = (nowMs / 1000 - (data.fires.t[i] ?? 0)) / 3600;
 		const k = AGE_BANDS.findIndex((b) => age < b.maxHours);
@@ -182,16 +194,32 @@ function details(
 export async function stateDetails(uf: string, hours: Window) {
 	const code = uf.toUpperCase();
 	if (!isState(code)) return null;
-	const [data, history] = await Promise.all([
+	const [data, history, ytds] = await Promise.all([
 		getFires(hours),
 		loadRegionHistory(code),
+		loadCityYtds(code),
 	]);
+	const { project } = frameProjector(code);
 	return {
 		uf: code,
 		name: STATE_NAMES[code] ?? code,
 		...details(data, { uf: code }),
 		cities: cityRanking(data, { uf: code }, 30),
 		history,
+		cityCircles:
+			ytds &&
+			cityCircles(
+				municipalities
+					.all()
+					.filter((m) => m.uf === code)
+					.map((m) => ({ id: m.id, name: m.name, slug: slugify(m.name) })),
+				ytds,
+				(id) => {
+					const c = (centroids as Record<string, number[]>)[String(id)];
+					return c && c.length === 2 ? [c[0] ?? 0, c[1] ?? 0] : undefined;
+				},
+				project,
+			),
 	};
 }
 
