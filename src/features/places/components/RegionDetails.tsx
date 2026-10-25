@@ -15,6 +15,7 @@ import {
 import { MapTrifoldIcon, ScalesIcon } from "@phosphor-icons/react";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { FireEstimate } from "~/features/fires/components/FireEstimate";
 import { Freshness } from "~/features/fires/components/Freshness";
 import { HourlyChart } from "~/features/fires/components/HourlyChart";
 import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
@@ -226,12 +227,7 @@ export function RegionDetails({
 
 			<SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
 				<Stack gap="sm">
-					<Group gap={8} align="baseline" wrap="nowrap">
-						<Text fz={44} fw={700} lh={1}>
-							≈ {NUMBER.format(d.fires)}
-						</Text>
-						<Text fw={600}>{d.fires === 1 ? "fogo" : "fogos"}</Text>
-					</Group>
+					<FireEstimate fires={d.fires} />
 					<Text c="dimmed">
 						{NUMBER.format(d.total)}{" "}
 						{d.total === 1 ? "foco detectado" : "focos detectados"} nas últimas{" "}

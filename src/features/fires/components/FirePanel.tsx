@@ -34,6 +34,7 @@ import {
 	type TopFire,
 } from "../view";
 import { Download } from "./Download";
+import { FireEstimate } from "./FireEstimate";
 import { Freshness } from "./Freshness";
 import { HourlyChart } from "./HourlyChart";
 import { Timeline } from "./Timeline";
@@ -218,14 +219,7 @@ export function FirePanel({
 						</Alert>
 					) : summary && data ? (
 						<Box>
-							<Group gap={8} align="baseline" wrap="nowrap">
-								<Text fz={32} fw={700} lh={1.1}>
-									≈ {NUMBER.format(summary.fires)}
-								</Text>
-								<Text size="sm" fw={600}>
-									{summary.fires === 1 ? "fogo" : "fogos"}
-								</Text>
-							</Group>
+							<FireEstimate fires={summary.fires} />
 							<Text size="sm" c="dimmed">
 								{NUMBER.format(summary.total)}{" "}
 								{summary.total === 1 ? "foco detectado" : "focos detectados"}{" "}
