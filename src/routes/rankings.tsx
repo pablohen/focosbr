@@ -1,5 +1,5 @@
-import { Anchor, Stack, Table, Text, Title } from "@mantine/core";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Stack, Table, Text, Title } from "@mantine/core";
+import { createFileRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { AnomalyMap } from "~/features/history/components/AnomalyMap";
 import { percentVsAverage, ytdPeriod } from "~/features/history/format";
@@ -113,34 +113,7 @@ function RankingsPage() {
 							satélite de referência (AQUA, passagem da tarde) é a série que
 							permite comparar anos; o mapa conta todos os satélites. Atualizado
 							diariamente, até o último dia fechado (horário de Brasília).
-							Dados: INPE, Programa Queimadas.{" "}
-							<Anchor
-								renderRoot={(props) => <Link {...props} to="/alerts" />}
-								size="xs"
-							>
-								Alertas
-							</Anchor>{" "}
-							·{" "}
-							<Anchor
-								renderRoot={(props) => <Link {...props} to="/compare" />}
-								size="xs"
-							>
-								Comparar lugares
-							</Anchor>{" "}
-							·{" "}
-							<Anchor
-								renderRoot={(props) => <Link {...props} to="/week" />}
-								size="xs"
-							>
-								Resumo da semana
-							</Anchor>{" "}
-							·{" "}
-							<Anchor
-								renderRoot={(props) => <Link {...props} to="/years" />}
-								size="xs"
-							>
-								Por ano
-							</Anchor>
+							Dados: INPE, Programa Queimadas.
 						</Text>
 					</>
 				)}

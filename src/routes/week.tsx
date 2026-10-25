@@ -167,21 +167,7 @@ function WeekPage() {
 				</SimpleGrid>
 				<RowTable title="Biomas" rows={biomes} columns={COLUMNS} />
 				<Text size="xs" c="dimmed">
-					Atualizado toda manhã. Dados: INPE, Programa Queimadas. Veja também os{" "}
-					<Anchor
-						renderRoot={(props) => <Link {...props} to="/alerts" />}
-						size="xs"
-					>
-						alertas
-					</Anchor>{" "}
-					e os{" "}
-					<Anchor
-						renderRoot={(props) => <Link {...props} to="/rankings" />}
-						size="xs"
-					>
-						rankings do ano
-					</Anchor>
-					.
+					Atualizado toda manhã. Dados: INPE, Programa Queimadas.
 				</Text>
 			</Stack>
 		</PageShell>
