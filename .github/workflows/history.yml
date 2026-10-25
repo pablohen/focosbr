@@ -1,4 +1,5 @@
-# Daily refresh of the `history` collection the state and city pages read:
+# Daily refresh of the `history` collection the state and city pages read
+# (and its summaries and alerts), then of INPE's fire-risk forecast:
 # this month and last month from INPE's monthly files, and the last 31
 # days from its daily files (see scripts/history.ts). INPE closes the
 # previous day around 09:00 in Brasília, so this runs at 09:30 (12:30 UTC).
@@ -46,3 +47,6 @@ jobs:
         run: pnpm install --frozen-lockfile
       - if: steps.secret.outputs.set == 'true'
         run: pnpm history:build
+      # INPE's fire-risk forecast (issued from 07:45 UTC, ready by about 11:00).
+      - if: steps.secret.outputs.set == 'true'
+        run: pnpm forecast:build

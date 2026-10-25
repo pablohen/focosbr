@@ -18,6 +18,7 @@ import { Freshness } from "~/features/fires/components/Freshness";
 import { HourlyChart } from "~/features/fires/components/HourlyChart";
 import { type BBox, WINDOWS, type Window } from "~/features/fires/schemas";
 import { AGE_BANDS } from "~/features/fires/view";
+import { ForecastStrip } from "~/features/forecast/components/ForecastStrip";
 import { HistorySection } from "~/features/history/components/HistorySection";
 import { biomeByName } from "../biomes";
 import { slugify } from "../places";
@@ -358,6 +359,10 @@ export function RegionDetails({
 						}))}
 					/>
 				</Section>
+			)}
+
+			{"forecast" in d && d.forecast && (
+				<ForecastStrip forecast={d.forecast} name={name} />
 			)}
 
 			{d.history && <HistorySection history={d.history} name={name} />}

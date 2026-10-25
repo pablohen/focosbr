@@ -18,7 +18,8 @@
 		"geo:municipalities": "node scripts/municipalities.ts",
 		"geo:centroids": "tsx scripts/centroids.ts",
 		"icons": "tsx scripts/icons.ts",
-		"history:build": "tsx --env-file-if-exists=.env scripts/history.ts"
+		"history:build": "tsx --env-file-if-exists=.env scripts/history.ts",
+		"forecast:build": "tsx --env-file-if-exists=.env scripts/forecast.ts"
 	},
 	"dependencies": {
 		"@fontsource/inter": "5.3.0",

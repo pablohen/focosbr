@@ -19,6 +19,7 @@ import {
 	summarize,
 	topFires,
 } from "../fires/view";
+import { loadForecast } from "../forecast/forecast.server";
 import { loadCityYtds, loadRegionHistory } from "../history/history.server";
 import { BRAZIL_ID } from "../history/schemas";
 import {
@@ -194,10 +195,11 @@ function details(
 export async function stateDetails(uf: string, hours: Window) {
 	const code = uf.toUpperCase();
 	if (!isState(code)) return null;
-	const [data, history, ytds] = await Promise.all([
+	const [data, history, ytds, forecast] = await Promise.all([
 		getFires(hours),
 		loadRegionHistory(code),
 		loadCityYtds(code),
+		loadForecast(code),
 	]);
 	const { project } = frameProjector(code);
 	return {
@@ -206,6 +208,7 @@ export async function stateDetails(uf: string, hours: Window) {
 		...details(data, { uf: code }),
 		cities: cityRanking(data, { uf: code }, 30),
 		history,
+		forecast,
 		cityCircles:
 			ytds &&
 			cityCircles(
@@ -227,9 +230,10 @@ export async function stateDetails(uf: string, hours: Window) {
 export async function cityDetails(uf: string, slug: string, hours: Window) {
 	const m = municipalities.find(uf, slug);
 	if (!m) return null;
-	const [data, history] = await Promise.all([
+	const [data, history, forecast] = await Promise.all([
 		getFires(hours),
 		loadRegionHistory(String(m.id)),
+		loadForecast(String(m.id)),
 	]);
 	const label = placeLabel(m.name, m.uf);
 	return {
@@ -239,6 +243,7 @@ export async function cityDetails(uf: string, slug: string, hours: Window) {
 		label,
 		...details(data, { uf: m.uf, place: label }),
 		history,
+		forecast,
 	};
 }
 
