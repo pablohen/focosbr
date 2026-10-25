@@ -6,6 +6,7 @@ import { getAlerts } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { PageTitle } from "~/features/places/components/PageTitle";
+import { Unavailable } from "~/features/places/components/Unavailable";
 import { absoluteUrl } from "~/lib/site";
 
 const TITLE = "Alertas · FocosBR";
@@ -58,7 +59,7 @@ function AlertsPage() {
 					</Anchor>
 				</PageTitle>
 				{alerts === null ? (
-					<Text>Os alertas estão indisponíveis no momento.</Text>
+					<Unavailable what="os alertas" />
 				) : alerts.length === 0 ? (
 					<Text>Nenhum alerta ainda.</Text>
 				) : (

@@ -1,10 +1,11 @@
-import { Anchor, Stack, Table, Text } from "@mantine/core";
+import { Anchor, Stack, Table } from "@mantine/core";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarSeries } from "~/features/fires/components/BarSeries";
 import { getYear } from "~/features/history/history.functions";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { PageTitle } from "~/features/places/components/PageTitle";
+import { Unavailable } from "~/features/places/components/Unavailable";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -54,7 +55,7 @@ function YearsPage() {
 					note="É a série que permite comparar anos. Escolha um ano para ver os meses, estados, biomas e municípios."
 				/>
 				{totals.length === 0 ? (
-					<Text>O histórico está indisponível no momento.</Text>
+					<Unavailable what="o histórico" />
 				) : (
 					<>
 						<BarSeries

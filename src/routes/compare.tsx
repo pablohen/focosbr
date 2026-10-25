@@ -32,6 +32,7 @@ import { percentVsAverage, ytdPeriod } from "~/features/history/format";
 import { FIRST_YEAR } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { PageTitle } from "~/features/places/components/PageTitle";
+import { Unavailable } from "~/features/places/components/Unavailable";
 import { entryKey } from "~/features/places/search";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
@@ -246,9 +247,7 @@ function ComparePage() {
 								firstYear={FIRST_YEAR}
 							/>
 						) : (
-							<Text size="sm" c="dimmed">
-								Histórico indisponível para estes lugares no momento.
-							</Text>
+							<Unavailable what="o histórico destes lugares" />
 						)}
 						{scale === "index" && (
 							<Text size="xs" c="dimmed">

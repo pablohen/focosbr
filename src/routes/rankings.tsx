@@ -15,6 +15,7 @@ import {
 	MunicipalityLink,
 	StateLink,
 } from "~/features/places/components/RegionLinks";
+import { Unavailable } from "~/features/places/components/Unavailable";
 import { placeLabel } from "~/features/places/places";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
@@ -59,12 +60,7 @@ function RankingsPage() {
 							: undefined
 					}
 				/>
-				{!rankings && (
-					<Text c="dimmed">
-						Os rankings estão indisponíveis no momento. Tente de novo mais
-						tarde.
-					</Text>
-				)}
+				{!rankings && <Unavailable what="os rankings" />}
 				{rankings && (
 					<>
 						<Stack gap={4}>

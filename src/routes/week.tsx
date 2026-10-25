@@ -10,6 +10,7 @@ import { getWeek } from "~/features/history/history.functions";
 import { FIRST_YEAR, type WeekRow } from "~/features/history/schemas";
 import { PageShell } from "~/features/places/components/PageShell";
 import { PageTitle } from "~/features/places/components/PageTitle";
+import { Unavailable } from "~/features/places/components/Unavailable";
 import { absoluteUrl } from "~/lib/site";
 import { LIST_TABLE } from "~/lib/tables";
 
@@ -116,7 +117,10 @@ function WeekPage() {
 	if (!week)
 		return (
 			<PageShell>
-				<Text>O resumo da semana está indisponível no momento.</Text>
+				<Stack gap="lg">
+					<PageTitle title="Resumo da semana" />
+					<Unavailable what="o resumo da semana" />
+				</Stack>
 			</PageShell>
 		);
 	const brazil = week.regions.find((r) => r.kind === "country");
