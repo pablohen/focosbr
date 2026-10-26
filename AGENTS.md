@@ -10,19 +10,19 @@ Deeper docs: [architecture](docs/architecture.md) · [data](docs/data.md) · [de
 
 Use **pnpm**, never npm or yarn.
 
-| Task                               | Command                                                                                                             |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| Install                            | `pnpm install`                                                                                                      |
-| Dev server (http://localhost:3000) | `pnpm dev`                                                                                                          |
-| Typecheck                          | `pnpm typecheck`                                                                                                    |
-| Lint + format check                | `pnpm lint`                                                                                                         |
-| Auto-fix lint/format               | `pnpm format`                                                                                                       |
-| Tests                              | `pnpm test` (`pnpm test:watch` while developing)                                                                    |
-| Production build                   | `pnpm build` (Nitro: `.output/`, or `.vercel/output/` on Vercel)                                                    |
-| Run production build               | `pnpm start`                                                                                                        |
-| Refresh the fire-risk forecast     | `pnpm forecast:build` (INPE's rasters → `forecast`; daily in the History workflow). Needs `MONGODB_URI`             |
-| Regenerate centroids / app icons   | `pnpm geo:centroids` (IBGE mesh → `places/centroids.json`), `pnpm icons` (favicon flame → `public/icons`)           |
-| Refresh history in MongoDB         | `pnpm history:build` (daily: this and last month, last 31 days; `--backfill` once: since 2003). Needs `MONGODB_URI` |
+| Task                               | Command                                                                                                                                                                                                                                 |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Install                            | `pnpm install`                                                                                                                                                                                                                          |
+| Dev server (http://localhost:3000) | `pnpm dev`                                                                                                                                                                                                                              |
+| Typecheck                          | `pnpm typecheck`                                                                                                                                                                                                                        |
+| Lint + format check                | `pnpm lint`                                                                                                                                                                                                                             |
+| Auto-fix lint/format               | `pnpm format`                                                                                                                                                                                                                           |
+| Tests                              | `pnpm test` (`pnpm test:watch` while developing)                                                                                                                                                                                        |
+| Production build                   | `pnpm build` (Nitro: `.output/`, or `.vercel/output/` on Vercel)                                                                                                                                                                        |
+| Run production build               | `pnpm start`                                                                                                                                                                                                                            |
+| Refresh the fire-risk forecast     | `pnpm forecast:build` (INPE's rasters → `forecast`; daily in the History workflow). Needs `MONGODB_URI`                                                                                                                                 |
+| Regenerate centroids / app icons   | `pnpm geo:centroids` (IBGE mesh → `places/centroids.json` and `data/municipal-mesh.json.gz`, which the forecast samples; IBGE doesn't answer GitHub's runners, so the mesh is committed), `pnpm icons` (favicon flame → `public/icons`) |
+| Refresh history in MongoDB         | `pnpm history:build` (daily: this and last month, last 31 days; `--backfill` once: since 2003). Needs `MONGODB_URI`                                                                                                                     |
 
 Before you call a change done, run `pnpm lint && pnpm typecheck && pnpm test && pnpm build`. CI (`.github/workflows/ci.yml`) runs the same four on every push to `main` and every pull request; Vercel deploys `main` regardless, so don't push red. For UI changes, also load the page, check the browser console, and look at it at 375 px as well as desktop.
 

@@ -13,7 +13,8 @@
  * Usage: pnpm forecast:build   (needs MONGODB_URI; GitHub Actions runs it
  * daily after pnpm history:build)
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
+import { gunzipSync } from "node:zlib";
 import type { FeatureCollection, MultiPolygon, Polygon } from "geojson";
 import { fromArrayBuffer } from "geotiff";
 import { addDays, NO_DATA, summarizeRisk } from "../src/features/forecast/risk";
@@ -27,13 +28,8 @@ import { gridPoints, polygonsOf } from "../src/lib/geometry";
 
 const BASE =
 	"https://dataserver-coids.inpe.br/queimadas/queimadas/riscofogo_meteorologia/previsto/risco_fogo";
-const MESH =
-	"https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo%2Bjson&qualidade=minima&intrarregiao=municipio";
-const CACHE = ".cache/forecast";
 /** Brazil with a margin: [west, south, east, north]. */
 const WINDOW = [-74.2, -33.9, -34.6, 5.4] as const;
-
-mkdirSync(CACHE, { recursive: true });
 
 /** The raster's Last-Modified, or null if INPE doesn't have it. */
 async function lastModified(t: number): Promise<Date | null> {
@@ -85,13 +81,11 @@ type Shapes = FeatureCollection<Polygon | MultiPolygon, Record<string, string>>;
 const outlines = JSON.parse(
 	readFileSync("public/data/state-outlines.geojson", "utf8"),
 ) as Shapes;
-const meshFile = `${CACHE}/mesh-br.json`;
-if (!existsSync(meshFile)) {
-	const res = await fetch(MESH);
-	if (!res.ok) throw new Error(`${res.status} ${MESH}`);
-	writeFileSync(meshFile, await res.text());
-}
-const mesh = JSON.parse(readFileSync(meshFile, "utf8")) as Shapes;
+// IBGE's municipal mesh, committed by pnpm geo:centroids: IBGE's server
+// doesn't answer GitHub's runners.
+const mesh = JSON.parse(
+	gunzipSync(readFileSync("data/municipal-mesh.json.gz")).toString("utf8"),
+) as Shapes;
 
 const regions: { id: string; points: [number, number][] }[] = [];
 for (const f of outlines.features)
